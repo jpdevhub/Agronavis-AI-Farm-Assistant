@@ -1,260 +1,226 @@
-import React, { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useAuth } from '../auth/context/AuthContext'
-import ProtectedRoute from '../auth/components/ProtectedRoute'
-import { supabase } from '../lib/supabase'
-import DashboardContent from '../components/Dashboard' // Import with a different name
-import LanguageSwitcher from '../components/LanguageSwitcher'
-import styles from '../styles/Dashboard.module.css'
+import React, { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/router';
+import { useAuth } from '../auth/context/AuthContext';
+import ProtectedRoute from '../auth/components/ProtectedRoute';
+import { farmApi, profileApi } from '../utils/farmApi';
+import DashboardContent from '../components/Dashboard';
+import s from '../styles/AppShell.module.css';
 
-interface FarmerProfile {
-  id: string
-  full_name: string
-  email: string
-  phone?: string
-  location?: string
-  created_at: string
+interface Profile {
+  id: string;
+  full_name: string;
+  phone_number?: string;
 }
 
-interface Farm {
-  id: string
-  farm_name: string
-  farm_size: number
-  location: string
-  latitude?: number
-  longitude?: number
-}
+// Sidebar nav maps directly to dashboard tab IDs
+const NAV = [
+  {
+    id: 'overview',
+    label: 'Dashboard',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'farms',
+    label: 'My Farms',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'map',
+    label: 'Field Map',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+        <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'fertilizer',
+    label: 'Fertilizer',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'resources',
+    label: 'Inventory',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+        <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'analytics',
+    label: 'Analytics',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'profile',
+    label: 'Profile',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    ),
+  },
+];
 
-interface Crop {
-  id: string
-  crop_type: string
-  variety: string
-  area_allocated: number
-  planting_date: string
-  expected_harvest_date: string
-}
-
-const Dashboard: React.FC = () => {
-  const { user, signOut } = useAuth()
-  const { t, i18n } = useTranslation()
-  const [profile, setProfile] = useState<FarmerProfile | null>(null)
-  const [farms, setFarms] = useState<Farm[]>([])
-  const [crops, setCrops] = useState<Crop[]>([])
-  const [loading, setLoading] = useState(true)
-  const [menuOpen, setMenuOpen] = useState(false)
+const DashboardPage: React.FC = () => {
+  const router = useRouter();
+  const { user, signOut } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    async function loadData() {
+    async function load() {
       if (!user) return;
-      
       try {
-        // Load farmer profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('farmers')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error loading profile:', profileError);
-        } else {
-          setProfile(profileData);
-        }
-
-        // Load farms
-        const { data: farmsData, error: farmsError } = await supabase
-          .from('farms')
-          .select('*')
-          .eq('farmer_id', user.id);
-
-        if (farmsError) {
-          console.error('Error loading farms:', farmsError);
-        } else {
-          setFarms(farmsData || []);
-        }
-
-        // Load crops
-        const { data: cropsData, error: cropsError } = await supabase
-          .from('crops')
-          .select('*')
-          .eq('farmer_id', user.id);
-
-        if (cropsError) {
-          console.error('Error loading crops:', cropsError);
-        } else {
-          setCrops(cropsData || []);
-        }
-      } catch (error) {
-        console.error('Error loading data:', error);
+        const [profileRes] = await Promise.all([
+          profileApi.getProfile().catch(() => null),
+          farmApi.getFarms().catch(() => []),
+        ]);
+        if (profileRes?.data) setProfile(profileRes.data);
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
     }
-    
-    loadData();
+    load();
   }, [user]);
 
-  // Close menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuOpen && !(event.target as Element).closest('.relative')) {
-        setMenuOpen(false)
+    const handle = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
       }
-    }
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, []);
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [menuOpen])
+  const initials = profile?.full_name
+    ? profile.full_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    : user?.email?.[0]?.toUpperCase() ?? 'U';
 
-  const handleSignOut = async () => {
-    try {
-      await signOut()
-    } catch (error) {
-      console.error('Sign out error:', error)
-    }
-  }
-
-  // Function to get display name based on current language
-  const getDisplayName = () => {
-    const currentLang = i18n.language
-    
-    if (currentLang === 'hi' || currentLang === 'bn') {
-      return 'Suraj' // Hardcoded for Hindi and Bengali
-    } else {
-      // For English, use profile name from database
-      return profile?.full_name || 'User'
-    }
-  }
-
-  // Demo menu handlers
-  const handleMenuOption = (option: string) => {
-    setMenuOpen(false)
-    
-    switch (option) {
-      case 'settings':
-        alert('Settings page - Demo version')
-        break
-      case 'legalNotices':
-        alert('Legal Notices page - Demo version')
-        break
-      case 'contact':
-        alert('Contact page - Demo version')
-        break
-      case 'sales':
-        alert('Sales page - Demo version')
-        break
-      case 'signOut':
-        handleSignOut()
-        break
-      default:
-        break
-    }
-  }
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Farmer';
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-green-600 shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-3">
-              <div className="flex items-center">
-                <img
-                  src="/images/AgronavisLogo.png"
-                  alt="AgroNavis Logo"
-                  style={{ width: 60, height: 60, objectFit: 'contain', borderRadius: 8 }}
-                />
-                <h1 className="text-xl font-bold text-white ml-2">{t('dashboard.title')}</h1>
-              </div>
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <LanguageSwitcher />
-                <span className="text-white text-xs sm:text-sm">
-                  {t('dashboard.welcome')}, {getDisplayName()}!
-                </span>
-                
-                {/* 3-dots menu */}
-                <div className="relative">
-                  <button
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    className="p-1.5 text-white hover:bg-green-700 rounded-full transition-colors"
-                    aria-label="Menu"
-                  >
-                    <svg 
-                      className="w-5 h-5" 
-                      fill="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                    </svg>
-                  </button>
+      <div className={s.shell}>
+        {/* Sidebar */}
+        <aside className={s.sidebar}>
+          <div className={s.sidebarBrand}>
+            <div className={s.brandName}>Agronavis</div>
+            <div className={s.brandSub}>Field Intelligence</div>
+          </div>
 
-                  {/* Dropdown Menu */}
-                  {menuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                      <button
-                        onClick={() => handleMenuOption('settings')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        ⚙️ {t('dashboard.menu.settings')}
-                      </button>
-                      <button
-                        onClick={() => handleMenuOption('legalNotices')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        📋 {t('dashboard.menu.legalNotices')}
-                      </button>
-                      <button
-                        onClick={() => handleMenuOption('contact')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        📞 {t('dashboard.menu.contact')}
-                      </button>
-                      <button
-                        onClick={() => handleMenuOption('sales')}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        💰 {t('dashboard.menu.sales')}
-                      </button>
-                      <hr className="my-1" />
-                      <button
-                        onClick={() => handleMenuOption('signOut')}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        🚪 {t('dashboard.signOut')}
-                      </button>
-                    </div>
-                  )}
-                </div>
+          <nav className={s.sidebarNav}>
+            {NAV.map(item => (
+              <button
+                key={item.id}
+                className={`${s.navItem} ${activeTab === item.id ? s.navItemActive : ''}`}
+                onClick={() => setActiveTab(item.id)}
+              >
+                <span className={s.navIcon}>{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className={s.sidebarCta}>
+            <button className={s.ctaBtn} onClick={() => setActiveTab('map')}>
+              New Analysis
+            </button>
+          </div>
+        </aside>
+
+        {/* Main */}
+        <div className={s.main}>
+          <header className={s.header}>
+            <div className={s.headerLeft}>
+              <div className={s.searchBar}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" placeholder="Search satellite data..." />
               </div>
             </div>
-          </div>
-        </header>
 
-        {/* Main Content */}
-        <main>
-          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div className={s.headerRight}>
+              <button className={s.iconBtn} aria-label="Notifications">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+              </button>
+              <button className={s.iconBtn} aria-label="Settings" onClick={() => setActiveTab('profile')}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </button>
+
+              <div className={s.dropdownWrap} ref={menuRef}>
+                <div className={s.avatar} onClick={() => setMenuOpen(v => !v)} title={displayName}>
+                  {initials}
+                </div>
+                {menuOpen && (
+                  <div className={s.dropdown}>
+                    <button className={s.dropdownItem} onClick={() => { setMenuOpen(false); setActiveTab('profile'); }}>
+                      Profile Settings
+                    </button>
+                    <div className={s.dropdownDivider} />
+                    <button
+                      className={`${s.dropdownItem} ${s.dropdownDanger}`}
+                      onClick={async () => { setMenuOpen(false); await signOut(); }}
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          <div className={s.content}>
             {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+              <div className={s.loadingState}>
+                <div className={s.spinner} />
+                Loading your farm data...
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6">
-                {/* Import our enhanced Dashboard component */}
-                <div className="mx-auto w-full max-w-4xl">
-                  <div className="bg-white rounded-lg shadow">
-                    {/* This imports the new enhanced Dashboard component we created */}
-                    <DashboardContent />
-                  </div>
-                </div>
-              </div>
+              <DashboardContent activeTab={activeTab} setActiveTab={setActiveTab} />
             )}
           </div>
-        </main>
+        </div>
       </div>
     </ProtectedRoute>
   );
 };
 
-export default Dashboard;
+export default DashboardPage;

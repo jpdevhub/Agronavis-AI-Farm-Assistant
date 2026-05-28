@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabase';
+import { farmApi, profileApi } from '../../utils/farmApi';
 
 /**
  * OAuth Callback Page
@@ -34,35 +35,27 @@ export default function AuthCallback() {
           return;
         }
 
-        // Check if the user already has a farmer profile
-        const { data: farmerProfile, error: profileError } = await supabase
-          .from('farmers')
-          .select('id')
-          .eq('id', user.id)
-          .single();
+        try {
+          // Check if the user already has a farmer profile via backend API
+          const profileResponse = await profileApi.getProfile();
 
-        if (profileError && profileError.code !== 'PGRST116') {
-          // PGRST116 = "row not found" — that's expected for new users
-          console.error('Error checking farmer profile:', profileError);
-          router.replace('/onboarding/profile');
-          return;
-        }
+          if (profileResponse.onboarding || !profileResponse.data) {
+            // New user — go through onboarding
+            router.replace('/onboarding/profile');
+            return;
+          }
 
-        if (farmerProfile) {
           // Profile exists — check if a farm is set up
-          const { data: farm } = await supabase
-            .from('farms')
-            .select('id')
-            .eq('farmer_id', user.id)
-            .single();
+          const farms = await farmApi.getFarms();
 
-          if (farm) {
+          if (farms && farms.length > 0) {
             router.replace('/dashboard');
           } else {
             router.replace('/onboarding/farm');
           }
-        } else {
-          // New user — go through onboarding
+        } catch (err) {
+          console.error('Error checking farmer profile or farms:', err);
+          // Fallback to profile onboarding
           router.replace('/onboarding/profile');
         }
       } catch (err) {
