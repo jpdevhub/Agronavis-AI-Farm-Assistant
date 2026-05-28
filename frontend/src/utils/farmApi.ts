@@ -1,78 +1,169 @@
+/**
+ * API Client — Frontend
+ *
+ * Single axios instance with auth interceptor.
+ * All API calls to the Express backend go through this file.
+ *
+ * Architecture: Frontend → Express Backend → Supabase
+ * (Frontend uses Supabase JS SDK ONLY for auth session management)
+ */
+
 import axios from 'axios';
 import { supabase } from '../lib/supabase';
 
-// Create axios instance with base URL
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
-});
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 
-// Add auth token to every request
+// Shared axios instance — exported so other services (soilService, profileApi, etc.) reuse it.
+export const api = axios.create({ baseURL: BASE_URL });
+
+// Attach the Supabase JWT to every request automatically
 api.interceptors.request.use(async (config) => {
-  const session = await supabase.auth.getSession();
-  const token = session?.data?.session?.access_token;
-  
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session?.access_token) {
+    config.headers.Authorization = `Bearer ${session.access_token}`;
   }
-  
+
   return config;
 });
 
-// Farm related API calls
+// ─── Farm API ─────────────────────────────────────────────────────────────────
+
 export const farmApi = {
-  // Get all farms for the authenticated user
+  /** Get all farms for the authenticated user */
   getFarms: async () => {
-    const response = await api.get('/farms');
-    return response.data.data;
+    const { data } = await api.get('/farms');
+    return data.data;
   },
-  
-  // Get farms with summary data
+
+  /** Get farm summary list */
   getFarmsSummary: async () => {
-    const response = await api.get('/farms/summary');
-    return response.data.data;
+    const { data } = await api.get('/farms/summary');
+    return data.data;
   },
-  
-  // Get farm by ID
+
+  /** Get a single farm by ID */
   getFarm: async (id: string) => {
-    const response = await api.get(`/farms/${id}`);
-    return response.data.data;
+    const { data } = await api.get(`/farms/${id}`);
+    return data.data;
   },
-  
-  // Get farm with detailed info
+
+  /** Get farm with full detail (crops, soil, yields) */
   getFarmDetails: async (id: string) => {
-    const response = await api.get(`/farms/${id}/details`);
-    return response.data.data;
+    const { data } = await api.get(`/farms/${id}/details`);
+    return data.data;
   },
-  
-  // Create a new farm
-  createFarm: async (farmData: any) => {
-    const response = await api.post('/farms', farmData);
-    return response.data.data;
+
+  /** Create a new farm */
+  createFarm: async (farmData: Record<string, unknown>) => {
+    const { data } = await api.post('/farms', farmData);
+    return data.data;
   },
-  
-  // Update farm
-  updateFarm: async (id: string, farmData: any) => {
-    const response = await api.put(`/farms/${id}`, farmData);
-    return response.data.data;
+
+  /** Update a farm */
+  updateFarm: async (id: string, farmData: Record<string, unknown>) => {
+    const { data } = await api.put(`/farms/${id}`, farmData);
+    return data.data;
   },
-  
-  // Delete farm
+
+  /** Delete a farm */
   deleteFarm: async (id: string) => {
-    const response = await api.delete(`/farms/${id}`);
-    return response.data;
+    const { data } = await api.delete(`/farms/${id}`);
+    return data;
   },
-  
-  // Find farms near a location
-  getFarmsNearLocation: async (latitude: number, longitude: number, radius: number = 10) => {
-    const response = await api.get('/farms/location/nearby', {
-      params: { latitude, longitude, radius }
+
+  /** Find farms near a GPS coordinate */
+  getFarmsNearLocation: async (
+    latitude: number,
+    longitude: number,
+    radius = 10
+  ) => {
+    const { data } = await api.get('/farms/location/nearby', {
+      params: { latitude, longitude, radius },
     });
-    return response.data.data;
-  }
+    return data.data;
+  },
+
+  /** Get all mapped fields for a farm */
+  getFarmFields: async (farmId: string) => {
+    const { data } = await api.get(`/farms/${farmId}/fields`);
+    return data.data;
+  },
+
+  /** Add a drawn polygon field to a farm */
+  addFarmField: async (
+    farmId: string,
+    fieldData: {
+      name: string;
+      area_acres: number;
+      area_hectares?: number;
+      polygon: Array<{ lat: number; lng: number }>;
+      center_latitude?: number;
+      center_longitude?: number;
+    }
+  ) => {
+    const { data } = await api.post(`/farms/${farmId}/fields`, fieldData);
+    return data.data;
+  },
+
+  /** Remove a field from a farm */
+  deleteFarmField: async (farmId: string, fieldId: string) => {
+    const { data } = await api.delete(`/farms/${farmId}/fields/${fieldId}`);
+    return data;
+  },
 };
 
-// Export other API modules as needed
-export default {
-  farm: farmApi,
-  // Add other API modules here
+// ─── Profile API ──────────────────────────────────────────────────────────────
+
+export const profileApi = {
+  /** Fetch the current user's farmer profile */
+  getProfile: async () => {
+    const { data } = await api.get('/profile');
+    return data;
+  },
+
+  /** Create or update the current user's farmer profile */
+  saveProfile: async (profileData: {
+    full_name: string;
+    phone_number: string;
+    gender?: string;
+    date_of_birth?: string;
+    years_of_experience?: number;
+    education_level?: string;
+  }) => {
+    const { data } = await api.post('/profile', profileData);
+    return data;
+  },
 };
+
+// ─── Crop API ─────────────────────────────────────────────────────────────────
+
+export const cropApi = {
+  /** Get all crops for a specific farm */
+  getFarmCrops: async (farmId: string) => {
+    const { data } = await api.get(`/crops/farm/${farmId}`);
+    return data;
+  },
+
+  /** Create a new crop */
+  createCrop: async (cropData: Record<string, unknown>) => {
+    const { data } = await api.post('/crops', cropData);
+    return data;
+  },
+
+  /** Update an existing crop */
+  updateCrop: async (id: string, cropData: Record<string, unknown>) => {
+    const { data } = await api.put(`/crops/${id}`, cropData);
+    return data;
+  },
+
+  /** Delete a crop */
+  deleteCrop: async (id: string) => {
+    const { data } = await api.delete(`/crops/${id}`);
+    return data;
+  },
+};
+
+export default farmApi;

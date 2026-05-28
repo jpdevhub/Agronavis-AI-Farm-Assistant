@@ -1,296 +1,1008 @@
-/* Dashboard styles */
-.dashboardContainer {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 16px;
-  background-color: #f5f5f5;
+/* ============================================================
+   AgroNavis Dashboard Component Styles
+   Based on Stitch dashboard_desktop + my_farms_desktop designs
+   ============================================================ */
+
+/* ---- Greeting section ---- */
+.greeting {
+  margin-bottom: 28px;
 }
 
-.header {
-  margin-bottom: 16px;
+.greetingTitle {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
 }
 
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-}
-
-.dateTime {
-  margin-top: 8px;
-}
-
-.currentDay {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-
-.currentDate {
+.greetingSub {
   font-size: 14px;
-  color: #666;
-  margin-top: 2px;
+  color: var(--color-text-secondary);
 }
 
-.weatherCard {
-  width: 60%;
-  max-width: 300px;
-  background-color: white;
-  border-radius: 24px;
-  padding: 18px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  cursor: pointer;
-  margin: 0 0 20px 0;
-  align-self: flex-start;
-  transition: all 0.3s ease;
-}
-
-.weatherCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
-}
-
-/* Logo container for dashboard header */
-.logoContainer {
-  width: 50px;
-  height: 50px;
-  position: relative;
-  margin-right: 8px;
-  overflow: hidden;
-}
-
-.cardsGrid {
+/* ---- Tab navigation ---- */
+.tabNav {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 16px;
-  flex: 1;
-  overflow-y: auto;
+  gap: 2px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+  width: fit-content;
 }
 
-.card {
-  background-color: white;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.tabBtn {
+  padding: 8px 18px;
+  border: none;
+  background: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.tabBtn:hover {
+  color: var(--color-text-secondary);
+  background: var(--gray-50);
+}
+
+.tabBtnActive {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* ---- Overview grid ---- */
+.overviewGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.overviewGridWide {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* ---- Card ---- */
+.card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.cardSub {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
 }
 
 .cardHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
-.cardTitle {
-  font-weight: bold;
-  font-size: 18px;
-}
-
-.cardTemp {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.cardContent {
+/* ---- Weather card ---- */
+.weatherCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px 24px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 20px;
+  box-shadow: var(--shadow-sm);
 }
 
-.weatherInfo {
+.weatherTemp {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -1px;
+}
+
+.weatherLabel {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weatherMeta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.weatherMetaItem { font-size: 12px; }
+.weatherMetaKey { color: var(--color-text-muted); text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; }
+.weatherMetaVal { font-weight: 700; font-size: 14px; color: var(--color-text-primary); }
+
+/* ---- Crop progress card ---- */
+.cropProgress {
+  position: relative;
+}
+
+.progressRing {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.humidity {
-  margin-top: 8px;
-}
-
-.weatherIcon {
-  display: flex;
-  justify-content: center;
   align-items: center;
+  margin-bottom: 16px;
 }
 
-/* Diagnosis Card Styles */
-.diagnosisContent {
+.progressLabel {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.progressSub {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.cropMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cropTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--green-50);
+  color: var(--color-primary);
+  border: 1px solid var(--green-200);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cropHealthBadge {
+  display: inline-block;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.cropStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cropStat {
+  background: var(--gray-50);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.cropStatLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cropStatVal {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.cropStatValGreen { color: #059669; }
+
+.harvestRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.harvestBar {
+  height: 4px;
+  background: var(--green-200);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.harvestBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #064e3b);
+  border-radius: 2px;
+  width: 65%;
+}
+
+/* ---- Priority tasks ---- */
+.tasksCard {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.diagnosisSteps {
+.taskItem {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin: 16px 0;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--gray-50);
 }
 
-.diagnosisStep {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  text-align: center;
-  width: 28%;
-}
-
-.stepIcon {
-  margin-bottom: 4px;
-  position: relative;
+.taskIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: white;
+  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-primary);
 }
 
-/* Base icon styling with transition */
-.iconImage {
-  display: block;
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-  max-width: 100%;
-  height: auto;
+.taskInfo { flex: 1; min-width: 0; }
+.taskName { font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
+.taskDesc { font-size: 12px; color: var(--color-text-muted); }
+.taskDue { font-size: 11px; color: var(--color-text-muted); margin-top: 2px; }
+
+.taskPriority {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
 }
 
-/* Hover effects for icons */
-.diagnosisStep:hover .iconImage {
-  transform: scale(1.1);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-}
+.priorityHigh { background: #fee2e2; color: #dc2626; }
+.priorityRoutine { background: var(--gray-100); color: var(--gray-600); }
+.priorityBacklog { background: #fef9c3; color: #92400e; }
 
-/* Glow Effect */
-.stepIconGlow .iconImage {
-  transition: all 0.3s ease;
-}
-
-.diagnosisStep:hover .stepIconGlow .iconImage {
-  filter: drop-shadow(0 0 15px rgba(138, 86, 227, 0.6)) 
-          drop-shadow(0 0 30px rgba(138, 86, 227, 0.4));
-  transform: scale(1.15);
-}
-
-/* Ripple Background Effect */
-.stepIconRipple {
-  position: relative;
-}
-
-.stepIconRipple::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(138, 86, 227, 0.2);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-  z-index: 0;
-}
-
-.diagnosisStep:hover .stepIconRipple::before {
-  width: 80px;
-  height: 80px;
-}
-
-.stepIconRipple .iconImage {
-  position: relative;
-  z-index: 1;
-}
-
-.stepText {
+.taskDoneBtn {
+  padding: 6px 14px;
+  background: white;
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
   font-size: 12px;
-  text-align: center;
-}
-
-.stepArrow {
-  font-size: 16px;
-  color: #666;
-}
-
-.diagnosisButton {
-  background-color: #8a56e3;
-  color: white;
-  border: none;
-  border-radius: 24px;
-  padding: 12px;
-  font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--color-text-secondary);
   cursor: pointer;
-  margin-top: 8px;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
 }
 
-/* Features Section Styles */
-.featuresSection {
-  background-color: white;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.taskDoneBtn:hover { border-color: #10b981; color: #059669; }
+
+/* ---- Satellite / Map section ---- */
+.satelliteCard {
+  position: relative;
+  overflow: hidden;
 }
 
-.featuresGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.featureItem {
+.mapPlaceholder {
+  height: 220px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #1a2e1a, #2d5a2d);
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.mapPlaceholderText {
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.liveBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.coordBadge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.signalStrength {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.signalDots {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.signalDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.signalDotWeak { background: var(--color-border); }
+
+.telemetryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.telemetryItem {
+  background: var(--gray-50);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.telemetryLabel { color: var(--color-text-muted); }
+.telemetryVal { font-weight: 700; color: var(--color-text-primary); }
+
+.expandBtn {
+  width: 100%;
+  padding: 9px;
+  background: white;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.expandBtn:hover { border-color: #10b981; }
+
+/* ---- AI Yield banner ---- */
+.yieldBanner {
+  background: linear-gradient(135deg, #064e3b, #065f46 60%, #047857);
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.yieldTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 6px;
+}
+
+.yieldDesc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  max-width: 320px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.yieldBtn {
+  background: rgba(255,255,255,0.15);
+  border: 1.5px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s;
+}
+
+.yieldBtn:hover { background: rgba(255,255,255,0.25); }
+
+.yieldStats {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.yieldStat {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 14px 18px;
+  text-align: center;
+  min-width: 90px;
+}
+
+.yieldStatVal {
+  font-size: 24px;
+  font-weight: 800;
+  color: white;
+}
+
+.yieldStatLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---- Farms list ---- */
+.farmsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.farmCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.farmCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.farmCardImg {
+  height: 140px;
+  background: linear-gradient(160deg, #1a4a1a, #2d6e2d);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 12px;
+}
+
+.farmCardPremiumBadge {
+  background: rgba(255,255,255,0.9);
+  color: #064e3b;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.farmCardBody { padding: 16px; }
+
+.farmCardName {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.featureIcon {
-  font-size: 24px;
-  background-color: #f5f5f5;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.featureText {
-  font-size: 12px;
-  text-align: center;
-}
-
-/* Bottom Navigation */
-.bottomNav {
-  display: flex;
-  justify-content: space-between;
-  background-color: white;
-  border-top: 1px solid #eee;
-  padding: 8px 0;
-  position: sticky;
-  bottom: 0;
-}
-
-.navItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 25%;
-  padding: 8px 0;
-  cursor: pointer;
-}
-
-.navIcon {
-  font-size: 24px;
   margin-bottom: 4px;
 }
 
-.navText {
+.cropBadge {
+  background: var(--green-50);
+  color: var(--color-primary);
+  border: 1px solid var(--green-200);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.farmNpkGrid {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.npkItem {
+  flex: 1;
+  background: var(--gray-50);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+
+.npkLabel { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); }
+.npkVal { font-size: 15px; font-weight: 800; color: var(--color-text-primary); }
+.npkUnit { font-size: 9px; color: var(--color-text-muted); }
+
+.soilDesc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.farmCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
-.active {
-  color: #4CAF50;
+.viewLink {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: gap 0.15s;
 }
+
+.viewLink:hover { gap: 6px; }
+
+/* ---- Fertilizer calculator ---- */
+.fertSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.fertTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.fertDesc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 20px;
+}
+
+.selectRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.selectLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.fertSelect {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: white;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.fertSelect:focus { outline: none; border-color: #10b981; }
+
+.dosageBox {
+  background: var(--gray-50);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.dosageTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 14px;
+}
+
+.dosageItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dosageItem:last-child { border-bottom: none; }
+
+.dosageIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.dosageInfo { flex: 1; }
+.dosageName { font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
+.dosageSub { font-size: 11px; color: var(--color-text-muted); }
+
+.dosageTotal {
+  font-size: 13px;
+  font-weight: 800;
+  color: #059669;
+}
+
+.recalcBtn {
+  width: 100%;
+  padding: 11px;
+  background: white;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: border-color 0.15s;
+}
+
+.recalcBtn:hover { border-color: #10b981; color: #059669; }
+
+/* Shopping list */
+.shoppingList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.shoppingItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--gray-50);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.shoppingIcon {
+  width: 36px;
+  height: 36px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.shoppingInfo { flex: 1; }
+.shoppingName { font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
+.shoppingBags { font-size: 11px; color: var(--color-text-muted); }
+
+.shoppingTotals {
+  border-top: 1px solid var(--color-border);
+  padding-top: 14px;
+  margin-bottom: 14px;
+}
+
+.totalsRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+}
+
+.totalsRowBold {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.orderBtn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+  transition: opacity 0.15s;
+}
+
+.orderBtn:hover { opacity: 0.92; }
+
+/* ---- Map tab ---- */
+.mapContainer {
+  height: 600px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  position: relative;
+}
+
+.mapControls {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 1000;
+  background: white;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: var(--shadow-lg);
+  min-width: 220px;
+}
+
+.mapControlsTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.areaResult {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: white;
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: var(--shadow-lg);
+  min-width: 200px;
+}
+
+.areaResultTitle { font-size: 12px; color: var(--color-text-muted); margin-bottom: 4px; }
+.areaResultVal { font-size: 32px; font-weight: 800; color: var(--color-text-primary); }
+.areaResultUnit { font-size: 16px; font-weight: 600; color: #10b981; }
+
+.confirmBoundaryBtn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #064e3b, #065f46);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 14px;
+  transition: opacity 0.15s;
+}
+
+.confirmBoundaryBtn:hover { opacity: 0.9; }
+.confirmBoundaryBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.saveMessage {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.saveSuccess { background: #f0fdf4; border: 1px solid #bbf7d0; color: #059669; }
+.saveError { background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; }
+.saveInfo { background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; }
+
+/* ---- No data states ---- */
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--color-text-muted);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+}
+
+.emptyDesc { font-size: 13px; margin-bottom: 20px; }
+
+.emptyBtn {
+  padding: 11px 24px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ---- Farm selector ---- */
+.farmSelector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.farmSelectorLabel { font-size: 13px; font-weight: 600; color: var(--color-text-secondary); }
+
+.farmSelectorSelect {
+  padding: 8px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: white;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.farmSelectorSelect:focus { outline: none; border-color: #10b981; }
+
+.addFarmBtn {
+  padding: 8px 16px;
+  background: var(--green-50);
+  border: 1.5px solid var(--green-200);
+  color: var(--color-primary);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  margin-left: auto;
+}
+
+.drawBtn {
+  padding: 8px 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ---- Loading ---- */
+.loadingCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  background: white;
+  border-radius: 16px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  gap: 10px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--green-200);
+  border-top-color: var(--green-600);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- Quick insight card ---- */
+.insightCard {
+  background: linear-gradient(135deg, #064e3b, #065f46);
+  color: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.insightTitle { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+.insightSub { font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 14px; }
+.insightRow { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+.insightKey { color: rgba(255,255,255,0.7); }
+.insightVal { font-weight: 800; color: #6ee7b7; }
+.insightValCost { font-weight: 800; color: #fbbf24; }
+
+.viewRecsBtn {
+  width: 100%;
+  padding: 10px;
+  background: rgba(255,255,255,0.12);
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: white;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 10px;
+  transition: background 0.15s;
+}
+
+.viewRecsBtn:hover { background: rgba(255,255,255,0.22); }

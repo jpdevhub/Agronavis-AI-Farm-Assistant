@@ -1,12 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { CropService } from '../services/cropService';
 import { FarmService } from '../services/farmService';
-import { authenticate } from '../middleware/auth';
 
 const router = Router();
+// Note: auth is enforced at the app.ts level via authenticateSupabase middleware
 
-// Apply authentication middleware to all routes
-router.use(authenticate);
 
 // GET /api/crops - Get all crops for the authenticated user
 router.get('/', async (req: Request, res: Response) => {

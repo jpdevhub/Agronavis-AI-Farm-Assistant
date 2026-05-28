@@ -1,0 +1,43 @@
+name: Bug Report
+description: Report a bug in AgroNavis
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Before opening, please search existing issues to avoid duplicates."
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        OS: macOS 14
+        Node: 18.x
+        Browser: Chrome 124
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Paste relevant logs or attach screenshots.

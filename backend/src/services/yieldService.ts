@@ -1,4 +1,5 @@
-import { supabase, YieldHistory } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
+import type { YieldHistory } from '../types';
 
 export class YieldService {
   // Create a new yield record

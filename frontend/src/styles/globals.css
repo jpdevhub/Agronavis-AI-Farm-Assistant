@@ -1,47 +1,97 @@
-/* stylelint-disable */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* Tailwind CSS directives */
-/* These are processed by Tailwind and are valid */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ============================================================
+   AgroNavis — Global Design System
+   All component-specific styles go in *.module.css files.
+   This file defines the base reset and CSS custom properties.
+   ============================================================ */
 
-/* Custom base styles */
-@layer base {
-  html {
-    font-family: 'Inter', sans-serif;
-  }
-  
-  body {
-    @apply bg-gray-50 text-gray-900;
-  }
+/* CSS Custom Properties — design tokens */
+:root {
+  /* Brand greens */
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-200: #bbf7d0;
+  --green-300: #86efac;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --green-800: #166534;
+  --green-900: #14532d;
+  --green-950: #052e16;
+
+  /* Grays */
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+
+  /* Semantic */
+  --color-primary: #064e3b;
+  --color-primary-light: #10b981;
+  --color-surface: #ffffff;
+  --color-bg: #f0f4f1;
+  --color-border: #e2e8f0;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+
+  /* For PolygonMapper compatibility */
+  --color-border-tertiary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+
+  /* Sidebar */
+  --sidebar-w: 220px;
+  --header-h: 60px;
 }
 
-/* Custom component styles */
-@layer components {
-  .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
-  }
-  
-  .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
-  }
-  
-  .btn-secondary {
-    @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500;
-  }
-  
-  .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
-  }
-  
-  .card {
-    @apply bg-white rounded-xl shadow-lg border border-gray-200;
-  }
-  
-  .glass-card {
-    @apply bg-white/80 backdrop-blur-sm border border-white/20 rounded-xl shadow-xl;
-  }
+/* Base reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
-/* stylelint-enable */
+
+html {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  color: var(--color-text-primary);
+}
+
+body {
+  background: var(--color-bg);
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}

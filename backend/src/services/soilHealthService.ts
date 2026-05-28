@@ -1,4 +1,5 @@
-import { supabase, SoilHealth } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
+import type { SoilHealth } from '../types';
 
 export class SoilHealthService {
   // Create a new soil health record

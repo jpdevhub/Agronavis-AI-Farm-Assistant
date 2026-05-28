@@ -1,0 +1,479 @@
+/* AnalyticsDashboard.module.css */
+
+.container {
+  padding: 0 0 80px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Page Header */
+.pageHeader {
+  padding: 20px 20px 8px;
+}
+
+.pageTitle {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+
+.pageSubtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Section */
+.section {
+  padding: 16px 20px 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionTitleIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.sectionTitleIcon.green { background: linear-gradient(135deg, #dcfce7, #a7f3d0); }
+.sectionTitleIcon.blue { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+
+.sectionAction {
+  font-size: 13px;
+  font-weight: 600;
+  color: #10b981;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.sectionAction:hover { background: #f0fdf4; }
+
+.divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 20px 0 0;
+}
+
+/* Stat Cards */
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.statCard {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.statIcon {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Yield Records */
+.yieldList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.yieldCard {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.yieldCard:hover {
+  transform: translateX(2px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);
+}
+
+.yieldCardIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  border: 1px solid #bbf7d0;
+}
+
+.yieldCardInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.yieldCropName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.yieldMeta {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.yieldQty {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.yieldQtyValue {
+  font-size: 16px;
+  font-weight: 800;
+  color: #059669;
+}
+
+.yieldQtyUnit {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Soil Health Cards */
+.soilGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.soilCard {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.soilCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.soilLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.soilValue {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.soilUnit {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.progressBar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fillN { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.fillP { background: linear-gradient(90deg, #ec4899, #f472b6); }
+.fillK { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.fillPh { background: linear-gradient(90deg, #ef4444 0%, #f59e0b 30%, #10b981 50%, #3b82f6 80%); }
+
+/* Ph bar has a special indicator */
+.phBar {
+  height: 6px;
+  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 30%, #10b981 50%, #3b82f6 80%, #6366f1 100%);
+  border-radius: 4px;
+  position: relative;
+}
+
+.phIndicator {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 16px;
+  background: #0f172a;
+  border-radius: 2px;
+  transform: translateX(-50%);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* Empty State */
+.emptyState {
+  padding: 32px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px dashed #e2e8f0;
+}
+
+.emptyIcon {
+  font-size: 36px;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Add Button */
+.addButton {
+  padding: 10px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.addButton:hover { opacity: 0.9; }
+.addButton:active { transform: scale(0.98); }
+
+/* Loading */
+.loadingContainer {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonCard {
+  background: #f1f5f9;
+  border-radius: 14px;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.skeletonCard.h60 { height: 60px; }
+.skeletonCard.h80 { height: 80px; }
+.skeletonCard.h100 { height: 100px; }
+
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalSheet {
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+  padding: 24px 24px 48px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modalHandle {
+  width: 36px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 20px;
+}
+
+/* Form */
+.formGroup {
+  margin-bottom: 14px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.formInput,
+.formSelect {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 15px;
+  color: #0f172a;
+  background: #f8fafc;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  appearance: none;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  outline: none;
+  border-color: #10b981;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.submitButton:hover { opacity: 0.92; }
+.submitButton:active { transform: scale(0.99); }
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* FAB */
+.fab {
+  position: fixed;
+  bottom: 88px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 100;
+}
+
+.fab:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 10px 32px rgba(16, 185, 129, 0.5);
+}
+
+.fab:active { transform: scale(0.96); }

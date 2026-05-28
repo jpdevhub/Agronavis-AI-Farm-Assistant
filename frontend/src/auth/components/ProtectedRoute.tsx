@@ -50,17 +50,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       }
       
       // Check if user has completed farm setup
-      const { data: farm, error: farmError } = await supabase
+      const { data: farms, error: farmError } = await supabase
         .from('farms')
         .select('id')
         .eq('farmer_id', user.id)
-        .single();
+        .limit(1);
         
-      if (farmError && farmError.code !== 'PGRST116') {
+      if (farmError) {
         console.error('Error checking farm:', farmError);
       }
       
-      if (!farm && requireOnboarding) {
+      if ((!farms || farms.length === 0) && requireOnboarding) {
         // User needs to set up a farm
         router.push('/onboarding/farm');
         return;

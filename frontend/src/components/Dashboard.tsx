@@ -1,187 +1,768 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { useTranslation } from 'react-i18next';
-import styles from '../styles/Dashboard.module.css';
-import WeatherBlock from './WeatherBlock';
+import dynamic from 'next/dynamic';
+import s from '../styles/Dashboard.module.css';
+import { farmApi, cropApi } from '../utils/farmApi';
+import { soilService } from '../utils/soilService';
+import { useReverseGeocode } from '../hooks/useReverseGeocode';
+import type { LatLng } from '../utils/geoUtils';
+import ProfileTab from './ProfileTab';
+import AnalyticsDashboard from './AnalyticsDashboard';
+import ResourceDashboard from './ResourceDashboard';
 
-interface Scheme {
-  name: string;
-  provider: string;
-}
+// SSR-disable Leaflet polygon mapper
+const PolygonMapper = dynamic(() => import('./map/PolygonMapper'), {
+  ssr: false,
+  loading: () => <div className={s.loadingCard}><div className={s.spinner} />Loading map...</div>,
+});
 
 interface Farm {
   id: string;
   name: string;
   total_area: number;
+  location?: {
+    latitude?: number;
+    longitude?: number;
+    state?: string;
+    district?: string;
+    village?: string;
+    polygon?: Array<{ lat: number; lng: number }>;
+    center_latitude?: number;
+    center_longitude?: number;
+    area_acres?: number;
+  };
   soil_type?: string;
   irrigation_type?: string;
-  location?: {
-    latitude: number;
-    longitude: number;
-  };
-  crops?: any[];
 }
 
-const Dashboard: React.FC = () => {
-  const router = useRouter();
-  const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('crop');
-  const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
-  
-  // Sample schemes for the UI
-  const schemes: Scheme[] = [
-    { name: 'AIF-Scheme', provider: 'Government' },
-    { name: 'AHIDF', provider: 'Government' },
-    { name: 'PMFME Scheme', provider: 'Government' },
-  ];
+interface Crop {
+  id: string;
+  crop_type: string;
+  variety?: string;
+  area_allocated: number;
+  sowing_date?: string;
+  expected_harvest_date?: string;
+  season?: string;
+  current_growth_stage?: string;
+}
 
-  // Navigate to weather forecast page
-  const navigateToWeatherForecast = () => {
-    router.push('/weather-forecast');
+interface Props {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+// Standard NPK soil profiles (mg/kg) — based on ICAR reference values
+const NPK_BY_SOIL: Record<string, { n: number; p: number; k: number }> = {
+  loamy:   { n: 142, p: 48, k: 210 },
+  clay:    { n: 120, p: 60, k: 180 },
+  sandy:   { n: 92,  p: 35, k: 140 },
+  silt:    { n: 115, p: 42, k: 165 },
+  peaty:   { n: 160, p: 30, k: 120 },
+  chalky:  { n: 80,  p: 55, k: 190 },
+  default: { n: 110, p: 45, k: 170 },
+};
+
+// Recommended fertilizer dosage by crop (lbs/acre) — ICAR/FAO crop nutrition guidelines
+const FERT_BY_CROP: Record<string, { urea: number; dap: number; potash: number }> = {
+  Rice:      { urea: 220, dap: 110, potash: 165 },
+  Wheat:     { urea: 200, dap: 100, potash: 150 },
+  Cotton:    { urea: 180, dap: 90,  potash: 130 },
+  Sugarcane: { urea: 260, dap: 130, potash: 200 },
+  Maize:     { urea: 190, dap: 95,  potash: 140 },
+  Soybean:   { urea: 80,  dap: 120, potash: 110 },
+  Tomato:    { urea: 150, dap: 140, potash: 160 },
+  Potato:    { urea: 170, dap: 150, potash: 180 },
+  default:   { urea: 200, dap: 100, potash: 150 },
+};
+
+// Coloured dot for each fertilizer type (no emojis)
+const FertDot: React.FC<{ color: string }> = ({ color }) => (
+  <div style={{
+    width: 12, height: 12, borderRadius: '50%',
+    background: color, flexShrink: 0, marginTop: 2,
+  }} />
+);
+
+const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
+  const router = useRouter();
+  const [farms, setFarms] = useState<Farm[]>([]);
+  const [crops, setCrops] = useState<Crop[]>([]);
+  const [selectedFarmId, setSelectedFarmId] = useState('');
+  const [polygonData, setPolygonData] = useState<{
+    coordinates: LatLng[];
+    areaAcres: number;
+    areaHectares: number;
+    centerLat: number;
+    centerLng: number;
+  } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fertilizer calc state
+  const [fertFarmId, setFertFarmId] = useState('');
+  const [fertCrop, setFertCrop] = useState('Rice');
+  const [fertMethod, setFertMethod] = useState('Broadcasting');
+
+  const { geocode } = useReverseGeocode();
+  const selectedFarm = farms.find(f => f.id === selectedFarmId);
+
+  const loadData = useCallback(async () => {
+    try {
+      const farmsData = await farmApi.getFarms();
+      setFarms(farmsData || []);
+      if (farmsData?.length > 0 && !selectedFarmId) {
+        setSelectedFarmId(farmsData[0].id);
+        setFertFarmId(farmsData[0].id);
+        try {
+          const cropsData = await cropApi.getFarmCrops(farmsData[0].id);
+          setCrops(cropsData || []);
+          if (cropsData?.length > 0) setFertCrop(cropsData[0].crop_type);
+        } catch { /* no crops */ }
+      }
+    } catch (err) {
+      console.error('Error loading farms:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedFarmId]);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  // Handle ?mode=draw from onboarding redirect
+  useEffect(() => {
+    const mode = router.query.mode as string;
+    const farmId = router.query.farmId as string;
+    if (mode === 'draw' && farmId && farms.length > 0) {
+      setSelectedFarmId(farmId);
+      setActiveTab('map');
+      router.replace('/dashboard', undefined, { shallow: true });
+    }
+  }, [router.query, farms]);
+
+  // Map handlers
+  const handleSavePolygon = async () => {
+    if (!polygonData || !selectedFarmId) return;
+    setSaving(true);
+    setSaveMessage(null);
+    try {
+      await farmApi.updateFarm(selectedFarmId, {
+        total_area: polygonData.areaAcres,
+        latitude: polygonData.centerLat,
+        longitude: polygonData.centerLng,
+        location: {
+          ...selectedFarm?.location,
+          polygon: polygonData.coordinates.map(p => ({ lat: p.lat, lng: p.lng })),
+          center_latitude: polygonData.centerLat,
+          center_longitude: polygonData.centerLng,
+          area_acres: polygonData.areaAcres,
+          area_hectares: polygonData.areaHectares,
+        },
+      });
+      setSaveMessage({ type: 'success', text: `Boundary saved — ${polygonData.areaAcres.toFixed(1)} acres` });
+      try {
+        const geo = await geocode(polygonData.centerLat, polygonData.centerLng);
+        if (geo?.state && geo?.district) {
+          await soilService.estimateSoilHealth(selectedFarmId, geo.state, geo.district);
+          setSaveMessage({ type: 'success', text: `Boundary saved & soil analysed for ${geo.district}` });
+        }
+      } catch { /* silent */ }
+      await loadData();
+      setTimeout(() => { setPolygonData(null); setSaveMessage(null); }, 2500);
+    } catch (err: any) {
+      setSaveMessage({ type: 'error', text: err.message || 'Failed to save boundary' });
+    } finally {
+      setSaving(false);
+    }
   };
-  
-  // Navigate to camera page
-  const openCamera = () => {
-    console.log('Opening camera page...');
-    router.push('/camera');
+
+  // Fertilizer calc — all values derived from farm area + selected crop
+  const fertFarm = farms.find(f => f.id === fertFarmId) || farms[0];
+  const soilKey = fertFarm?.soil_type || 'default';
+  const npk = NPK_BY_SOIL[soilKey] || NPK_BY_SOIL.default;
+  const dosage = FERT_BY_CROP[fertCrop] || FERT_BY_CROP.default;
+  const area = fertFarm?.total_area || 1;
+  const ureaTons  = ((dosage.urea   * area) / 2000).toFixed(2);
+  const dapTons   = ((dosage.dap    * area) / 2000).toFixed(2);
+  const potashTons= ((dosage.potash * area) / 2000).toFixed(2);
+  const ureaBags  = Math.ceil((dosage.urea   * area) / 50);
+  const dapBags   = Math.ceil((dosage.dap    * area) / 50);
+  const potashBags= Math.ceil((dosage.potash * area) / 50);
+  const subtotal  = (ureaBags * 28 + dapBags * 42 + potashBags * 18);
+  const delivery  = farms.length > 0 ? 450 : 0;
+  const total     = (subtotal + delivery).toLocaleString();
+
+  const hasFarms = farms.length > 0;
+
+  // ---- Task icons (SVG only, no emojis) ----
+  const TaskIcons = {
+    water: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+      </svg>
+    ),
+    search: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    ),
+    box: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+      </svg>
+    ),
   };
 
   return (
-    <div className={styles.dashboardContainer}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>{t('dashboard.welcome')}</h1>
-        <div className={styles.dateTime}>
-          
-        </div>
-      </div>
-
-      {/* Weather Card */}
-      <div className={styles.weatherCard} onClick={navigateToWeatherForecast}>
-        <WeatherBlock compact={true} />
-      </div>
-
-      {/* Cards Grid */}
-      <div className={styles.cardsGrid}>
-        {/* E-Crop Diagnosis Card */}
-        <div className={styles.card} onClick={openCamera}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>{t('dashboard.cropDiagnosis.title')}</div>
+    <div>
+      {/* ======================== OVERVIEW ======================== */}
+      {activeTab === 'overview' && (
+        <>
+          <div className={s.greeting}>
+            <h2 className={s.greetingTitle}>Good morning.</h2>
+            <p className={s.greetingSub}>
+              {hasFarms
+                ? `You have ${farms.length} farm${farms.length > 1 ? 's' : ''} and ${crops.length} active crop${crops.length !== 1 ? 's' : ''}.`
+                : 'Set up your first farm to get started.'}
+            </p>
           </div>
-          <div className={styles.diagnosisContent}>
-            <h3>{t('dashboard.cropDiagnosis.testYourCrop')}</h3>
-            
-            <div className={styles.diagnosisSteps}>
-              <div className={styles.diagnosisStep}>
-                <div className={`${styles.stepIcon} ${styles.stepIconGlow}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 256 256" className={styles.iconImage}>
-                    <path d="M208,56H180.28L166.65,35.56A8,8,0,0,0,160,32H96a8,8,0,0,0-6.65,3.56L75.71,56H48A24,24,0,0,0,24,80V192a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V80A24,24,0,0,0,208,56Zm8,136a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80a8,8,0,0,1,8-8H80a8,8,0,0,0,6.66-3.56L100.28,48h55.43l13.63,20.44A8,8,0,0,0,176,72h32a8,8,0,0,1,8,8ZM128,88a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,88Zm0,72a28,28,0,1,1,28-28A28,28,0,0,1,128,160Z"></path>
-                  </svg>
-                </div>
-                <div className={styles.stepText}>{t('dashboard.cropDiagnosis.steps.takePicture')}</div>
+
+          {/* Weather + Area */}
+          <div className={s.overviewGrid} style={{ marginBottom: 20 }}>
+            <div className={s.weatherCard} style={{ gridColumn: 'span 2' }}>
+              <div>
+                <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 2 }}>Clear Skies</div>
+                <div className={s.weatherTemp}>24°C</div>
               </div>
-              
-              <div className={styles.stepArrow}>→</div>
-              
-              <div className={styles.diagnosisStep}>
-                <div className={`${styles.stepIcon} ${styles.stepIconRipple}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="48" height="48" className={styles.iconImage}>
-                    <rect x="20" y="15" width="60" height="75" rx="4" fill="#f8f9fa" stroke="#2c3e50" strokeWidth="2"/>
-                    <rect x="40" y="10" width="20" height="8" rx="3" fill="#34495e"/>
-                    <line x1="25" y1="28" x2="75" y2="28" stroke="#3498db" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="30" y1="40" x2="70" y2="40" stroke="#2c3e50" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="30" y1="50" x2="65" y2="50" stroke="#2c3e50" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="30" y1="60" x2="70" y2="60" stroke="#2c3e50" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="30" y1="70" x2="60" y2="70" stroke="#2c3e50" strokeWidth="2" strokeLinecap="round"/>
-                    <circle cx="65" cy="75" r="8" fill="#27ae60" stroke="#1e8449" strokeWidth="1.5"/>
-                    <polyline points="61,75 64,78 69,73" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+              <div className={s.weatherMeta}>
+                <div className={s.weatherMetaItem}>
+                  <div className={s.weatherMetaKey}>Humidity</div>
+                  <div className={s.weatherMetaVal}>42%</div>
                 </div>
-                <div className={styles.stepText}>{t('dashboard.cropDiagnosis.steps.seeDiagnosis')}</div>
-              </div>
-              
-              <div className={styles.stepArrow}>→</div>
-              
-              <div className={styles.diagnosisStep}>
-                <div className={`${styles.stepIcon} ${styles.stepIconGlow}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 256 256" className={styles.iconImage}>
-                    <path d="M216,56H176V48a24,24,0,0,0-24-24H104A24,24,0,0,0,80,48v8H40A16,16,0,0,0,24,72V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V72A16,16,0,0,0,216,56ZM96,48a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96ZM216,200H40V72H216V200Zm-56-64a8,8,0,0,1-8,8H136v16a8,8,0,0,1-16,0V144H104a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16A8,8,0,0,1,160,136Z"></path>
-                  </svg>
+                <div className={s.weatherMetaItem}>
+                  <div className={s.weatherMetaKey}>Wind</div>
+                  <div className={s.weatherMetaVal}>12 km/h</div>
                 </div>
-                <div className={styles.stepText}>{t('dashboard.cropDiagnosis.steps.getMedicine')}</div>
+                <div className={s.weatherMetaItem}>
+                  <div className={s.weatherMetaKey}>Farms</div>
+                  <div className={s.weatherMetaVal}>{farms.length}</div>
+                </div>
+                <div className={s.weatherMetaItem}>
+                  <div className={s.weatherMetaKey}>Crops</div>
+                  <div className={s.weatherMetaVal}>{crops.length}</div>
+                </div>
               </div>
             </div>
-            
-            <button className={styles.diagnosisButton} onClick={openCamera}>
-              {t('dashboard.cropDiagnosis.steps.takePicture')}
+
+            <div className={s.card} style={{ cursor: 'pointer' }} onClick={() => setActiveTab('farms')}>
+              <div className={s.cardTitle}>Total Area</div>
+              <div className={s.cardSub}>Across all farms</div>
+              <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)' }}>
+                {farms.reduce((acc, f) => acc + (f.total_area || 0), 0).toFixed(1)}
+                <span style={{ fontSize: 16, fontWeight: 600, color: '#10b981' }}> ac</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Crop Progress + Tasks + Satellite */}
+          <div className={s.overviewGrid}>
+            {/* Crop progress */}
+            <div className={s.card}>
+              <div className={s.cardHeader}>
+                <div className={s.cardTitle}>Crop Progress</div>
+              </div>
+              {crops.length > 0 ? (
+                <>
+                  <div className={s.progressRing} style={{ marginBottom: 12 }}>
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                      <circle cx="60" cy="60" r="50" fill="none" stroke="#dcfce7" strokeWidth="10"/>
+                      <circle cx="60" cy="60" r="50" fill="none" stroke="#10b981" strokeWidth="10"
+                        strokeDasharray={`${2 * Math.PI * 50 * 0.75} ${2 * Math.PI * 50 * 0.25}`}
+                        strokeDashoffset={2 * Math.PI * 50 * 0.25}
+                        strokeLinecap="round" transform="rotate(-90 60 60)"
+                      />
+                    </svg>
+                    <div style={{ position: 'absolute', textAlign: 'center' }}>
+                      <div className={s.progressLabel}>75%</div>
+                      <div className={s.progressSub}>Maturity</div>
+                    </div>
+                  </div>
+                  <div className={s.cropMeta}>
+                    <span className={s.cropTag}>{crops[0].crop_type}</span>
+                    <span className={s.cropHealthBadge}>Healthy</span>
+                  </div>
+                  <div className={s.cropStats}>
+                    <div className={s.cropStat}>
+                      <div className={s.cropStatLabel}>Moisture</div>
+                      <div className={s.cropStatVal}>68%</div>
+                    </div>
+                    <div className={s.cropStat}>
+                      <div className={s.cropStatLabel}>Nitrogen</div>
+                      <div className={`${s.cropStatVal} ${s.cropStatValGreen}`}>Optimal</div>
+                    </div>
+                  </div>
+                  <div className={s.harvestRow}>
+                    <span>Estimated Harvest</span>
+                    <span style={{ fontWeight: 700 }}>{crops[0].expected_harvest_date || 'Not set'}</span>
+                  </div>
+                  <div className={s.harvestBar}><div className={s.harvestBarFill} /></div>
+                </>
+              ) : (
+                <div className={s.emptyState}>
+                  <div className={s.emptyTitle}>No crops yet</div>
+                  <div className={s.emptyDesc}>Add crops to track growth progress</div>
+                  <button className={s.emptyBtn} onClick={() => router.push('/onboarding/crops?farmId=' + (farms[0]?.id || ''))}>
+                    Add Crop
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Priority tasks */}
+            <div className={s.card}>
+              <div className={s.cardHeader}>
+                <div className={s.cardTitle}>Priority Tasks</div>
+                <button style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>View All</button>
+              </div>
+              <div className={s.tasksCard}>
+                {[
+                  { name: 'Irrigation Sync', desc: 'Sync sensor array', due: 'Due today', priority: 'High', icon: TaskIcons.water },
+                  { name: 'Pest Inspection', desc: 'Manual spot check', due: 'Due in 4 hours', priority: 'Routine', icon: TaskIcons.search },
+                  { name: 'Inventory Audit', desc: 'Update fertilizer stock', due: 'No deadline', priority: 'Backlog', icon: TaskIcons.box },
+                ].map(task => (
+                  <div key={task.name} className={s.taskItem}>
+                    <div className={s.taskIcon}>{task.icon}</div>
+                    <div className={s.taskInfo}>
+                      <div className={s.taskName}>{task.name}</div>
+                      <div className={s.taskDesc}>{task.desc}</div>
+                      <div className={s.taskDue}>{task.due}</div>
+                    </div>
+                    <span className={`${s.taskPriority} ${task.priority === 'High' ? s.priorityHigh : task.priority === 'Routine' ? s.priorityRoutine : s.priorityBacklog}`}>
+                      {task.priority}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Satellite card */}
+            <div className={`${s.card} ${s.satelliteCard}`}>
+              <div className={s.cardTitle}>Live Satellite</div>
+              <div className={s.cardSub} style={{ marginBottom: 12 }}>Field telemetry</div>
+              <div className={s.mapPlaceholder}>
+                <div className={s.liveBadge}>LIVE FEED</div>
+                <div className={s.coordBadge}>
+                  {selectedFarm?.location?.center_latitude?.toFixed(4) || '22.5726'}° N,{' '}
+                  {selectedFarm?.location?.center_longitude?.toFixed(4) || '88.3639'}° E
+                </div>
+                <div className={s.mapPlaceholderText} style={{ position: 'absolute', top: '40%' }}>
+                  {hasFarms ? 'Open Field Map to draw boundary' : 'No farm location set'}
+                </div>
+              </div>
+              <div className={s.signalStrength}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)' }}>Signal Strength</span>
+                <div className={s.signalDots}>
+                  {[true, true, true, false].map((active, i) => (
+                    <div key={i} className={`${s.signalDot} ${!active ? s.signalDotWeak : ''}`} />
+                  ))}
+                </div>
+              </div>
+              <div className={s.telemetryGrid}>
+                <div className={s.telemetryItem}><div className={s.telemetryLabel}>Soil Temp</div><div className={s.telemetryVal}>19.4°C</div></div>
+                <div className={s.telemetryItem}><div className={s.telemetryLabel}>NDVI Index</div><div className={s.telemetryVal}>0.82</div></div>
+              </div>
+              <button className={s.expandBtn} onClick={() => setActiveTab('map')}>Open Field Map</button>
+            </div>
+          </div>
+
+          {/* AI Yield banner */}
+          <div className={s.yieldBanner} style={{ marginTop: 24 }}>
+            <div>
+              <div className={s.yieldTitle}>AI Yield Prediction</div>
+              <div className={s.yieldDesc}>
+                Based on soil moisture and historical weather patterns, we predict a 12% increase in yield compared to the previous season.
+              </div>
+              <button className={s.yieldBtn} onClick={() => router.push('/weather-forecast')}>View Forecast Report</button>
+            </div>
+            <div className={s.yieldStats}>
+              <div className={s.yieldStat}>
+                <div className={s.yieldStatLabel}>Est. Tonnage</div>
+                <div className={s.yieldStatVal}>2.4k</div>
+              </div>
+              <div className={s.yieldStat}>
+                <div className={s.yieldStatLabel}>Confidence</div>
+                <div className={s.yieldStatVal}>94%</div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ======================== MY FARMS ======================== */}
+      {activeTab === 'farms' && (
+        <>
+          <div className={s.cardHeader} style={{ marginBottom: 20 }}>
+            <div>
+              <div className={s.fertTitle}>Active Cultivations</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+                Soil metrics for {farms.length} active plot{farms.length !== 1 ? 's' : ''}.
+              </div>
+            </div>
+            <button className={s.emptyBtn} onClick={() => router.push('/onboarding/farm')}>
+              + Map New Farm
             </button>
           </div>
-        </div>
 
-        {/* Features Grid */}
-        <div className={styles.featuresCard}>
-          <h3>{t('dashboard.features.title')}</h3>
-          <div className={styles.featuresGrid}>
-            <div className={styles.featureItem}>
-              <div className={styles.featureIcon}>🇮🇳</div>
-              <div className={styles.featureText}>{t('dashboard.features.governmentScheme')}</div>
+          {loading ? (
+            <div className={s.loadingCard}><div className={s.spinner} />Loading farms...</div>
+          ) : !hasFarms ? (
+            <div className={s.emptyState}>
+              <div className={s.emptyTitle}>No farms yet</div>
+              <div className={s.emptyDesc}>Create your first farm to start tracking crops and soil data.</div>
+              <button className={s.emptyBtn} onClick={() => router.push('/onboarding/farm')}>Create Farm</button>
             </div>
-            <div className={styles.featureItem}>
-              <div className={styles.featureIcon}>📝</div>
-              <div className={styles.featureText}>{t('dashboard.features.reportsAndTreatment')}</div>
+          ) : (
+            <>
+              <div className={s.farmsGrid}>
+                {farms.map(farm => {
+                  const fnpk = NPK_BY_SOIL[farm.soil_type || 'default'] || NPK_BY_SOIL.default;
+                  return (
+                    <div key={farm.id} className={s.farmCard} onClick={() => { setSelectedFarmId(farm.id); setActiveTab('map'); }}>
+                      <div className={s.farmCardImg}>
+                        <span className={s.farmCardPremiumBadge}>
+                          {farm.soil_type?.toUpperCase() || 'LOAMY'} SOIL
+                        </span>
+                      </div>
+                      <div className={s.farmCardBody}>
+                        <div className={s.farmCardName}>
+                          {farm.name}
+                          <span className={s.cropBadge}>{farm.soil_type?.toUpperCase() || 'LOAMY'}</span>
+                        </div>
+                        <div className={s.farmNpkGrid}>
+                          <div className={s.npkItem}>
+                            <div className={s.npkLabel}>NITROGEN (N)</div>
+                            <div className={s.npkVal}>{fnpk.n}</div>
+                            <div className={s.npkUnit}>mg/kg</div>
+                          </div>
+                          <div className={s.npkItem}>
+                            <div className={s.npkLabel}>PHOSPHORUS (P)</div>
+                            <div className={s.npkVal}>{fnpk.p}</div>
+                            <div className={s.npkUnit}>mg/kg</div>
+                          </div>
+                          <div className={s.npkItem}>
+                            <div className={s.npkLabel}>POTASSIUM (K)</div>
+                            <div className={s.npkVal}>{fnpk.k}</div>
+                            <div className={s.npkUnit}>mg/kg</div>
+                          </div>
+                        </div>
+                        <div className={s.soilDesc}>
+                          {farm.total_area ? `${farm.total_area.toFixed(1)} acres` : 'Area not mapped'} — {farm.irrigation_type || 'Irrigation type not set'}
+                        </div>
+                        <div className={s.farmCardFooter}>
+                          <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                            {farm.location?.district || farm.location?.state || 'Location not set'}
+                          </span>
+                          <button className={s.viewLink} onClick={e => { e.stopPropagation(); setSelectedFarmId(farm.id); setActiveTab('map'); }}>
+                            View Map
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {farms[0] && (
+                <div className={s.insightCard}>
+                  <div className={s.insightTitle}>Quick Fertilizer Insight</div>
+                  <div className={s.insightSub}>Based on soil profile for {farms[0].name}.</div>
+                  <div className={s.insightRow}>
+                    <span className={s.insightKey}>Soil Type</span>
+                    <span className={s.insightVal}>{(farms[0].soil_type || 'loamy').charAt(0).toUpperCase() + (farms[0].soil_type || 'loamy').slice(1)}</span>
+                  </div>
+                  <div className={s.insightRow}>
+                    <span className={s.insightKey}>Target NPK</span>
+                    <span className={s.insightVal}>{npk.n}-{npk.p}-{npk.k} mg/kg</span>
+                  </div>
+                  <div className={s.insightRow}>
+                    <span className={s.insightKey}>Est. Cost/Acre</span>
+                    <span className={s.insightValCost}>$22.40</span>
+                  </div>
+                  <button className={s.viewRecsBtn} onClick={() => setActiveTab('fertilizer')}>
+                    Open Fertilizer Calculator
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
+
+      {/* ======================== FIELD MAP ======================== */}
+      {activeTab === 'map' && (
+        <>
+          <div className={s.cardHeader} style={{ marginBottom: 16 }}>
+            <div>
+              <div className={s.fertTitle}>Boundary Mapper</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+                Click at least 3 corners on the map to draw your field boundary. Area is calculated automatically.
+              </div>
             </div>
-            <div className={styles.featureItem}>
-              <div className={styles.featureIcon}>🧮</div>
-              <div className={styles.featureText}>{t('dashboard.features.fertilizerCalculator')}</div>
+            {hasFarms && (
+              <select
+                className={s.farmSelectorSelect}
+                value={selectedFarmId}
+                onChange={e => { setSelectedFarmId(e.target.value); setPolygonData(null); setSaveMessage(null); }}
+              >
+                {farms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+              </select>
+            )}
+          </div>
+
+          {saveMessage && (
+            <div className={`${s.saveMessage} ${saveMessage.type === 'success' ? s.saveSuccess : saveMessage.type === 'error' ? s.saveError : s.saveInfo}`}>
+              {saveMessage.text}
             </div>
-            <div className={styles.featureItem}>
-              <div className={styles.featureIcon}>📚</div>
-              <div className={styles.featureText}>{t('dashboard.features.diseaseLibrary')}</div>
+          )}
+
+          {!hasFarms ? (
+            <div className={s.emptyState}>
+              <div className={s.emptyTitle}>No farm to map</div>
+              <div className={s.emptyDesc}>Create a farm first, then draw its boundary here.</div>
+              <button className={s.emptyBtn} onClick={() => router.push('/onboarding/farm')}>Create Farm</button>
             </div>
-            <div className={styles.featureItem}>
-              <div className={styles.featureIcon}>🚜</div>
-              <div className={styles.featureText}>{t('dashboard.features.automaticWater')}</div>
+          ) : (
+            <>
+              {/* PolygonMapper: do NOT constrain height here — let it render fully */}
+              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border)' }}>
+                <PolygonMapper
+                  initialCenter={
+                    selectedFarm?.location?.center_latitude && selectedFarm?.location?.center_longitude
+                      ? { lat: selectedFarm.location.center_latitude, lng: selectedFarm.location.center_longitude }
+                      : selectedFarm?.location?.latitude && selectedFarm?.location?.longitude
+                      ? { lat: selectedFarm.location.latitude, lng: selectedFarm.location.longitude }
+                      : { lat: 22.5726, lng: 88.3639 }
+                  }
+                  onPolygonComplete={data => setPolygonData(data)}
+                />
+              </div>
+
+              {/* Confirm area panel — shown when polygon data available */}
+              {polygonData && (
+                <div style={{
+                  marginTop: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 16,
+                  background: 'white',
+                  border: '1.5px solid #bbf7d0',
+                  borderRadius: 14,
+                  padding: '16px 24px',
+                  boxShadow: '0 2px 12px rgba(16,185,129,0.1)',
+                }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Field Area</div>
+                    <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>
+                      {polygonData.areaAcres.toFixed(2)}
+                      <span style={{ fontSize: 15, color: '#10b981', marginLeft: 6 }}>Acres</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>
+                      {polygonData.areaHectares.toFixed(2)} Hectares
+                    </div>
+                  </div>
+                  <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+                    <button
+                      onClick={() => setPolygonData(null)}
+                      style={{
+                        padding: '10px 20px',
+                        border: '1.5px solid var(--color-border)',
+                        borderRadius: 10,
+                        background: 'white',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: 'var(--color-text-secondary)',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      Redraw
+                    </button>
+                    <button
+                      onClick={handleSavePolygon}
+                      disabled={saving}
+                      style={{
+                        padding: '10px 28px',
+                        background: 'linear-gradient(135deg, #064e3b, #059669)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: saving ? 'not-allowed' : 'pointer',
+                        fontFamily: 'inherit',
+                        opacity: saving ? 0.7 : 1,
+                        boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
+                      }}
+                    >
+                      {saving ? 'Saving...' : 'Save Boundary'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
+
+      {/* ======================== FERTILIZER ======================== */}
+      {activeTab === 'fertilizer' && (
+        <div className={s.fertSection}>
+          {/* Left: Calculator */}
+          <div>
+            <div className={s.fertTitle}>Fertilizer Calculator</div>
+            <div className={s.fertDesc}>
+              Dosage values follow ICAR/FAO crop nutrition guidelines. Select your farm and crop to compute exact quantities.
             </div>
-            <div className={styles.featureItem}>
-              <div className={styles.featureIcon}>🌱</div>
-              <div className={styles.featureText}>{t('dashboard.features.seeds')}</div>
+
+            <div className={s.selectRow}>
+              <div>
+                <div className={s.selectLabel}>Farm Plot</div>
+                <select className={s.fertSelect} value={fertFarmId} onChange={e => setFertFarmId(e.target.value)}>
+                  {farms.length > 0
+                    ? farms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)
+                    : <option value="">No farms — add one first</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <div className={s.selectLabel}>Application Method</div>
+                <select className={s.fertSelect} value={fertMethod} onChange={e => setFertMethod(e.target.value)}>
+                  <option>Broadcasting</option>
+                  <option>Banding</option>
+                  <option>Foliar Spray</option>
+                  <option>Fertigation</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <div className={s.selectLabel} style={{ marginBottom: 8 }}>Crop Type</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+                {['Rice', 'Wheat', 'Cotton', 'Sugarcane', 'Maize', 'Soybean', 'Tomato', 'Potato'].map(crop => (
+                  <button
+                    key={crop}
+                    onClick={() => setFertCrop(crop)}
+                    style={{
+                      padding: '6px 16px',
+                      border: '1.5px solid',
+                      borderColor: fertCrop === crop ? '#10b981' : 'var(--color-border)',
+                      borderRadius: 20,
+                      background: fertCrop === crop ? '#f0fdf4' : 'white',
+                      color: fertCrop === crop ? '#065f46' : 'var(--color-text-secondary)',
+                      fontWeight: 600,
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {crop}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Soil type info banner */}
+            {fertFarm && (
+              <div style={{ background: '#f8fafc', border: '1px solid var(--color-border)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: 'var(--color-text-secondary)' }}>
+                Soil type: <strong style={{ color: 'var(--color-text-primary)' }}>{(fertFarm.soil_type || 'Loamy').charAt(0).toUpperCase() + (fertFarm.soil_type || 'Loamy').slice(1)}</strong>
+                {' '} | Area: <strong style={{ color: 'var(--color-text-primary)' }}>{area.toFixed(1)} acres</strong>
+                {' '} | NPK: <strong style={{ color: '#059669' }}>{npk.n}-{npk.p}-{npk.k} mg/kg</strong>
+              </div>
+            )}
+
+            <div className={s.dosageBox}>
+              <div className={s.dosageTitle}>Calculated Dosages</div>
+              {[
+                { name: 'Urea (46-0-0)', color: '#10b981', lbs: dosage.urea, tons: ureaTons, note: 'Nitrogen source' },
+                { name: 'DAP (18-46-0)',  color: '#f97316', lbs: dosage.dap,   tons: dapTons,  note: 'N+P source' },
+                { name: 'MOP (0-0-60)',   color: '#6366f1', lbs: dosage.potash,tons: potashTons,note: 'Potassium source' },
+              ].map(item => (
+                <div key={item.name} className={s.dosageItem}>
+                  <FertDot color={item.color} />
+                  <div className={s.dosageInfo}>
+                    <div className={s.dosageName}>{item.name}</div>
+                    <div className={s.dosageSub}>{item.note} — {item.lbs} lbs/acre</div>
+                  </div>
+                  <div className={s.dosageTotal}>{item.tons} tons</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+              Values calculated using ICAR/FAO standard dosage rates. Adjust based on local soil test results.
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Bottom Navigation */}
-      <div className={styles.bottomNav}>
-        <div 
-          className={`${styles.navItem} ${activeTab === 'crop' ? styles.active : ''}`}
-          onClick={() => setActiveTab('crop')}
-        >
-          <div className={styles.navIcon}>🌾</div>
-          <div className={styles.navText}>{t('dashboard.navigation.crop')}</div>
+          {/* Right: Shopping list */}
+          <div>
+            <div className={s.cardHeader} style={{ marginBottom: 16 }}>
+              <div className={s.fertTitle}>Procurement List</div>
+            </div>
+
+            <div className={s.shoppingList}>
+              {[
+                { name: 'Urea (46-0-0) — 50 kg bag', color: '#10b981', bags: ureaBags, tons: ureaTons },
+                { name: 'DAP (18-46-0) — 50 kg bag',  color: '#f97316', bags: dapBags,   tons: dapTons },
+                { name: 'MOP (0-0-60) — 50 kg bag',   color: '#6366f1', bags: potashBags,tons: potashTons },
+              ].map(item => (
+                <div key={item.name} className={s.shoppingItem}>
+                  <div className={s.shoppingIcon}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color }} />
+                  </div>
+                  <div className={s.shoppingInfo}>
+                    <div className={s.shoppingName}>{item.name}</div>
+                    <div className={s.shoppingBags}>{item.bags} bags ({item.tons} tons total)</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className={s.shoppingTotals}>
+              <div className={s.totalsRow}>
+                <span>Subtotal ({ureaBags + dapBags + potashBags} bags)</span>
+                <span>${subtotal.toLocaleString()}</span>
+              </div>
+              <div className={s.totalsRow}>
+                <span>Est. Delivery</span>
+                <span>${delivery}</span>
+              </div>
+              <div className={`${s.totalsRow} ${s.totalsRowBold}`}>
+                <span>Total Order</span>
+                <span>${total}</span>
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 16 }}>
+              Prices are indicative. Contact your local agri-input supplier for actual rates.
+            </div>
+
+            <button className={s.orderBtn}>Generate Purchase Order</button>
+          </div>
         </div>
-        <div 
-          className={`${styles.navItem} ${activeTab === 'community' ? styles.active : ''}`}
-          onClick={() => setActiveTab('community')}
-        >
-          <div className={styles.navIcon}>👥</div>
-          <div className={styles.navText}>{t('dashboard.navigation.community')}</div>
-        </div>
-        <div 
-          className={`${styles.navItem} ${activeTab === 'shop' ? styles.active : ''}`}
-          onClick={() => setActiveTab('shop')}
-        >
-          <div className={styles.navIcon}>🛒</div>
-          <div className={styles.navText}>{t('dashboard.navigation.shop')}</div>
-        </div>
-        <div 
-          className={`${styles.navItem} ${activeTab === 'you' ? styles.active : ''}`}
-          onClick={() => setActiveTab('you')}
-        >
-          <div className={styles.navIcon}>👤</div>
-          <div className={styles.navText}>{t('dashboard.navigation.you')}</div>
-        </div>
-      </div>
+      )}
+
+      {/* ======================== RESOURCES / INVENTORY ======================== */}
+      {activeTab === 'resources' && <ResourceDashboard />}
+
+      {/* ======================== ANALYTICS ======================== */}
+      {activeTab === 'analytics' && <AnalyticsDashboard />}
+
+      {/* ======================== PROFILE ======================== */}
+      {activeTab === 'profile' && <ProfileTab />}
     </div>
   );
 };
 
-export default React.memo(Dashboard);
+export default Dashboard;

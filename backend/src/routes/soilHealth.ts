@@ -1,12 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { SoilHealthService } from '../services/soilHealthService';
 import { FarmService } from '../services/farmService';
-import { authenticate } from '../middleware/auth';
+
 
 const router = Router();
 
 // Apply authentication middleware to all routes
-router.use(authenticate);
 
 // GET /api/soil-health - Get all soil health records for the authenticated user
 router.get('/', async (req: Request, res: Response) => {

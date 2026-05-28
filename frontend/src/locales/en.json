@@ -137,8 +137,8 @@
     },
     "navigation": {
       "crop": "Crop",
+      "map": "Map",
       "community": "Community",
-      "shop": "Shop",
       "you": "You"
     }
   },

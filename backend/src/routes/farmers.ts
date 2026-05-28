@@ -1,17 +1,11 @@
-import express, { Response } from 'express'
-import { FarmerService } from '../services/farmerService'
+import express, { Request, Response } from 'express';
+import { FarmerService } from '../services/farmerService';
 
-interface AuthenticatedRequest extends express.Request {
-  user?: {
-    id: string;
-    email: string;
-  };
-}
+const router = express.Router();
 
-const router = express.Router()
 
 // GET /api/farmers - Get current farmer profile
-router.get('/', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     if (!farmerId) {
@@ -30,7 +24,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // POST /api/farmers - Create farmer profile
-router.post('/', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     if (!farmerId) {
@@ -69,7 +63,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // PUT /api/farmers - Update farmer profile
-router.put('/', async (req: AuthenticatedRequest, res: Response) => {
+router.put('/', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     if (!farmerId) {
@@ -100,7 +94,7 @@ router.put('/', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // DELETE /api/farmers - Delete farmer profile (and all related data)
-router.delete('/', async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     if (!farmerId) {
@@ -115,7 +109,7 @@ router.delete('/', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // GET /api/farmers/exists - Check if farmer profile exists
-router.get('/exists', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/exists', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     if (!farmerId) {

@@ -1,17 +1,20 @@
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# =============================================================================
+# AgroNavis — .gitignore
+# =============================================================================
 
-# Production builds
+# ─── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ─── Build outputs ────────────────────────────────────────────────────────────
 .next/
 out/
 build/
 dist/
+*.tsbuildinfo
 
-# Environment files - NEVER commit actual .env files with secrets
+# ─── Environment files — NEVER commit secrets ─────────────────────────────────
 .env
 .env.local
 .env.development.local
@@ -20,13 +23,21 @@ dist/
 backend/.env
 frontend/.env.local
 
-# Cache and temporary files
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ─── Cache ────────────────────────────────────────────────────────────────────
 .cache/
 .parcel-cache/
-*.tsbuildinfo
 .eslintcache
+.turbo
 
-# Python
+# ─── Python (ML service — future) ────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
@@ -37,13 +48,13 @@ env/
 ENV/
 .venv/
 
-# ML Models (if large)
+# ─── ML model files ───────────────────────────────────────────────────────────
 *.pt
 *.onnx
 *.h5
 *.pkl
 
-# OS generated files
+# ─── OS metadata ──────────────────────────────────────────────────────────────
 .DS_Store
 .DS_Store?
 ._*
@@ -52,37 +63,29 @@ ENV/
 ehthumbs.db
 Thumbs.db
 
-# IDE
+# ─── IDE ──────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Logs
-logs/
-*.log
-
-# Database
+# ─── Database ─────────────────────────────────────────────────────────────────
 *.db
 *.sqlite
 *.sqlite3
 
-# Coverage reports
+# ─── Test coverage ────────────────────────────────────────────────────────────
 coverage/
 *.lcov
-
-# nyc test coverage
 .nyc_output
 
-# Docker
+# ─── Supabase local state ─────────────────────────────────────────────────────
+backend/supabase/.branches
+backend/supabase/.temp
+
+# ─── Deployment ───────────────────────────────────────────────────────────────
+.vercel
 .dockerignore
 
-# Supabase
-supabase/.branches
-supabase/.temp
-
-# Vercel
-.vercel
-
-# Local development
+# ─── Misc ─────────────────────────────────────────────────────────────────────
 debug-*.html

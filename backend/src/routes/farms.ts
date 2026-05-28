@@ -1,17 +1,11 @@
-import express, { Response } from 'express'
-import { FarmService } from '../services/farmService'
+import express, { Request, Response } from 'express';
+import { FarmService } from '../services/farmService';
 
-interface AuthenticatedRequest extends express.Request {
-  user?: {
-    id: string;
-    email: string;
-  };
-}
+const router = express.Router();
 
-const router = express.Router()
 
 // GET /api/farms - Get all farms for current farmer
-router.get('/', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     if (!farmerId) {
@@ -26,7 +20,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // GET /api/farms/summary - Get farms summary with basic crop info
-router.get('/summary', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/summary', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     if (!farmerId) {
@@ -41,7 +35,7 @@ router.get('/summary', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // GET /api/farms/:id - Get specific farm by ID
-router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     const farmId = req.params.id
@@ -68,7 +62,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // GET /api/farms/:id/details - Get farm with all related data
-router.get('/:id/details', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/:id/details', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     const farmId = req.params.id
@@ -95,7 +89,7 @@ router.get('/:id/details', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // POST /api/farms - Create new farm
-router.post('/', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     if (!farmerId) {
@@ -122,11 +116,20 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       }
     }
 
-    // Validate required fields
-    if (!farmData.name || !farmData.total_area) {
+    // Process polygon data if provided (from PolygonMapper)
+    if (req.body.location?.polygon && Array.isArray(req.body.location.polygon)) {
+      farmData.location = {
+        ...farmData.location,
+        polygon: req.body.location.polygon,
+        coordinates_source: req.body.location.coordinates_source || 'polygon'
+      }
+    }
+
+    // Validate required fields — total_area can be 0 (area is calculated later from polygon)
+    if (!farmData.name) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Farm name and total area are required' 
+        error: 'Farm name is required' 
       })
     }
     
@@ -147,10 +150,11 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       })
     }
 
-    if (farmData.total_area <= 0) {
+    // Allow 0 — farm is created first, then area is calculated via Turf.js after polygon is drawn
+    if (farmData.total_area < 0) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Total area must be greater than 0' 
+        error: 'Total area cannot be negative' 
       })
     }
 
@@ -162,7 +166,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // PUT /api/farms/:id - Update farm
-router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     const farmId = req.params.id
@@ -246,7 +250,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // DELETE /api/farms/:id - Delete farm
-router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     const farmId = req.params.id
@@ -269,7 +273,7 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
 })
 
 // GET /api/farms/location/nearby - Find farms near coordinates
-router.get('/location/nearby', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/location/nearby', async (req: Request, res: Response) => {
   try {
     const farmerId = req.user?.id
     if (!farmerId) {
@@ -304,6 +308,122 @@ router.get('/location/nearby', async (req: AuthenticatedRequest, res: Response) 
 
     const farms = await FarmService.getFarmsByLocation(latitude, longitude, radius, farmerId)
     res.json({ success: true, data: farms })
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+// GET /api/farms/:farmId/fields - Get all fields for a farm
+router.get('/:farmId/fields', async (req: Request, res: Response) => {
+  try {
+    const farmerId = req.user?.id
+    const farmId = req.params.farmId
+
+    if (!farmerId) {
+      return res.status(401).json({ success: false, error: 'User not authenticated' })
+    }
+
+    const isOwner = await FarmService.validateFarmOwnership(farmId, farmerId)
+    if (!isOwner) {
+      return res.status(403).json({ success: false, error: 'Access denied to this farm' })
+    }
+
+    const farm = await FarmService.getFarmById(farmId)
+    const fields = farm?.location?.fields || []
+    res.json({ success: true, data: fields })
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+// POST /api/farms/:farmId/fields - Add a new field to a farm
+router.post('/:farmId/fields', async (req: Request, res: Response) => {
+  try {
+    const farmerId = req.user?.id
+    const farmId = req.params.farmId
+
+    if (!farmerId) {
+      return res.status(401).json({ success: false, error: 'User not authenticated' })
+    }
+
+    const isOwner = await FarmService.validateFarmOwnership(farmId, farmerId)
+    if (!isOwner) {
+      return res.status(403).json({ success: false, error: 'Access denied to this farm' })
+    }
+
+    const { name, area_acres, area_hectares, polygon, center_latitude, center_longitude } = req.body
+
+    if (!name || !area_acres || !polygon) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Field name, area, and polygon coordinates are required' 
+      })
+    }
+
+    const farm = await FarmService.getFarmById(farmId)
+    const currentLocation = farm?.location || {}
+    const currentFields = currentLocation.fields || []
+
+    const newField = {
+      id: crypto.randomUUID(),
+      name,
+      area_acres,
+      area_hectares: area_hectares || null,
+      polygon,
+      center_latitude: center_latitude || null,
+      center_longitude: center_longitude || null,
+      created_at: new Date().toISOString()
+    }
+
+    const updatedFields = [...currentFields, newField]
+    const totalFieldArea = updatedFields.reduce((sum: number, f: any) => sum + parseFloat(f.area_acres), 0)
+
+    await FarmService.updateFarm(farmId, {
+      location: {
+        ...currentLocation,
+        fields: updatedFields
+      },
+      total_area: totalFieldArea
+    })
+
+    res.status(201).json({ success: true, data: newField })
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+// DELETE /api/farms/:farmId/fields/:fieldId - Delete a field
+router.delete('/:farmId/fields/:fieldId', async (req: Request, res: Response) => {
+  try {
+    const farmerId = req.user?.id
+    const farmId = req.params.farmId
+    const fieldId = req.params.fieldId
+
+    if (!farmerId) {
+      return res.status(401).json({ success: false, error: 'User not authenticated' })
+    }
+
+    const isOwner = await FarmService.validateFarmOwnership(farmId, farmerId)
+    if (!isOwner) {
+      return res.status(403).json({ success: false, error: 'Access denied to this farm' })
+    }
+
+    const farm = await FarmService.getFarmById(farmId)
+    const currentLocation = farm?.location || {}
+    const currentFields = currentLocation.fields || []
+
+    const updatedFields = currentFields.filter((f: any) => f.id !== fieldId)
+    const totalFieldArea = updatedFields.reduce((sum: number, f: any) => sum + parseFloat(f.area_acres), 0)
+
+    await FarmService.updateFarm(farmId, {
+      location: {
+        ...currentLocation,
+        fields: updatedFields
+      },
+      total_area: totalFieldArea || farm?.total_area || 0
+    })
+
+    res.json({ success: true, message: 'Field deleted successfully' })
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message })
   }

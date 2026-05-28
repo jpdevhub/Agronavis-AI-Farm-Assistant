@@ -1,4 +1,5 @@
-import { supabase, Crop, CropVariety } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
+import type { Crop, CropVariety } from '../types';
 
 export class CropService {
   // Create a new crop

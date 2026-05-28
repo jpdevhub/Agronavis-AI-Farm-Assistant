@@ -1,12 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { ResourceService } from '../services/resourceService';
 import { FarmService } from '../services/farmService';
-import { authenticate } from '../middleware/auth';
+
 
 const router = Router();
 
 // Apply authentication middleware to all routes
-router.use(authenticate);
 
 // GET /api/resources - Get all resources for the authenticated user
 router.get('/', async (req: Request, res: Response) => {

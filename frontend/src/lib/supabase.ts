@@ -1,108 +1,73 @@
-import { createClient } from '@supabase/supabase-js'
+/**
+ * Supabase Auth Client — Frontend
+ *
+ * This is the ONLY Supabase usage in the frontend.
+ * Purpose: Manage the user's auth session (OAuth, JWT token, sign-out).
+ *
+ * ❌ Do NOT add supabase.from() data queries here.
+ *    All data operations go through the Express backend (see utils/farmApi.ts).
+ *
+ * Architecture: Frontend (auth session only) → Express Backend → Supabase DB
+ */
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true, // Enable for OAuth redirects
-    flowType: 'pkce'
-  }
-})
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+  },
+});
 
-// Google OAuth sign in
+/** Trigger Google OAuth login — redirects to /auth/callback */
 export const signInWithGoogle = async () => {
-  try {
-    console.log('Initiating Google sign in')
-    
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/dashboard`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        }
-      }
-    })
-    
-    console.log('Google sign in result:', { data, error })
-    
-    if (error) {
-      console.error('Error signing in with Google:', error)
-    } else {
-      console.log('Google sign in initiated successfully')
-    }
-    
-    return { data, error }
-  } catch (err) {
-    console.error('Exception signing in with Google:', err)
-    return { data: null, error: err }
-  }
-}
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  });
 
+  if (error) {
+    console.error('Google sign-in error:', error);
+  }
+
+  return { data, error };
+};
+
+/** Sign out the current user */
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut()
-  return { error }
-}
+  const { error } = await supabase.auth.signOut();
+  return { error };
+};
 
-export const getCurrentUser = () => {
-  return supabase.auth.getUser()
-}
+/** Get the current authenticated user */
+export const getCurrentUser = () => supabase.auth.getUser();
 
-export const getCurrentSession = () => {
-  return supabase.auth.getSession()
-}
+/** Get the current session (includes JWT access_token) */
+export const getCurrentSession = () => supabase.auth.getSession();
 
-// Auto-create or update user profile in Supabase
-const createOrUpdateProfile = async (user: any, metadata?: any) => {
-  try {
-    const { data: existingProfile, error: fetchError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Error fetching profile:', fetchError)
-      return
-    }
-
-    const profileData = {
-      id: user.id,
-      email: user.email || '',
-      first_name: metadata?.firstName || user.user_metadata?.first_name || '',
-      last_name: metadata?.lastName || user.user_metadata?.last_name || '',
-      avatar_url: user.user_metadata?.avatar_url || '',
-      updated_at: new Date().toISOString()
-    }
-
-    if (existingProfile) {
-      // Update existing profile
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update(profileData)
-        .eq('id', user.id)
-      
-      if (updateError) {
-        console.error('Error updating profile:', updateError)
-      }
-    } else {
-      // Create new profile
-      const { error: insertError } = await supabase
-        .from('profiles')
-        .insert({
-          ...profileData,
-          created_at: new Date().toISOString()
-        })
-      
-      if (insertError) {
-        console.error('Error creating profile:', insertError)
-      }
-    }
-  } catch (error) {
-    console.error('Error in createOrUpdateProfile:', error)
-  }
-}
+/**
+ * Sign in / sign up with email (magic link / OTP).
+ * Used for local development testing — Supabase will send a magic link to Mailpit.
+ * Access Mailpit at http://127.0.0.1:54324 to click the link.
+ */
+export const signInWithEmail = async (email: string) => {
+  const { data, error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
+      shouldCreateUser: true,
+    },
+  });
+  return { data, error };
+};
