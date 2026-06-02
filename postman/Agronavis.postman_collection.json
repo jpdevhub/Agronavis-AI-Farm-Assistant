@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "agronavis-collection-id",
+    "_postman_id": "{{$randomUUID}}",
     "name": "AgroNavis API",
     "description": "Postman Collection for AgroNavis APIs.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -16,7 +16,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}",
+              "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -37,7 +37,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}",
+              "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
