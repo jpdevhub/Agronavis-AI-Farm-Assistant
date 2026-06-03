@@ -10,6 +10,7 @@ import ProfileTab from './ProfileTab';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ResourceDashboard from './ResourceDashboard';
 import CropScanTab from './CropScanTab';
+import DailyTaskReminders from './DailyTaskReminders';
 
 // SSR-disable Leaflet polygon mapper
 const PolygonMapper = dynamic(() => import('./map/PolygonMapper'), {
@@ -195,26 +196,6 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
   const hasFarms = farms.length > 0;
 
-  // ---- Task icons (SVG only, no emojis) ----
-  const TaskIcons = {
-    water: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-      </svg>
-    ),
-    search: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-    ),
-    box: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
-      </svg>
-    ),
-  };
-
   return (
     <div>
       {/* ======================== OVERVIEW ======================== */}
@@ -320,32 +301,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
               )}
             </div>
 
-            {/* Priority tasks */}
-            <div className={s.card}>
-              <div className={s.cardHeader}>
-                <div className={s.cardTitle}>Priority Tasks</div>
-                <button style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>View All</button>
-              </div>
-              <div className={s.tasksCard}>
-                {[
-                  { name: 'Irrigation Sync', desc: 'Sync sensor array', due: 'Due today', priority: 'High', icon: TaskIcons.water },
-                  { name: 'Pest Inspection', desc: 'Manual spot check', due: 'Due in 4 hours', priority: 'Routine', icon: TaskIcons.search },
-                  { name: 'Inventory Audit', desc: 'Update fertilizer stock', due: 'No deadline', priority: 'Backlog', icon: TaskIcons.box },
-                ].map(task => (
-                  <div key={task.name} className={s.taskItem}>
-                    <div className={s.taskIcon}>{task.icon}</div>
-                    <div className={s.taskInfo}>
-                      <div className={s.taskName}>{task.name}</div>
-                      <div className={s.taskDesc}>{task.desc}</div>
-                      <div className={s.taskDue}>{task.due}</div>
-                    </div>
-                    <span className={`${s.taskPriority} ${task.priority === 'High' ? s.priorityHigh : task.priority === 'Routine' ? s.priorityRoutine : s.priorityBacklog}`}>
-                      {task.priority}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <DailyTaskReminders />
 
             {/* Satellite card */}
             <div className={`${s.card} ${s.satelliteCard}`}>
