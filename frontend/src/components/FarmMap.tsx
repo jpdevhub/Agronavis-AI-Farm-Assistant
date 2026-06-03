@@ -136,7 +136,7 @@ const FarmMap: React.FC<FarmMapProps> = ({
       <div className={`${styles.noDataContainer} ${styles.mapHeight}`}>
         <p className="text-gray-500 text-center p-4">
           No farms with location data available.<br/>
-          <span className="text-sm">Use "Draw Field" to add field boundaries.</span>
+          <span className="text-sm">Use &quot;Draw Field&quot; to add field boundaries.</span>
         </p>
       </div>
     );

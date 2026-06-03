@@ -170,73 +170,88 @@
   gap: 4px;
 }
 
-/* Dev testing section */
-.devDivider {
+/* ── Dev bypass section (hidden in production) ───────────────────────────── */
+
+.devBypass {
   width: 100%;
-  border: none;
-  border-top: 1px solid #f1f5f9;
-  margin: 20px 0 16px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-.devLabel {
-  font-size: 11px;
+/* "local dev only" divider with centered label */
+.devBypassDivider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.devBypassDivider::before,
+.devBypassDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #f1f5f9;
+}
+.devBypassDivider span {
+  font-size: 10px;
   font-weight: 700;
-  color: #94a3b8;
+  color: #cbd5e1;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  text-align: center;
-  margin-bottom: 12px;
-}
-
-.devForm {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-}
-
-.devInput {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 13px;
-  color: #1e293b;
-  background: #f8fafc;
-  transition: border-color 0.15s;
-  min-width: 0;
-}
-
-.devInput:focus {
-  outline: none;
-  border-color: #10b981;
-  background: #ffffff;
-}
-
-.devButton {
-  padding: 10px 16px;
-  background: #10b981;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s;
   white-space: nowrap;
 }
 
-.devButton:hover { background: #059669; }
-.devButton:disabled { opacity: 0.55; cursor: not-allowed; }
-
-.devNote {
-  font-size: 11px;
-  color: #94a3b8;
-  text-align: center;
-  margin-top: 8px;
-  line-height: 1.5;
+/* The single one-click button */
+.devBypassBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+}
+.devBypassBtn:hover:not(:disabled) {
+  background: #064e3b10;
+  border-color: #10b981;
+  color: #064e3b;
+  transform: translateY(-1px);
+}
+.devBypassBtn:active:not(:disabled) {
+  transform: scale(0.99);
+}
+.devBypassBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-.devNote a {
-  color: #3b82f6;
-  text-decoration: underline;
+/* Tiny spinner inside the button */
+.devSpinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid #cbd5e1;
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.devBypassNote {
+  font-size: 11px;
+  color: #b0bec5;
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
 }

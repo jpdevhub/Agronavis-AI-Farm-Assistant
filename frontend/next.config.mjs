@@ -1,4 +1,24 @@
 /** @type {import('next').NextConfig} */
+import dotenv from 'dotenv';
+import path from 'path';
+import withPWAInit from '@ducanh2912/next-pwa';
+
+// Load root .env (single source of truth for all env vars)
+dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
+
+const withPWA = withPWAInit({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development', // no SW in dev — avoids caching confusion
+  register: true,
+  skipWaiting: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  workboxOptions: {
+    disableDevLogs: true,
+  },
+});
+
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -10,7 +30,6 @@ const nextConfig = {
     ],
     formats: ['image/webp', 'image/avif'],
   },
-  output: 'standalone',
   transpilePackages: ['react-leaflet', 'leaflet'],
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js'],
@@ -24,4 +43,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);

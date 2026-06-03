@@ -5,15 +5,15 @@
  * Purpose: Manage the user's auth session (OAuth, JWT token, sign-out).
  *
  * ❌ Do NOT add supabase.from() data queries here.
- *    All data operations go through the Express backend (see utils/farmApi.ts).
+ *    All data operations go through the Python FastAPI backend (see utils/farmApi.ts).
  *
- * Architecture: Frontend (auth session only) → Express Backend → Supabase DB
+ * Architecture: Frontend (auth session only) → Python FastAPI Backend → Supabase DB
  */
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key-for-build';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -57,9 +57,31 @@ export const getCurrentUser = () => supabase.auth.getUser();
 export const getCurrentSession = () => supabase.auth.getSession();
 
 /**
- * Sign in / sign up with email (magic link / OTP).
- * Used for local development testing — Supabase will send a magic link to Mailpit.
- * Access Mailpit at http://127.0.0.1:54324 to click the link.
+ * Dev login: sign in with email + password.
+ * No emails sent — instant login. Works offline, no Mailpit needed.
+ */
+export const signInWithPassword = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  return { data, error };
+};
+
+/**
+ * Dev signup: create account with email + password.
+ * enable_confirmations = false in config.toml → auto-confirmed instantly.
+ * No emails sent.
+ */
+export const signUpWithPassword = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+  });
+  return { data, error };
+};
+
+/**
+ * @deprecated Use signInWithPassword for local dev instead.
+ * Magic link sends an email → hits Mailpit rate limit after 2–3 uses.
  */
 export const signInWithEmail = async (email: string) => {
   const { data, error } = await supabase.auth.signInWithOtp({

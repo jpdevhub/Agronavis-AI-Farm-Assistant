@@ -1,0 +1,40 @@
+name: Greet Contributors
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  greet-issue:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `👋 Thanks for opening this issue, @${context.payload.sender.login}!\n\nWe'll take a look soon. In the meantime, please make sure you've included steps to reproduce (for bugs) or a clear problem statement (for feature requests).\n\n— The AgroNavis team`
+            })
+
+  greet-pr:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🎉 Thanks for your contribution, @${context.payload.sender.login}!\n\nPlease make sure CI passes and the checklist in the PR template is complete. A maintainer will review this soon.\n\n— The AgroNavis team`
+            })

@@ -11,7 +11,7 @@
 import axios from 'axios';
 import { supabase } from '../lib/supabase';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
 // Shared axios instance — exported so other services (soilService, profileApi, etc.) reuse it.
 export const api = axios.create({ baseURL: BASE_URL });
@@ -23,9 +23,17 @@ api.interceptors.request.use(async (config) => {
   } = await supabase.auth.getSession();
 
   if (session?.access_token) {
-    config.headers.Authorization = `Bearer ${session.access_token}`;
+    if (config.headers && typeof config.headers.set === 'function') {
+      config.headers.set('Authorization', `Bearer ${session.access_token}`);
+    } else {
+      config.headers.Authorization = `Bearer ${session.access_token}`;
+    }
+    console.log('Sending token:', session.access_token.substring(0, 10) + '...');
+  } else {
+    console.warn('No access token found in session!');
   }
 
+  console.log('Final headers for', config.method, config.url, config.headers);
   return config;
 });
 

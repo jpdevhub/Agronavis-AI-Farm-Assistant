@@ -6,18 +6,19 @@
 |---|---|---|
 | Database | Supabase | `pzgtmrtwccuavthcyvjh.supabase.co` |
 | Frontend | Next.js | Vercel |
-| Backend | Express API | Railway / Render |
+| Backend | Python FastAPI | Hugging Face Spaces / Railway |
 
 ---
 
 ## Step 1: Apply Database Schema to Supabase
 
 1. Go to **https://supabase.com/dashboard/project/pzgtmrtwccuavthcyvjh/sql/new**
-2. Run migrations in order:
-   - `backend/supabase/migrations/20251007142940_initial_schema.sql`
-   - `backend/supabase/migrations/20260315000000_enhanced_schema.sql`
-   - `backend/supabase/migrations/20260324000000_enhanced_schema.sql`
-   - `backend/supabase/migrations/20260326000000_update_regional_soil.sql`
+2. Run migrations in order from `backend/supabase/migrations/`:
+   - `20251007142940_initial_schema.sql`
+   - `20260315000000_enhanced_schema.sql`
+   - `20260324000000_enhanced_schema.sql`
+   - `20260326000000_update_regional_soil.sql`
+   - `20260602000000_crop_diseases_wiki.sql` (if exists)
 
 ## Step 2: Enable Google Auth in Supabase
 
@@ -39,41 +40,34 @@ NEXT_PUBLIC_SUPABASE_URL=https://pzgtmrtwccuavthcyvjh.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_xc6r4xhF6bwGvAnwbrVPyA_MB33ZJ7t
 NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 NEXT_PUBLIC_API_BASE_URL=https://your-backend.railway.app/api
-NEXT_PUBLIC_WEATHER_API_KEY=77f8b772e88affb1f644dd32c8c13396
+NEXT_PUBLIC_WEATHER_API_KEY=your_openweathermap_api_key
 ```
 
 4. Deploy
 
-## Step 4: Deploy Backend to Railway
+## Step 4: Deploy Backend to Hugging Face Spaces / Railway
 
-1. Go to railway.app → New Project → GitHub Repo
-2. Set **Root Directory** to `backend`
+1. Go to your hosting platform (Railway.app or Hugging Face Spaces).
+2. Set **Root Directory** to `backend`.
 3. Add environment variables:
 
 ```
 SUPABASE_URL=https://pzgtmrtwccuavthcyvjh.supabase.co
 SUPABASE_ANON_KEY=sb_publishable_xc6r4xhF6bwGvAnwbrVPyA_MB33ZJ7t
 SUPABASE_SERVICE_ROLE_KEY=<get from Supabase Settings > API > service_role key>
-PORT=3001
-NODE_ENV=production
-CORS_ORIGIN=https://your-app.vercel.app
-JWT_SECRET=zGeWmDqBCqgrlaQC/3+gLtqebIzPIROhtEmeQt5wKdXzq3/WehNMbnvTz8hmt76jjswf1r8yXroDrCzHHHHfdQ==
+PORT=8000
 ```
 
-4. Deploy → Copy the Railway URL
+4. Ensure your hosting platform runs `pip install -r requirements.txt` and starts the server via:
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port $PORT
+   ```
 
 ## Step 5: Update Vercel with Backend URL
 
-After Railway deploys, go back to Vercel:
-- Update `NEXT_PUBLIC_API_BASE_URL` to `https://your-railway-url.railway.app/api`
+After the backend deploys, go back to Vercel:
+- Update `NEXT_PUBLIC_API_BASE_URL` to `https://your-backend-url/api`
 - Redeploy
-
-## Step 6: Update CORS in Backend
-
-In Railway env vars, update:
-```
-CORS_ORIGIN=https://your-app.vercel.app
-```
 
 ---
 

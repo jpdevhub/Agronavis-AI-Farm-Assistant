@@ -9,15 +9,17 @@ AI-powered smart farm monitoring platform — crop disease detection, farm manag
 
 ## Overview
 
-AgroNavis is an open-source PWA that helps farmers monitor crops, detect plant diseases via YOLOv8 AI, manage multiple farms with GPS precision, and receive hyper-local weather-based irrigation recommendations. It supports English, Hindi, and Bengali and works offline.
+AgroNavis is an open-source PWA that helps farmers monitor crops, detect plant diseases via AI (ResNet18), manage multiple farms with GPS precision, and receive hyper-local weather-based irrigation recommendations. It supports multiple languages and works offline.
 
 **Services**
+
 | Service | Stack | Port |
 |---|---|---|
 | Frontend | Next.js 14, TypeScript, Tailwind CSS | 3000 |
-| Backend API | Express.js, TypeScript | 3001 |
-| ML Service | FastAPI, YOLOv8, PyTorch | 8001 |
+| Backend API | Python FastAPI, PyTorch (ResNet18) | 8000 |
 | Database | Supabase (PostgreSQL + RLS) | — |
+
+*(Note: The legacy Node.js Express server and separate YOLO ML service have been deprecated and consolidated into a single highly-efficient Python FastAPI backend).*
 
 ---
 
@@ -25,96 +27,61 @@ AgroNavis is an open-source PWA that helps farmers monitor crops, detect plant d
 
 - Node.js 18+
 - Python 3.9+
-- Docker & Docker Compose (for Docker setup)
-- [Supabase](https://supabase.com) account
-- [OpenWeatherMap](https://openweathermap.org/api) API key
+- [Supabase CLI](https://supabase.com/docs/guides/cli) installed (for local database)
+- [OpenWeatherMap](https://openweathermap.org/api) API key (optional, for weather features)
 
 ---
 
-## Quick Start
+## Local Development (Quick Start)
 
-### Option A — Docker (recommended)
+We use a unified environment approach to make contributing as easy as possible.
+
+### 1. Setup Environment
 
 ```bash
 git clone https://github.com/YOUR_ORG/agronavis.git
 cd agronavis
 
+# Create the single root .env file from the template
 cp .env.example .env
-cp frontend/.env.local.example frontend/.env.local
-cp backend/.env.example backend/.env
-# Fill in your credentials in each file
-
-docker-compose up -d --build
 ```
 
-Access: Frontend `http://localhost:3000` | API `http://localhost:3001` | ML `http://localhost:8001`
+*Note: The `.env.example` comes pre-configured with the default local Supabase credentials. You only need to add external API keys if you want to test those specific features.*
 
-### Option B — Local development
-
-```bash
-git clone https://github.com/YOUR_ORG/agronavis.git
-cd agronavis
-
-# Install all dependencies
-npm run install:all
-
-# Copy and fill env files
-cp .env.example .env
-cp frontend/.env.local.example frontend/.env.local
-cp backend/.env.example backend/.env
-
-# Terminal 1 — frontend + backend
-npm run dev
-
-# Terminal 2 — ML service
-cd backend/ml-service
-python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python main.py
-```
-
----
-
-## Environment Variables
-
-### Root / Backend (`backend/.env`)
-
-```env
-SUPABASE_URL=
-SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_KEY=
-DATABASE_URL=postgresql://postgres:password@localhost:5432/agronavis
-JWT_SECRET=
-CORS_ORIGIN=http://localhost:3000
-PORT=3001
-NODE_ENV=development
-WEATHER_API_KEY=
-ML_SERVICE_URL=http://localhost:8001
-```
-
-### Frontend (`frontend/.env.local`)
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_WEATHER_API_KEY=
-```
-
----
-
-## Database Setup
-
-1. Create a project at [supabase.com](https://supabase.com).
-2. Copy your Project URL and anon/service keys into the env files.
-3. Run migrations:
+### 2. Setup Local Database
 
 ```bash
 cd backend
-npm run db:link   # link to your Supabase project
-npm run db:push   # apply all migrations
+supabase start
+supabase db push
+cd ..
 ```
+
+*This spins up a local Supabase instance (Postgres, Auth, Storage) and applies all schema migrations.*
+
+### 3. Install Dependencies
+
+```bash
+# Frontend
+npm install --prefix frontend
+
+# Backend (Using pip or uv)
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cd ..
+```
+
+### 4. Run the App
+
+From the **root directory** of the project, run:
+
+```bash
+npm run dev
+```
+
+This command uses `concurrently` to start both the Next.js frontend (on port 3000) and the FastAPI backend (on port 8000).
 
 ---
 
@@ -122,112 +89,36 @@ npm run db:push   # apply all migrations
 
 ```
 agronavis/
-├── frontend/               # Next.js PWA
-│   └── src/
-│       ├── components/     # UI components
-│       ├── pages/          # Routes
-│       ├── hooks/          # Custom React hooks
-│       ├── auth/           # Auth logic
-│       ├── utils/          # API helpers
-│       └── styles/
-├── backend/                # Express API
+├── frontend/               # Next.js 14 PWA
 │   ├── src/
-│   │   ├── routes/         # REST endpoints
-│   │   ├── services/       # Business logic
-│   │   ├── middleware/     # Auth, CORS
-│   │   └── lib/            # DB client
-│   ├── ml-service/         # FastAPI + YOLOv8
-│   │   ├── main.py
-│   │   ├── src/
-│   │   └── models/         # Trained model weights (not committed)
+│   │   ├── components/     # UI components
+│   │   ├── pages/          # Next.js Routes
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── auth/           # Supabase Auth logic
+│   │   └── utils/          # API helpers
+├── backend/                # Python FastAPI Backend
+│   ├── main.py             # Single-file API server (CRUD + ML)
+│   ├── requirements.txt    # Python dependencies
+│   ├── model/              # PyTorch model weights & class names
 │   └── supabase/
-│       └── migrations/     # SQL migrations
-├── .env.example
-├── docker-compose.yml
+│       └── migrations/     # SQL schema migrations
+├── .env.example            # Master environment template
 └── package.json            # Monorepo scripts
 ```
 
 ---
 
-## API Reference
+## Model Weights
 
-All protected endpoints require `Authorization: Bearer <token>`.
-
-**Auth**
-```
-POST /api/auth/register
-POST /api/auth/login
-GET  /api/auth/profile
-```
-
-**Farms**
-```
-GET    /api/farms
-POST   /api/farms
-GET    /api/farms/:id
-PUT    /api/farms/:id
-DELETE /api/farms/:id
-GET    /api/farms/:id/details
-```
-
-**Crops**
-```
-GET    /api/crops
-POST   /api/crops
-GET    /api/crops/:id
-PUT    /api/crops/:id
-DELETE /api/crops/:id
-```
-
-**AI Analysis**
-```
-POST /api/ml/analyze-image         # base64 image
-POST /api/ml/analyze-image-upload  # multipart file
-GET  /api/ml/models/info
-```
-
-**Other**
-```
-GET /api/farmers, POST, PUT
-GET /api/soil-health, POST
-GET /api/resources, POST
-GET /api/yields, POST
-```
-
-Error responses follow a consistent shape:
-```json
-{ "success": false, "error": "message", "code": "ERROR_CODE" }
-```
-
----
-
-## Running Tests
-
-```bash
-# Backend
-cd backend && npm test
-
-# Frontend
-cd frontend && npm test
-```
-
----
-
-## Deployment
-
-**Frontend** — Vercel: push to `main`, import repo in Vercel, set env vars.
-
-**Backend** — any Node.js host (Railway, Fly.io, Heroku). Set all backend env vars.
-
-**ML Service** — any Python host or Docker container. Ensure model weights are present at `backend/ml-service/models/`.
-
-Note: Model weight files (`.pt`, `.onnx`) are excluded from the repo via `.gitignore`. Download or train your own and place them in `backend/ml-service/models/`.
+The CropScan AI uses a fine-tuned ResNet18 model for plant disease detection.
+If the `plant_disease_resnet18.pth` weights are not present in `backend/model/`, the backend will fallback to a dummy model or fail to start. Contact the maintainers for the weights or train your own and place them in the `backend/model/` directory.
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+We welcome issues, feature requests, and pull requests!
 
 ## Security
 

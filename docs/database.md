@@ -170,12 +170,13 @@ RLS: SELECT by all authenticated users.
 
 ```bash
 cd backend
-npm run db:link    # link CLI to your Supabase project
-npm run db:push    # apply all migrations in supabase/migrations/
-```
 
-To reset a local Supabase instance:
+# Link to your production Supabase project (one-time setup)
+supabase link --project-ref <your-project-ref>
 
-```bash
-npm run db:reset
+# Push all migrations to production
+supabase db push
+
+# To reset your local Supabase instance during development
+supabase db reset
 ```

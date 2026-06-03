@@ -1,0 +1,419 @@
+/* ============================================================
+   AgroNavis — CropScan AI Tab Styles
+   Matches existing design system: same card, colors, typography.
+   ============================================================ */
+
+/* ── Page layout ─────────────────────────────────────────────── */
+.scanPage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.scanLeft { display: flex; flex-direction: column; gap: 16px; }
+.scanRight { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Section header ──────────────────────────────────────────── */
+.pageHeader { margin-bottom: 8px; }
+.pageTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+.pageSubtitle { font-size: 13px; color: var(--color-text-muted); }
+
+/* ── Farm selector ───────────────────────────────────────────── */
+.farmSelector {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: var(--shadow-sm);
+}
+.selectorLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+.selectorSelect {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: white;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.selectorSelect:focus { outline: none; border-color: #10b981; }
+
+/* ── Upload zone ─────────────────────────────────────────────── */
+.uploadCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.uploadZone {
+  border: 2px dashed var(--color-border);
+  border-radius: 14px;
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  background: var(--gray-50);
+}
+.uploadZone:hover,
+.uploadZoneDragging {
+  border-color: #10b981;
+  background: var(--green-50);
+}
+.uploadZone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.uploadIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #064e3b, #10b981);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+}
+.uploadIcon svg { color: white; }
+
+.uploadTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+.uploadSub { font-size: 12px; color: var(--color-text-muted); }
+
+/* Preview image */
+.previewWrap {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid var(--color-border);
+  background: var(--gray-50);
+}
+.previewImg {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  display: block;
+}
+.previewClear {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s;
+}
+.previewClear:hover { background: rgba(220,38,38,0.8); }
+
+/* Scan button */
+.scanBtn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #064e3b, #10b981);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+  transition: opacity 0.15s, transform 0.1s;
+}
+.scanBtn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.scanBtn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.35);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Result card ─────────────────────────────────────────────── */
+.resultCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.resultHeader {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+.resultHeaderHealthy { background: linear-gradient(135deg, #064e3b, #065f46); }
+.resultHeaderDisease { background: linear-gradient(135deg, #7c2d12, #dc2626); }
+.resultHeaderNoCrop  { background: linear-gradient(135deg, #374151, #6b7280); }
+
+.resultIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.resultIcon svg { color: white; }
+
+.resultMeta { flex: 1; min-width: 0; }
+.resultName {
+  font-size: 16px;
+  font-weight: 800;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.resultCrop { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 1px; }
+
+.resultBadge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  white-space: nowrap;
+  border: 1px solid rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Confidence bar */
+.confidenceSection {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.confidenceLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+.confidenceVal { font-weight: 800; color: var(--color-text-primary); font-size: 14px; }
+.confidenceBar {
+  height: 8px;
+  background: var(--gray-100);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.confidenceFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+.confidenceFillHealthy { background: linear-gradient(90deg, #10b981, #064e3b); }
+.confidenceFillDisease { background: linear-gradient(90deg, #f97316, #dc2626); }
+
+/* Detail sections */
+.resultBody { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.detailSection {}
+.detailTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+.detailList { display: flex; flex-direction: column; gap: 6px; }
+.detailItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+.detailDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.dotSymptom { background: #f97316; }
+.dotTreatment { background: #10b981; }
+
+/* ── Empty / placeholder state ───────────────────────────────── */
+.emptyResult {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 48px 24px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.emptyResultIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--green-50);
+  border: 1px solid var(--green-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: var(--color-primary);
+}
+.emptyResultTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+.emptyResultSub { font-size: 13px; color: var(--color-text-muted); }
+
+/* ── Scan history ────────────────────────────────────────────── */
+.historyCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.historyTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.historyCount {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--green-50);
+  color: var(--color-primary);
+  border: 1px solid var(--green-200);
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+
+.historyList { display: flex; flex-direction: column; gap: 8px; }
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--gray-50);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  transition: border-color 0.15s;
+}
+.historyItem:hover { border-color: #10b981; }
+
+.historyDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.historyDotHealthy { background: #10b981; }
+.historyDotDisease { background: #ef4444; }
+
+.historyInfo { flex: 1; min-width: 0; }
+.historyDisease {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.historyFarm { font-size: 11px; color: var(--color-text-muted); }
+
+.historyConf {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.historyEmpty {
+  text-align: center;
+  padding: 24px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* ── Error banner ────────────────────────────────────────────── */
+.errorBanner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* ── Saved badge ─────────────────────────────────────────────── */
+.savedBadge {
+  background: var(--green-50);
+  border: 1px solid var(--green-200);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #065f46;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

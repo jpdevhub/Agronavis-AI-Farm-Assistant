@@ -9,6 +9,7 @@ import type { LatLng } from '../utils/geoUtils';
 import ProfileTab from './ProfileTab';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ResourceDashboard from './ResourceDashboard';
+import CropScanTab from './CropScanTab';
 
 // SSR-disable Leaflet polygon mapper
 const PolygonMapper = dynamic(() => import('./map/PolygonMapper'), {
@@ -761,6 +762,9 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
       {/* ======================== PROFILE ======================== */}
       {activeTab === 'profile' && <ProfileTab />}
+
+      {/* ======================== CROPSCAN AI ======================== */}
+      {activeTab === 'cropscan' && <CropScanTab />}
     </div>
   );
 };
