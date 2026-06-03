@@ -1,6 +1,6 @@
 {
   "name": "Agronavis",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "concurrently --names \"API,WEB\" --prefix-colors \"green,cyan\" \"npm run dev:api\" \"npm run dev:web\"",
