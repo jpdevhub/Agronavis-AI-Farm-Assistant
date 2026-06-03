@@ -3,6 +3,10 @@ import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import styles from '../styles/FertilizerRecommendation.module.css';
 import { soilService } from '../utils/soilService';
+import { farmApi } from '../utils/farmApi';
+import { extractFarmCoordinates } from '../utils/farmLocation';
+import { FertilizerWeatherAdvisory } from './FertilizerWeatherAdvisory';
+import type { Coordinates } from '../types/weatherForecast';
 
 interface FertilizerRecommendationProps {
   farmId: string;
@@ -35,6 +39,37 @@ const FertilizerRecommendation: React.FC<FertilizerRecommendationProps> = ({ far
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [hasCrops, setHasCrops] = useState(false);
   const [farmData, setFarmData] = useState<{name: string; totalArea: number; district?: string} | null>(null);
+  const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadFarmCoordinates = async () => {
+      if (!farmId) {
+        if (isMounted) {
+          setCoordinates(null);
+        }
+        return;
+      }
+
+      try {
+        const farm = await farmApi.getFarm(farmId);
+        if (isMounted) {
+          setCoordinates(extractFarmCoordinates(farm));
+        }
+      } catch {
+        if (isMounted) {
+          setCoordinates(null);
+        }
+      }
+    };
+
+    loadFarmCoordinates();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [farmId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -94,6 +129,7 @@ const FertilizerRecommendation: React.FC<FertilizerRecommendationProps> = ({ far
           <div className={styles.iconWrapper}>🧮</div>
           <h3 className={styles.title}>{t('dashboard.fertilizer.title', 'Fertilizer Calculator')}</h3>
         </div>
+        <FertilizerWeatherAdvisory coordinates={coordinates} />
         <div className={styles.emptyState}>
           <p>{error || 'Draw your farm boundary to analyze regional soil health.'}</p>
         </div>
@@ -103,6 +139,7 @@ const FertilizerRecommendation: React.FC<FertilizerRecommendationProps> = ({ far
 
   return (
     <div className={styles.container}>
+      <FertilizerWeatherAdvisory coordinates={coordinates} />
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.iconWrapper}>🧮</div>

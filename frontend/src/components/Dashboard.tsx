@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import s from '../styles/Dashboard.module.css';
@@ -10,6 +10,8 @@ import ProfileTab from './ProfileTab';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ResourceDashboard from './ResourceDashboard';
 import CropScanTab from './CropScanTab';
+import { FertilizerWeatherAdvisory } from './FertilizerWeatherAdvisory';
+import { extractFarmCoordinates } from '../utils/farmLocation';
 
 // SSR-disable Leaflet polygon mapper
 const PolygonMapper = dynamic(() => import('./map/PolygonMapper'), {
@@ -21,6 +23,8 @@ interface Farm {
   id: string;
   name: string;
   total_area: number;
+  latitude?: number;
+  longitude?: number;
   location?: {
     latitude?: number;
     longitude?: number;
@@ -179,6 +183,10 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
   // Fertilizer calc — all values derived from farm area + selected crop
   const fertFarm = farms.find(f => f.id === fertFarmId) || farms[0];
+  const fertCoordinates = useMemo(
+    () => extractFarmCoordinates(fertFarm),
+    [fertFarm]
+  );
   const soilKey = fertFarm?.soil_type || 'default';
   const npk = NPK_BY_SOIL[soilKey] || NPK_BY_SOIL.default;
   const dosage = FERT_BY_CROP[fertCrop] || FERT_BY_CROP.default;
@@ -618,8 +626,9 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
       {/* ======================== FERTILIZER ======================== */}
       {activeTab === 'fertilizer' && (
-        <div className={s.fertSection}>
-          {/* Left: Calculator */}
+        <>
+          <FertilizerWeatherAdvisory coordinates={fertCoordinates} />
+          <div className={s.fertSection}>
           <div>
             <div className={s.fertTitle}>Fertilizer Calculator</div>
             <div className={s.fertDesc}>
@@ -752,6 +761,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
             <button className={s.orderBtn}>Generate Purchase Order</button>
           </div>
         </div>
+        </>
       )}
 
       {/* ======================== RESOURCES / INVENTORY ======================== */}
