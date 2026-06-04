@@ -19,10 +19,14 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
+    supportedLngs: ['en', 'hi', 'bn'],
+    nonExplicitSupportedLngs: true,
+    cleanCode: true,
     debug: false, // Disabled debug logs for cleaner console output
     
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
+      lookupLocalStorage: 'i18nextLng',
       caches: ['localStorage'],
     },
 
