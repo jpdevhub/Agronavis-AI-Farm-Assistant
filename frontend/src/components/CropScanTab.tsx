@@ -340,7 +340,7 @@ const CropScanTab: React.FC = () => {
               {/* WhatsApp Share */}
               {!result.is_healthy && (
                 <div style={{ padding: '8px 16px' }}>
-                  
+                  <a
                     href={`https://wa.me/?text=${encodeURIComponent(
                       `🌿 AgroNavis Crop Scan Result\n\nDisease: ${result.predicted_disease_name}\nCrop: ${result.crop_type || 'Unknown'}\nConfidence: ${result.confidence_score.toFixed(1)}%\n\nPlease consult an agricultural expert for treatment advice.`
                     )}`}
@@ -461,3 +461,5 @@ const CropScanTab: React.FC = () => {
 }
 
 export default CropScanTab
+
+
