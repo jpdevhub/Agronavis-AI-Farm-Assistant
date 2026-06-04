@@ -310,6 +310,101 @@
 
 .taskDoneBtn:hover { border-color: #10b981; color: #059669; }
 
+.taskSummary {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.taskStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #ecfeff;
+  color: #0e7490;
+  border: 1px solid #a5f3fc;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.taskStatusBadgeDone {
+  background: #dcfce7;
+  color: #047857;
+  border-color: #bbf7d0;
+}
+
+.dailyTaskItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--gray-50);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.dailyTaskItem:hover {
+  background: white;
+  border-color: var(--green-200);
+}
+
+.dailyTaskItemDone {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.dailyTaskCheckbox {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dailyTaskCheckmark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: white;
+  border: 1.5px solid var(--color-border);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.dailyTaskItemDone .dailyTaskCheckmark {
+  background: #10b981;
+  border-color: #059669;
+}
+
+.dailyTaskCheckbox:focus-visible + .dailyTaskCheckmark {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.22);
+}
+
+.dailyTaskInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dailyTaskItemDone .taskName,
+.dailyTaskItemDone .taskDesc {
+  color: var(--color-text-muted);
+}
+
+.dailyTaskItemDone .taskName {
+  text-decoration: line-through;
+}
+
 /* ---- Satellite / Map section ---- */
 .satelliteCard {
   position: relative;
