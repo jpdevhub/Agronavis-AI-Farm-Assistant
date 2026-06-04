@@ -32,6 +32,18 @@
   font-weight: 600;
 }
 
+.messageRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+}
+
 .warningTitle {
   display: block;
   margin-bottom: 6px;
