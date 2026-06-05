@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from 'react-leaflet';
 import L from 'leaflet';
 import { farmApi } from '../utils/farmApi';
+import { FIELD_COLORS } from '../utils/mapUtils';
 import styles from '../styles/Map.module.css';
 
 // Fix for Leaflet marker icons in Next.js
@@ -14,18 +15,6 @@ const DefaultIcon = L.icon({
   shadowSize: [41, 41],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
-
-// Palette that matches FIELD_COLORS in Dashboard — cycles for many fields
-const FIELD_COLORS = [
-  '#10b981',
-  '#f97316',
-  '#6366f1',
-  '#eab308',
-  '#ec4899',
-  '#06b6d4',
-  '#84cc16',
-  '#a855f7',
-];
 
 interface Field {
   id: string;

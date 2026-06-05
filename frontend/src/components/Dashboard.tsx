@@ -5,6 +5,7 @@ import s from '../styles/Dashboard.module.css';
 import { farmApi, cropApi } from '../utils/farmApi';
 import { soilService } from '../utils/soilService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
+import { FIELD_COLORS } from '../utils/mapUtils';
 import type { LatLng } from '../utils/geoUtils';
 import ProfileTab from './ProfileTab';
 import AnalyticsDashboard from './AnalyticsDashboard';
@@ -96,17 +97,8 @@ const FertDot: React.FC<{ color: string }> = ({ color }) => (
   }} />
 );
 
-// Palette for field colour swatches — cycles when a farm has many fields
-const FIELD_COLORS = [
-  '#10b981', // emerald
-  '#f97316', // orange
-  '#6366f1', // indigo
-  '#eab308', // yellow
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#84cc16', // lime
-  '#a855f7', // purple
-];
+// Palette for field colour swatches — imported from shared mapUtils
+// (FIELD_COLORS is used by both Dashboard and FarmMap to keep colours in sync)
 
 const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
   const router = useRouter();

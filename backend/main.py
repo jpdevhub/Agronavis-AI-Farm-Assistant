@@ -627,21 +627,43 @@ async def delete_farm(farm_id: str, user=Depends(verify_token)):
 # ── Farm Fields (Polygon) ─────────────────────────────────────────────────────
 
 @app.get("/api/farms/{farm_id}/fields")
-async def get_fields(farm_id: str, user=Depends(verify_token)):
-    res = supabase.table("farms").select("location").eq("id", farm_id).eq("farmer_id", user.id).limit(1).execute()
+async def get_fields(
+    farm_id: str,
+    user: dict = Depends(verify_token),
+) -> dict:
+    res = (
+        supabase.table("farms")
+        .select("location")
+        .eq("id", farm_id)
+        .eq("farmer_id", user.id)
+        .limit(1)
+        .execute()
+    )
     if not res.data:
         raise HTTPException(status_code=404, detail="Farm not found")
     fields = (res.data[0].get("location") or {}).get("fields", [])
     return {"success": True, "data": fields}
 
+
 @app.post("/api/farms/{farm_id}/fields", status_code=201)
-async def add_field(farm_id: str, body: FieldCreate, user=Depends(verify_token)):
-    owned = supabase.table("farms").select("location, total_area").eq("id", farm_id).eq("farmer_id", user.id).limit(1).execute()
+async def add_field(
+    farm_id: str,
+    body: FieldCreate,
+    user: dict = Depends(verify_token),
+) -> dict:
+    owned = (
+        supabase.table("farms")
+        .select("location, total_area")
+        .eq("id", farm_id)
+        .eq("farmer_id", user.id)
+        .limit(1)
+        .execute()
+    )
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    current_loc = (owned.data[0].get("location") or {})
-    current_fields = current_loc.get("fields", [])
+    current_loc: dict = owned.data[0].get("location") or {}
+    current_fields: list = current_loc.get("fields", [])
 
     new_field = {
         "id": str(uuid.uuid4()),
@@ -657,16 +679,31 @@ async def add_field(farm_id: str, body: FieldCreate, user=Depends(verify_token))
 
     return {"success": True, "data": new_field}
 
+
 @app.delete("/api/farms/{farm_id}/fields/{field_id}")
-async def delete_field(farm_id: str, field_id: str, user=Depends(verify_token)):
-    owned = supabase.table("farms").select("location, total_area").eq("id", farm_id).eq("farmer_id", user.id).limit(1).execute()
+async def delete_field(
+    farm_id: str,
+    field_id: str,
+    user: dict = Depends(verify_token),
+) -> dict:
+    owned = (
+        supabase.table("farms")
+        .select("location, total_area")
+        .eq("id", farm_id)
+        .eq("farmer_id", user.id)
+        .limit(1)
+        .execute()
+    )
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    current_loc = (owned.data[0].get("location") or {})
-    current_fields = current_loc.get("fields", [])
+    current_loc: dict = owned.data[0].get("location") or {}
+    current_fields: list = current_loc.get("fields", [])
     updated_fields = [f for f in current_fields if f.get("id") != field_id]
-    total_area = sum(f.get("area_acres", 0) for f in updated_fields) or owned.data[0].get("total_area", 0)
+    total_area = (
+        sum(f.get("area_acres", 0) for f in updated_fields)
+        or owned.data[0].get("total_area", 0)
+    )
 
     supabase.table("farms").update({
         "location": {**current_loc, "fields": updated_fields},

@@ -32,31 +32,26 @@ interface PolygonCompleteData {
 interface PolygonMapperProps {
   onPolygonComplete: (data: PolygonCompleteData) => void;
   initialCenter?: LatLng;
-  showInstructions?: boolean;
 }
 
 export default function PolygonMapper({
   onPolygonComplete,
   initialCenter,
-  showInstructions = true,
 }: PolygonMapperProps) {
   const { points, area, center, isComplete, addPoint, removeLastPoint, resetPolygon } = usePolygonArea();
   const [mapCenter, setMapCenter] = useState<LatLng>(initialCenter || { lat: 22.5726, lng: 88.3639 });
   const [mapZoom, setMapZoom] = useState(13);
-  const [locationLoading, setLocationLoading] = useState(false);
   const [fieldName, setFieldName] = useState('');
   const [nameError, setNameError] = useState('');
 
   useEffect(() => {
     if (!initialCenter && navigator.geolocation) {
-      setLocationLoading(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setMapCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
           setMapZoom(15);
-          setLocationLoading(false);
         },
-        () => { setLocationLoading(false); }
+        () => { /* geolocation denied — keep default centre */ }
       );
     } else if (initialCenter) {
       setMapCenter(initialCenter);
