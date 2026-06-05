@@ -8,9 +8,13 @@
     "dev:web": "cd frontend && npm run dev",
     "install:frontend": "npm install --prefix frontend",
     "build": "npm run build --prefix frontend",
-    "lint": "npm run lint --prefix frontend"
+    "lint": "npm run lint --prefix frontend",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "concurrently": "^8.2.2",
+    "husky": "^9.1.7"
   }
 }
