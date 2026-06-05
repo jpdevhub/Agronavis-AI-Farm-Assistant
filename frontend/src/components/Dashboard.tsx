@@ -18,6 +18,16 @@ const PolygonMapper = dynamic(() => import('./map/PolygonMapper'), {
   loading: () => <div className={s.loadingCard}><div className={s.spinner} />Loading map...</div>,
 });
 
+interface Field {
+  id: string;
+  name: string;
+  area_acres: number;
+  area_hectares?: number;
+  polygon: Array<{ lat: number; lng: number }>;
+  center_latitude?: number;
+  center_longitude?: number;
+}
+
 interface Farm {
   id: string;
   name: string;
@@ -32,6 +42,7 @@ interface Farm {
     center_latitude?: number;
     center_longitude?: number;
     area_acres?: number;
+    fields?: Field[];
   };
   soil_type?: string;
   irrigation_type?: string;
@@ -85,12 +96,25 @@ const FertDot: React.FC<{ color: string }> = ({ color }) => (
   }} />
 );
 
+// Palette for field colour swatches — cycles when a farm has many fields
+const FIELD_COLORS = [
+  '#10b981', // emerald
+  '#f97316', // orange
+  '#6366f1', // indigo
+  '#eab308', // yellow
+  '#ec4899', // pink
+  '#06b6d4', // cyan
+  '#84cc16', // lime
+  '#a855f7', // purple
+];
+
 const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
   const router = useRouter();
   const [farms, setFarms] = useState<Farm[]>([]);
   const [crops, setCrops] = useState<Crop[]>([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
-  const [polygonData, setPolygonData] = useState<{
+  const [pendingField, setPendingField] = useState<{
+    fieldName: string;
     coordinates: LatLng[];
     areaAcres: number;
     areaHectares: number;
@@ -98,6 +122,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
     centerLng: number;
   } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deletingFieldId, setDeletingFieldId] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -143,38 +168,51 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
   }, [router.query, farms]);
 
   // Map handlers
-  const handleSavePolygon = async () => {
-    if (!polygonData || !selectedFarmId) return;
+  const handleAddField = async () => {
+    if (!pendingField || !selectedFarmId) return;
     setSaving(true);
     setSaveMessage(null);
     try {
-      await farmApi.updateFarm(selectedFarmId, {
-        total_area: polygonData.areaAcres,
-        latitude: polygonData.centerLat,
-        longitude: polygonData.centerLng,
-        location: {
-          ...selectedFarm?.location,
-          polygon: polygonData.coordinates.map(p => ({ lat: p.lat, lng: p.lng })),
-          center_latitude: polygonData.centerLat,
-          center_longitude: polygonData.centerLng,
-          area_acres: polygonData.areaAcres,
-          area_hectares: polygonData.areaHectares,
-        },
+      await farmApi.addFarmField(selectedFarmId, {
+        name: pendingField.fieldName,
+        area_acres: pendingField.areaAcres,
+        area_hectares: pendingField.areaHectares,
+        polygon: pendingField.coordinates.map(p => ({ lat: p.lat, lng: p.lng })),
+        center_latitude: pendingField.centerLat,
+        center_longitude: pendingField.centerLng,
       });
-      setSaveMessage({ type: 'success', text: `Boundary saved — ${polygonData.areaAcres.toFixed(1)} acres` });
+      setSaveMessage({ type: 'success', text: `"${pendingField.fieldName}" saved — ${pendingField.areaAcres.toFixed(1)} acres` });
       try {
-        const geo = await geocode(polygonData.centerLat, polygonData.centerLng);
+        const geo = await geocode(pendingField.centerLat, pendingField.centerLng);
         if (geo?.state && geo?.district) {
           await soilService.estimateSoilHealth(selectedFarmId, geo.state, geo.district);
-          setSaveMessage({ type: 'success', text: `Boundary saved & soil analysed for ${geo.district}` });
         }
-      } catch { /* silent */ }
+      } catch { /* silent — soil estimation is best-effort */ }
       await loadData();
-      setTimeout(() => { setPolygonData(null); setSaveMessage(null); }, 2500);
-    } catch (err: any) {
-      setSaveMessage({ type: 'error', text: err.message || 'Failed to save boundary' });
+      setPendingField(null);
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to save field';
+      setSaveMessage({ type: 'error', text: msg });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteField = async (fieldId: string, fieldName: string) => {
+    if (!selectedFarmId) return;
+    setDeletingFieldId(fieldId);
+    setSaveMessage(null);
+    try {
+      await farmApi.deleteFarmField(selectedFarmId, fieldId);
+      setSaveMessage({ type: 'info', text: `"${fieldName}" removed.` });
+      await loadData();
+      setTimeout(() => setSaveMessage(null), 2500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete field';
+      setSaveMessage({ type: 'error', text: msg });
+    } finally {
+      setDeletingFieldId(null);
     }
   };
 
@@ -415,6 +453,11 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                         </div>
                         <div className={s.soilDesc}>
                           {farm.total_area ? `${farm.total_area.toFixed(1)} acres` : 'Area not mapped'} — {farm.irrigation_type || 'Irrigation type not set'}
+                          {(farm.location?.fields?.length ?? 0) > 0 && (
+                            <span style={{ marginLeft: 6, color: '#059669', fontWeight: 600 }}>
+                              · {farm.location!.fields!.length} field{farm.location!.fields!.length !== 1 ? 's' : ''} mapped
+                            </span>
+                          )}
                         </div>
                         <div className={s.farmCardFooter}>
                           <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
@@ -461,16 +504,20 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
         <>
           <div className={s.cardHeader} style={{ marginBottom: 16 }}>
             <div>
-              <div className={s.fertTitle}>Boundary Mapper</div>
+              <div className={s.fertTitle}>Field Manager</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-                Click at least 3 corners on the map to draw your field boundary. Area is calculated automatically.
+                Draw and name each field boundary. You can add multiple fields per farm.
               </div>
             </div>
             {hasFarms && (
               <select
                 className={s.farmSelectorSelect}
                 value={selectedFarmId}
-                onChange={e => { setSelectedFarmId(e.target.value); setPolygonData(null); setSaveMessage(null); }}
+                onChange={e => {
+                  setSelectedFarmId(e.target.value);
+                  setPendingField(null);
+                  setSaveMessage(null);
+                }}
               >
                 {farms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
               </select>
@@ -486,13 +533,13 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           {!hasFarms ? (
             <div className={s.emptyState}>
               <div className={s.emptyTitle}>No farm to map</div>
-              <div className={s.emptyDesc}>Create a farm first, then draw its boundary here.</div>
+              <div className={s.emptyDesc}>Create a farm first, then draw its field boundaries here.</div>
               <button className={s.emptyBtn} onClick={() => router.push('/onboarding/farm')}>Create Farm</button>
             </div>
           ) : (
             <>
-              {/* PolygonMapper: do NOT constrain height here — let it render fully */}
-              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border)' }}>
+              {/* ── Polygon drawing tool ── */}
+              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border)', marginBottom: 20 }}>
                 <PolygonMapper
                   initialCenter={
                     selectedFarm?.location?.center_latitude && selectedFarm?.location?.center_longitude
@@ -501,14 +548,14 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                       ? { lat: selectedFarm.location.latitude, lng: selectedFarm.location.longitude }
                       : { lat: 22.5726, lng: 88.3639 }
                   }
-                  onPolygonComplete={data => setPolygonData(data)}
+                  onPolygonComplete={data => setPendingField(data)}
                 />
               </div>
 
-              {/* Confirm area panel — shown when polygon data available */}
-              {polygonData && (
+              {/* ── Pending field confirm panel ── */}
+              {pendingField && (
                 <div style={{
-                  marginTop: 16,
+                  marginBottom: 20,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 16,
@@ -519,54 +566,110 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                   boxShadow: '0 2px 12px rgba(16,185,129,0.1)',
                 }}>
                   <div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Field Area</div>
-                    <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>
-                      {polygonData.areaAcres.toFixed(2)}
-                      <span style={{ fontSize: 15, color: '#10b981', marginLeft: 6 }}>Acres</span>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>
+                      Ready to save
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>
-                      {polygonData.areaHectares.toFixed(2)} Hectares
+                    <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text-primary)', marginBottom: 2 }}>
+                      {pendingField.fieldName}
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+                      {pendingField.areaAcres.toFixed(2)} acres &nbsp;·&nbsp; {pendingField.areaHectares.toFixed(2)} ha
                     </div>
                   </div>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
                     <button
-                      onClick={() => setPolygonData(null)}
+                      onClick={() => setPendingField(null)}
                       style={{
                         padding: '10px 20px',
                         border: '1.5px solid var(--color-border)',
-                        borderRadius: 10,
-                        background: 'white',
-                        fontSize: 13,
-                        fontWeight: 600,
+                        borderRadius: 10, background: 'white',
+                        fontSize: 13, fontWeight: 600,
                         color: 'var(--color-text-secondary)',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
+                        cursor: 'pointer', fontFamily: 'inherit',
                       }}
                     >
-                      Redraw
+                      Discard
                     </button>
                     <button
-                      onClick={handleSavePolygon}
+                      onClick={handleAddField}
                       disabled={saving}
                       style={{
                         padding: '10px 28px',
                         background: 'linear-gradient(135deg, #064e3b, #059669)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 10,
-                        fontSize: 14,
-                        fontWeight: 700,
+                        color: 'white', border: 'none', borderRadius: 10,
+                        fontSize: 14, fontWeight: 700,
                         cursor: saving ? 'not-allowed' : 'pointer',
-                        fontFamily: 'inherit',
-                        opacity: saving ? 0.7 : 1,
+                        fontFamily: 'inherit', opacity: saving ? 0.7 : 1,
                         boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
                       }}
                     >
-                      {saving ? 'Saving...' : 'Save Boundary'}
+                      {saving ? 'Saving...' : 'Save Field'}
                     </button>
                   </div>
                 </div>
               )}
+
+              {/* ── Saved fields list ── */}
+              {(() => {
+                const fields = selectedFarm?.location?.fields ?? [];
+                return fields.length > 0 ? (
+                  <div style={{ background: 'white', border: '1px solid var(--color-border)', borderRadius: 14, overflow: 'hidden' }}>
+                    <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                        Mapped Fields
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                        {fields.length} field{fields.length !== 1 ? 's' : ''} &nbsp;·&nbsp; {selectedFarm?.total_area?.toFixed(1) ?? '0'} acres total
+                      </div>
+                    </div>
+                    {fields.map((field, idx) => (
+                      <div
+                        key={field.id}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 14,
+                          padding: '14px 20px',
+                          borderBottom: idx < fields.length - 1 ? '1px solid var(--color-border)' : 'none',
+                        }}
+                      >
+                        {/* Colour swatch — cycles through a palette */}
+                        <div style={{
+                          width: 12, height: 12, borderRadius: '50%', flexShrink: 0,
+                          background: FIELD_COLORS[idx % FIELD_COLORS.length],
+                        }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 2 }}>
+                            {field.name}
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                            {field.area_acres.toFixed(2)} acres
+                            {field.area_hectares ? ` · ${field.area_hectares.toFixed(2)} ha` : ''}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteField(field.id, field.name)}
+                          disabled={deletingFieldId === field.id}
+                          aria-label={`Delete field ${field.name}`}
+                          style={{
+                            padding: '6px 14px',
+                            border: '1px solid #fca5a5',
+                            borderRadius: 8, background: '#fef2f2',
+                            fontSize: 12, fontWeight: 600, color: '#dc2626',
+                            cursor: deletingFieldId === field.id ? 'not-allowed' : 'pointer',
+                            fontFamily: 'inherit', flexShrink: 0,
+                            opacity: deletingFieldId === field.id ? 0.6 : 1,
+                          }}
+                        >
+                          {deletingFieldId === field.id ? 'Removing...' : 'Remove'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 13, background: 'white', border: '1px solid var(--color-border)', borderRadius: 14 }}>
+                    No fields mapped yet. Draw a boundary above and give it a name to add your first field.
+                  </div>
+                );
+              })()}
             </>
           )}
         </>
