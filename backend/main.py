@@ -118,13 +118,16 @@ resnet_model = models.resnet18(weights=None)
 resnet_model.fc = nn.Linear(resnet_model.fc.in_features, NUM_CLASSES)
 MODEL_PATH = os.path.join(BASE_DIR, "model", "plant_disease_resnet18.pth")
 
-if os.path.exists(MODEL_PATH):
-    resnet_model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
-    resnet_model = resnet_model.to(device)
-    resnet_model.eval()
-    print(f"✅ ResNet18 loaded — {NUM_CLASSES} classes on {device}")
+if os.path.exists(MODEL_PATH) and os.path.getsize(MODEL_PATH) > 0:
+    try:
+        resnet_model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+        resnet_model = resnet_model.to(device)
+        resnet_model.eval()
+        print(f"[OK] ResNet18 loaded -- {NUM_CLASSES} classes on {device}")
+    except Exception as e:
+        print(f"[WARN] Failed to load model weights: {e}. Inference will fail.")
 else:
-    print(f"⚠️  Model weights not found at {MODEL_PATH}. Inference will fail.")
+    print(f"[WARN] Model weights not found or empty at {MODEL_PATH}. Inference will fail.")
 
 # CLIP model (OOD guard) — lazy load to keep startup fast
 clip_model = None
@@ -136,12 +139,12 @@ def load_clip():
         return
     try:
         from transformers import CLIPModel, CLIPProcessor
-        print("Loading CLIP (OOD guard)…")
+        print("Loading CLIP (OOD guard)...")
         clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
         clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-        print("✅ CLIP loaded")
+        print("[OK] CLIP loaded")
     except Exception as e:
-        print(f"⚠️  CLIP unavailable: {e}")
+        print(f"[WARN] CLIP unavailable: {e}")
 
 
 # ── Pydantic schemas ─────────────────────────────────────────────────────────
@@ -628,7 +631,7 @@ async def get_fields(farm_id: str, user=Depends(verify_token)):
     res = supabase.table("farms").select("location").eq("id", farm_id).eq("farmer_id", user.id).limit(1).execute()
     if not res.data:
         raise HTTPException(status_code=404, detail="Farm not found")
-    fields = (res.data.get("location") or {}).get("fields", [])
+    fields = (res.data[0].get("location") or {}).get("fields", [])
     return {"success": True, "data": fields}
 
 @app.post("/api/farms/{farm_id}/fields", status_code=201)
@@ -637,7 +640,7 @@ async def add_field(farm_id: str, body: FieldCreate, user=Depends(verify_token))
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    current_loc = owned.data[0][0].get("location") or {}
+    current_loc = (owned.data[0].get("location") or {})
     current_fields = current_loc.get("fields", [])
 
     new_field = {
@@ -660,10 +663,10 @@ async def delete_field(farm_id: str, field_id: str, user=Depends(verify_token)):
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    current_loc = owned.data[0][0].get("location") or {}
+    current_loc = (owned.data[0].get("location") or {})
     current_fields = current_loc.get("fields", [])
     updated_fields = [f for f in current_fields if f.get("id") != field_id]
-    total_area = sum(f.get("area_acres", 0) for f in updated_fields) or owned.data[0][0].get("total_area", 0)
+    total_area = sum(f.get("area_acres", 0) for f in updated_fields) or owned.data[0].get("total_area", 0)
 
     supabase.table("farms").update({
         "location": {**current_loc, "fields": updated_fields},
