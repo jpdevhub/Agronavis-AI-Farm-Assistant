@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "concurrently --names \"API,WEB\" --prefix-colors \"green,cyan\" \"npm run dev:api\" \"npm run dev:web\"",
-    "dev:api": "cd backend && uvicorn main:app --reload --port 8000",
+    "dev:api": "backend\\venv\\Scripts\\uvicorn.exe main:app --reload --port 8000 --app-dir backend",
     "dev:web": "cd frontend && npm run dev",
     "install:frontend": "npm install --prefix frontend",
     "build": "npm run build --prefix frontend",
     "lint": "npm run lint --prefix frontend"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "supabase": "^2.105.0"
   }
 }
