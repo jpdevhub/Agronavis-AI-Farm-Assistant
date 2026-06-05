@@ -94,7 +94,7 @@ export default function PolygonMapper({
           Draw a field boundary
         </h3>
         <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-          Name the field, then click 3+ corners on the map to draw its boundary.
+          Name the field, then click 4 corners on the map to draw its boundary.
         </p>
       </div>
 
@@ -158,7 +158,7 @@ export default function PolygonMapper({
           <strong>How to use:</strong><br />
           1. Name your field above<br />
           2. Search your village<br />
-          3. Click corners to mark boundary
+          3. Click 4 corners to mark boundary
         </div>
       </div>
 
@@ -204,7 +204,7 @@ export default function PolygonMapper({
 
         {!isComplete && points.length > 0 && (
           <span style={{ fontSize: '13px', color: '#9ca3af' }}>
-            Drop {Math.max(0, 3 - points.length)} more {(3 - points.length) === 1 ? 'pin' : 'pins'} to complete boundary
+            Drop {Math.max(0, 4 - points.length)} more {(4 - points.length) === 1 ? 'pin' : 'pins'} to complete boundary
           </span>
         )}
 
