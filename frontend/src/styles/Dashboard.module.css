@@ -1101,3 +1101,28 @@
 }
 
 .viewRecsBtn:hover { background: rgba(255,255,255,0.22); }
+
+.printBtn {
+  width: 100%;
+  padding: 12px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.printBtn:hover {
+  background: #059669;
+}
+
+@media print {
+  .printBtn {
+    display: none;
+  }
+}

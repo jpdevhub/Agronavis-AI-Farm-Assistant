@@ -1,169 +1,248 @@
 {
   "common": {
-    "back": "ফিরে যান",
-    "save": "সংরক্ষণ করুন",
-    "cancel": "বাতিল করুন",
-    "loading": "লোড হচ্ছে...",
-    "error": "ত্রুটি",
-    "success": "সফল",
-    "retry": "আবার চেষ্টা করুন",
-    "close": "বন্ধ করুন",
-    "yes": "হ্যাঁ",
-    "no": "না"
+    "back": "\u09ab\u09bf\u09b0\u09c7 \u09af\u09be\u09a8",
+    "save": "\u09b8\u0982\u09b0\u0995\u09cd\u09b7\u09a3 \u0995\u09b0\u09c1\u09a8",
+    "cancel": "\u09ac\u09be\u09a4\u09bf\u09b2 \u0995\u09b0\u09c1\u09a8",
+    "loading": "\u09b2\u09cb\u09a1 \u09b9\u099a\u09cd\u099b\u09c7...",
+    "error": "\u09a4\u09cd\u09b0\u09c1\u099f\u09bf",
+    "success": "\u09b8\u09ab\u09b2",
+    "retry": "\u0986\u09ac\u09be\u09b0 \u099a\u09c7\u09b7\u09cd\u099f\u09be \u0995\u09b0\u09c1\u09a8",
+    "close": "\u09ac\u09a8\u09cd\u09a7 \u0995\u09b0\u09c1\u09a8",
+    "yes": "\u09b9\u09cd\u09af\u09be\u0981",
+    "no": "\u09a8\u09be"
   },
   "navigation": {
-    "home": "হোম",
-    "dashboard": "ড্যাশবোর্ড",
-    "camera": "ক্যামেরা",
-    "reports": "রিপোর্ট",
-    "settings": "সেটিংস"
+    "home": "\u09b9\u09cb\u09ae",
+    "dashboard": "\u09a1\u09cd\u09af\u09be\u09b6\u09ac\u09cb\u09b0\u09cd\u09a1",
+    "camera": "\u0995\u09cd\u09af\u09be\u09ae\u09c7\u09b0\u09be",
+    "reports": "\u09b0\u09bf\u09aa\u09cb\u09b0\u09cd\u099f",
+    "settings": "\u09b8\u09c7\u099f\u09bf\u0982\u09b8"
   },
   "camera": {
-    "title": "উদ্ভিদ বিশ্লেষণ",
-    "subtitle": "আপনার উদ্ভিদের ছবি যোগ করার উপায় বেছে নিন",
-    "takePhoto": "ছবি তুলুন",
-    "takePhotoDesc": "উদ্ভিদের ছবি ক্যাপচার করতে ক্যামেরা ব্যবহার করুন",
-    "uploadImage": "ছবি আপলোড করুন",
-    "uploadImageDesc": "আপনার ডিভাইস গ্যালারি থেকে বেছে নিন",
-    "instructionText": "উদ্ভিদটি ফ্রেমের মধ্যে রাখুন",
-    "capture": "ক্যাপচার করুন",
-    "retake": "আবার নিন",
-    "analyzePlant": "উদ্ভিদ বিশ্লেষণ করুন",
-    "analyzing": "বিশ্লেষণ হচ্ছে...",
-    "analysisProgress": "🔬 AI দিয়ে আপনার উদ্ভিদের ছবি বিশ্লেষণ হচ্ছে...",
-    "startingCamera": "ক্যামেরা শুরু হচ্ছে...",
+    "title": "\u0989\u09a6\u09cd\u09ad\u09bf\u09a6 \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3",
+    "subtitle": "\u0986\u09aa\u09a8\u09be\u09b0 \u0989\u09a6\u09cd\u09ad\u09bf\u09a6\u09c7\u09b0 \u099b\u09ac\u09bf \u09af\u09cb\u0997 \u0995\u09b0\u09be\u09b0 \u0989\u09aa\u09be\u09af\u09bc \u09ac\u09c7\u099b\u09c7 \u09a8\u09bf\u09a8",
+    "takePhoto": "\u099b\u09ac\u09bf \u09a4\u09c1\u09b2\u09c1\u09a8",
+    "takePhotoDesc": "\u0989\u09a6\u09cd\u09ad\u09bf\u09a6\u09c7\u09b0 \u099b\u09ac\u09bf \u0995\u09cd\u09af\u09be\u09aa\u099a\u09be\u09b0 \u0995\u09b0\u09a4\u09c7 \u0995\u09cd\u09af\u09be\u09ae\u09c7\u09b0\u09be \u09ac\u09cd\u09af\u09ac\u09b9\u09be\u09b0 \u0995\u09b0\u09c1\u09a8",
+    "uploadImage": "\u099b\u09ac\u09bf \u0986\u09aa\u09b2\u09cb\u09a1 \u0995\u09b0\u09c1\u09a8",
+    "uploadImageDesc": "\u0986\u09aa\u09a8\u09be\u09b0 \u09a1\u09bf\u09ad\u09be\u0987\u09b8 \u0997\u09cd\u09af\u09be\u09b2\u09be\u09b0\u09bf \u09a5\u09c7\u0995\u09c7 \u09ac\u09c7\u099b\u09c7 \u09a8\u09bf\u09a8",
+    "instructionText": "\u0989\u09a6\u09cd\u09ad\u09bf\u09a6\u099f\u09bf \u09ab\u09cd\u09b0\u09c7\u09ae\u09c7\u09b0 \u09ae\u09a7\u09cd\u09af\u09c7 \u09b0\u09be\u0996\u09c1\u09a8",
+    "capture": "\u0995\u09cd\u09af\u09be\u09aa\u099a\u09be\u09b0 \u0995\u09b0\u09c1\u09a8",
+    "retake": "\u0986\u09ac\u09be\u09b0 \u09a8\u09bf\u09a8",
+    "analyzePlant": "\u0989\u09a6\u09cd\u09ad\u09bf\u09a6 \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3 \u0995\u09b0\u09c1\u09a8",
+    "analyzing": "\u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3 \u09b9\u099a\u09cd\u099b\u09c7...",
+    "analysisProgress": "\ud83d\udd2c AI \u09a6\u09bf\u09af\u09bc\u09c7 \u0986\u09aa\u09a8\u09be\u09b0 \u0989\u09a6\u09cd\u09ad\u09bf\u09a6\u09c7\u09b0 \u099b\u09ac\u09bf \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3 \u09b9\u099a\u09cd\u099b\u09c7...",
+    "startingCamera": "\u0995\u09cd\u09af\u09be\u09ae\u09c7\u09b0\u09be \u09b6\u09c1\u09b0\u09c1 \u09b9\u099a\u09cd\u099b\u09c7...",
     "errors": {
-      "cameraPermission": "ক্যামেরা অ্যাক্সেস করতে ব্যর্থ। অনুগ্রহ করে অনুমতি পরীক্ষা করুন।",
-      "videoPlayback": "ভিডিও প্লেব্যাক শুরু করতে ব্যর্থ।",
-      "analysisError": "ছবি বিশ্লেষণ করতে ব্যর্থ। অনুগ্রহ করে আবার চেষ্টা করুন।",
-      "noImage": "কোনো ছবি ক্যাপচার করা হয়নি"
+      "cameraPermission": "\u0995\u09cd\u09af\u09be\u09ae\u09c7\u09b0\u09be \u0985\u09cd\u09af\u09be\u0995\u09cd\u09b8\u09c7\u09b8 \u0995\u09b0\u09a4\u09c7 \u09ac\u09cd\u09af\u09b0\u09cd\u09a5\u0964 \u0985\u09a8\u09c1\u0997\u09cd\u09b0\u09b9 \u0995\u09b0\u09c7 \u0985\u09a8\u09c1\u09ae\u09a4\u09bf \u09aa\u09b0\u09c0\u0995\u09cd\u09b7\u09be \u0995\u09b0\u09c1\u09a8\u0964",
+      "videoPlayback": "\u09ad\u09bf\u09a1\u09bf\u0993 \u09aa\u09cd\u09b2\u09c7\u09ac\u09cd\u09af\u09be\u0995 \u09b6\u09c1\u09b0\u09c1 \u0995\u09b0\u09a4\u09c7 \u09ac\u09cd\u09af\u09b0\u09cd\u09a5\u0964",
+      "analysisError": "\u099b\u09ac\u09bf \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3 \u0995\u09b0\u09a4\u09c7 \u09ac\u09cd\u09af\u09b0\u09cd\u09a5\u0964 \u0985\u09a8\u09c1\u0997\u09cd\u09b0\u09b9 \u0995\u09b0\u09c7 \u0986\u09ac\u09be\u09b0 \u099a\u09c7\u09b7\u09cd\u099f\u09be \u0995\u09b0\u09c1\u09a8\u0964",
+      "noImage": "\u0995\u09cb\u09a8\u09cb \u099b\u09ac\u09bf \u0995\u09cd\u09af\u09be\u09aa\u099a\u09be\u09b0 \u0995\u09b0\u09be \u09b9\u09af\u09bc\u09a8\u09bf"
     }
   },
   "report": {
-    "title": "বিশ্লেষণ রিপোর্ট",
-    "subtitle": "AI-চালিত উদ্ভিদ স্বাস্থ্য মূল্যায়ন",
-    "loading": "বিশ্লেষণ রিপোর্ট লোড হচ্ছে...",
-    "generatedOn": "তৈরি হয়েছে",
-    "at": "এ",
+    "title": "\u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3 \u09b0\u09bf\u09aa\u09cb\u09b0\u09cd\u099f",
+    "subtitle": "AI-\u099a\u09be\u09b2\u09bf\u09a4 \u0989\u09a6\u09cd\u09ad\u09bf\u09a6 \u09b8\u09cd\u09ac\u09be\u09b8\u09cd\u09a5\u09cd\u09af \u09ae\u09c2\u09b2\u09cd\u09af\u09be\u09af\u09bc\u09a8",
+    "loading": "\u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3 \u09b0\u09bf\u09aa\u09cb\u09b0\u09cd\u099f \u09b2\u09cb\u09a1 \u09b9\u099a\u09cd\u099b\u09c7...",
+    "generatedOn": "\u09a4\u09c8\u09b0\u09bf \u09b9\u09af\u09bc\u09c7\u099b\u09c7",
+    "at": "\u098f",
     "summary": {
-      "totalDetections": "মোট সনাক্তকরণ",
-      "diseaseCount": "রোগের সংখ্যা",
-      "pestCount": "পোকার সংখ্যা",
-      "avgConfidence": "গড় আস্থা",
-      "issuesIdentified": "চিহ্নিত সমস্যা",
-      "plantDiseasesFound": "উদ্ভিদের রোগ পাওয়া গেছে",
-      "pestsDetected": "পোকা সনাক্ত করা হয়েছে",
-      "modelCertainty": "মডেল নিশ্চিততা"
+      "totalDetections": "\u09ae\u09cb\u099f \u09b8\u09a8\u09be\u0995\u09cd\u09a4\u0995\u09b0\u09a3",
+      "diseaseCount": "\u09b0\u09cb\u0997\u09c7\u09b0 \u09b8\u0982\u0996\u09cd\u09af\u09be",
+      "pestCount": "\u09aa\u09cb\u0995\u09be\u09b0 \u09b8\u0982\u0996\u09cd\u09af\u09be",
+      "avgConfidence": "\u0997\u09a1\u09bc \u0986\u09b8\u09cd\u09a5\u09be",
+      "issuesIdentified": "\u099a\u09bf\u09b9\u09cd\u09a8\u09bf\u09a4 \u09b8\u09ae\u09b8\u09cd\u09af\u09be",
+      "plantDiseasesFound": "\u0989\u09a6\u09cd\u09ad\u09bf\u09a6\u09c7\u09b0 \u09b0\u09cb\u0997 \u09aa\u09be\u0993\u09af\u09bc\u09be \u0997\u09c7\u099b\u09c7",
+      "pestsDetected": "\u09aa\u09cb\u0995\u09be \u09b8\u09a8\u09be\u0995\u09cd\u09a4 \u0995\u09b0\u09be \u09b9\u09af\u09bc\u09c7\u099b\u09c7",
+      "modelCertainty": "\u09ae\u09a1\u09c7\u09b2 \u09a8\u09bf\u09b6\u09cd\u099a\u09bf\u09a4\u09a4\u09be"
     },
     "errors": {
-      "title": "রিপোর্ট লোড করতে ত্রুটি",
-      "noData": "কোনো বিশ্লেষণ ফলাফল পাওয়া যায়নি। অনুগ্রহ করে প্রথমে একটি ছবি তুলুন।"
+      "title": "\u09b0\u09bf\u09aa\u09cb\u09b0\u09cd\u099f \u09b2\u09cb\u09a1 \u0995\u09b0\u09a4\u09c7 \u09a4\u09cd\u09b0\u09c1\u099f\u09bf",
+      "noData": "\u0995\u09cb\u09a8\u09cb \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3 \u09ab\u09b2\u09be\u09ab\u09b2 \u09aa\u09be\u0993\u09af\u09bc\u09be \u09af\u09be\u09af\u09bc\u09a8\u09bf\u0964 \u0985\u09a8\u09c1\u0997\u09cd\u09b0\u09b9 \u0995\u09b0\u09c7 \u09aa\u09cd\u09b0\u09a5\u09ae\u09c7 \u098f\u0995\u099f\u09bf \u099b\u09ac\u09bf \u09a4\u09c1\u09b2\u09c1\u09a8\u0964"
     },
     "severity": {
-      "low": "কম তীব্রতা",
-      "medium": "মাঝারি তীব্রতা",
-      "high": "উচ্চ তীব্রতা"
+      "low": "\u0995\u09ae \u09a4\u09c0\u09ac\u09cd\u09b0\u09a4\u09be",
+      "medium": "\u09ae\u09be\u099d\u09be\u09b0\u09bf \u09a4\u09c0\u09ac\u09cd\u09b0\u09a4\u09be",
+      "high": "\u0989\u099a\u09cd\u099a \u09a4\u09c0\u09ac\u09cd\u09b0\u09a4\u09be"
     },
     "detections": {
-      "diseases": "রোগ সনাক্তকরণ",
-      "pests": "পোকা সনাক্তকরণ",
-      "plantDisease": "উদ্ভিদের রোগ",
-      "pest": "পোকা",
-      "disease": "রোগ",
-      "location": "অবস্থান",
-      "confidence": "আস্থা"
+      "diseases": "\u09b0\u09cb\u0997 \u09b8\u09a8\u09be\u0995\u09cd\u09a4\u0995\u09b0\u09a3",
+      "pests": "\u09aa\u09cb\u0995\u09be \u09b8\u09a8\u09be\u0995\u09cd\u09a4\u0995\u09b0\u09a3",
+      "plantDisease": "\u0989\u09a6\u09cd\u09ad\u09bf\u09a6\u09c7\u09b0 \u09b0\u09cb\u0997",
+      "pest": "\u09aa\u09cb\u0995\u09be",
+      "disease": "\u09b0\u09cb\u0997",
+      "location": "\u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8",
+      "confidence": "\u0986\u09b8\u09cd\u09a5\u09be"
     },
     "actions": {
-      "saveReport": "রিপোর্ট সংরক্ষণ করুন",
-      "retakePhoto": "ছবি আবার নিন",
-      "newAnalysis": "নতুন বিশ্লেষণ",
-      "printReport": "রিপোর্ট প্রিন্ট করুন",
-      "downloadJSON": "JSON ডাউনলোড করুন"
+      "saveReport": "\u09b0\u09bf\u09aa\u09cb\u09b0\u09cd\u099f \u09b8\u0982\u09b0\u0995\u09cd\u09b7\u09a3 \u0995\u09b0\u09c1\u09a8",
+      "retakePhoto": "\u099b\u09ac\u09bf \u0986\u09ac\u09be\u09b0 \u09a8\u09bf\u09a8",
+      "newAnalysis": "\u09a8\u09a4\u09c1\u09a8 \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3",
+      "printReport": "\u09b0\u09bf\u09aa\u09cb\u09b0\u09cd\u099f \u09aa\u09cd\u09b0\u09bf\u09a8\u09cd\u099f \u0995\u09b0\u09c1\u09a8",
+      "downloadJSON": "JSON \u09a1\u09be\u0989\u09a8\u09b2\u09cb\u09a1 \u0995\u09b0\u09c1\u09a8"
     },
     "footer": {
-      "poweredBy": "AgroNavis AI দ্বারা তৈরি • দ্বৈত YOLO মডেল দ্বারা চালিত",
-      "disclaimer": "এই বিশ্লেষণ নির্দেশনার উদ্দেশ্যে। গুরুত্বপূর্ণ সিদ্ধান্তের জন্য কৃষি বিশেষজ্ঞদের সাথে পরামর্শ করুন।"
+      "poweredBy": "AgroNavis AI \u09a6\u09cd\u09ac\u09be\u09b0\u09be \u09a4\u09c8\u09b0\u09bf \u2022 \u09a6\u09cd\u09ac\u09c8\u09a4 YOLO \u09ae\u09a1\u09c7\u09b2 \u09a6\u09cd\u09ac\u09be\u09b0\u09be \u099a\u09be\u09b2\u09bf\u09a4",
+      "disclaimer": "\u098f\u0987 \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3 \u09a8\u09bf\u09b0\u09cd\u09a6\u09c7\u09b6\u09a8\u09be\u09b0 \u0989\u09a6\u09cd\u09a6\u09c7\u09b6\u09cd\u09af\u09c7\u0964 \u0997\u09c1\u09b0\u09c1\u09a4\u09cd\u09ac\u09aa\u09c2\u09b0\u09cd\u09a3 \u09b8\u09bf\u09a6\u09cd\u09a7\u09be\u09a8\u09cd\u09a4\u09c7\u09b0 \u099c\u09a8\u09cd\u09af \u0995\u09c3\u09b7\u09bf \u09ac\u09bf\u09b6\u09c7\u09b7\u099c\u09cd\u099e\u09a6\u09c7\u09b0 \u09b8\u09be\u09a5\u09c7 \u09aa\u09b0\u09be\u09ae\u09b0\u09cd\u09b6 \u0995\u09b0\u09c1\u09a8\u0964"
     },
-    "recommendations": "সুপারিশ"
+    "recommendations": "\u09b8\u09c1\u09aa\u09be\u09b0\u09bf\u09b6"
   },
   "weather": {
-    "loading": "আবহাওয়া লোড হচ্ছে...",
-    "humidity": "আর্দ্রতা",
-    "wind": "বাতাস",
+    "loading": "\u0986\u09ac\u09b9\u09be\u0993\u09af\u09bc\u09be \u09b2\u09cb\u09a1 \u09b9\u099a\u09cd\u099b\u09c7...",
+    "humidity": "\u0986\u09b0\u09cd\u09a6\u09cd\u09b0\u09a4\u09be",
+    "wind": "\u09ac\u09be\u09a4\u09be\u09b8",
     "errors": {
-      "locationRequired": "আবহাওয়া ডেটার জন্য অবস্থান অ্যাক্সেস প্রয়োজন",
-      "locationNotAvailable": "অবস্থান উপলব্ধ নেই",
-      "apiKeyNotConfigured": "আবহাওয়া API কী কনফিগার করা হয়নি",
-      "coordinatesNotAvailable": "অবস্থান স্থানাঙ্ক উপলব্ধ নেই",
-      "fetchFailed": "আবহাওয়া ডেটা আনতে ব্যর্থ"
+      "locationRequired": "\u0986\u09ac\u09b9\u09be\u0993\u09af\u09bc\u09be \u09a1\u09c7\u099f\u09be\u09b0 \u099c\u09a8\u09cd\u09af \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u0985\u09cd\u09af\u09be\u0995\u09cd\u09b8\u09c7\u09b8 \u09aa\u09cd\u09b0\u09af\u09bc\u09cb\u099c\u09a8",
+      "locationNotAvailable": "\u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u0989\u09aa\u09b2\u09ac\u09cd\u09a7 \u09a8\u09c7\u0987",
+      "apiKeyNotConfigured": "\u0986\u09ac\u09b9\u09be\u0993\u09af\u09bc\u09be API \u0995\u09c0 \u0995\u09a8\u09ab\u09bf\u0997\u09be\u09b0 \u0995\u09b0\u09be \u09b9\u09af\u09bc\u09a8\u09bf",
+      "coordinatesNotAvailable": "\u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u09b8\u09cd\u09a5\u09be\u09a8\u09be\u0999\u09cd\u0995 \u0989\u09aa\u09b2\u09ac\u09cd\u09a7 \u09a8\u09c7\u0987",
+      "fetchFailed": "\u0986\u09ac\u09b9\u09be\u0993\u09af\u09bc\u09be \u09a1\u09c7\u099f\u09be \u0986\u09a8\u09a4\u09c7 \u09ac\u09cd\u09af\u09b0\u09cd\u09a5"
     },
     "forecast": {
-      "title": "আবহাওয়ার পূর্বাভাস",
-      "sectionTitle": "আবহাওয়া",
-      "loading": "আবহাওয়া ডেটা লোড হচ্ছে...",
-      "locationError": "অবস্থান পেতে অক্ষম। দয়া করে অবস্থান অ্যাক্সেস সক্ষম করুন।",
-      "browserError": "এই ব্রাউজার ভৌগোলিক অবস্থান সমর্থন করে না।",
-      "nextDays": "পরবর্তী {{count}} দিন",
-      "forecastNote": "পরবর্তী {{count}} দিনের আবহাওয়ার পূর্বাভাস",
-      "retry": "আবার চেষ্টা করুন"
+      "title": "\u0986\u09ac\u09b9\u09be\u0993\u09af\u09bc\u09be\u09b0 \u09aa\u09c2\u09b0\u09cd\u09ac\u09be\u09ad\u09be\u09b8",
+      "sectionTitle": "\u0986\u09ac\u09b9\u09be\u0993\u09af\u09bc\u09be",
+      "loading": "\u0986\u09ac\u09b9\u09be\u0993\u09af\u09bc\u09be \u09a1\u09c7\u099f\u09be \u09b2\u09cb\u09a1 \u09b9\u099a\u09cd\u099b\u09c7...",
+      "locationError": "\u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u09aa\u09c7\u09a4\u09c7 \u0985\u0995\u09cd\u09b7\u09ae\u0964 \u09a6\u09af\u09bc\u09be \u0995\u09b0\u09c7 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u0985\u09cd\u09af\u09be\u0995\u09cd\u09b8\u09c7\u09b8 \u09b8\u0995\u09cd\u09b7\u09ae \u0995\u09b0\u09c1\u09a8\u0964",
+      "browserError": "\u098f\u0987 \u09ac\u09cd\u09b0\u09be\u0989\u099c\u09be\u09b0 \u09ad\u09cc\u0997\u09cb\u09b2\u09bf\u0995 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u09b8\u09ae\u09b0\u09cd\u09a5\u09a8 \u0995\u09b0\u09c7 \u09a8\u09be\u0964",
+      "nextDays": "\u09aa\u09b0\u09ac\u09b0\u09cd\u09a4\u09c0 {{count}} \u09a6\u09bf\u09a8",
+      "forecastNote": "\u09aa\u09b0\u09ac\u09b0\u09cd\u09a4\u09c0 {{count}} \u09a6\u09bf\u09a8\u09c7\u09b0 \u0986\u09ac\u09b9\u09be\u0993\u09af\u09bc\u09be\u09b0 \u09aa\u09c2\u09b0\u09cd\u09ac\u09be\u09ad\u09be\u09b8",
+      "retry": "\u0986\u09ac\u09be\u09b0 \u099a\u09c7\u09b7\u09cd\u099f\u09be \u0995\u09b0\u09c1\u09a8"
     }
   },
   "dashboard": {
-    "title": "ফার্ম মনিটরিং ড্যাশবোর্ড",
-    "welcome": "স্বাগতম",
-    "signOut": "সাইন আউট",
+    "title": "\u09ab\u09be\u09b0\u09cd\u09ae \u09ae\u09a8\u09bf\u099f\u09b0\u09bf\u0982 \u09a1\u09cd\u09af\u09be\u09b6\u09ac\u09cb\u09b0\u09cd\u09a1",
+    "welcome": "\u09b8\u09cd\u09ac\u09be\u0997\u09a4\u09ae",
+    "signOut": "\u09b8\u09be\u0987\u09a8 \u0986\u0989\u099f",
     "menu": {
-      "settings": "সেটিংস",
-      "legalNotices": "আইনি বিজ্ঞপ্তি",
-      "contact": "যোগাযোগ",
-      "sales": "বিক্রয়"
+      "settings": "\u09b8\u09c7\u099f\u09bf\u0982\u09b8",
+      "legalNotices": "\u0986\u0987\u09a8\u09bf \u09ac\u09bf\u099c\u09cd\u099e\u09aa\u09cd\u09a4\u09bf",
+      "contact": "\u09af\u09cb\u0997\u09be\u09af\u09cb\u0997",
+      "sales": "\u09ac\u09bf\u0995\u09cd\u09b0\u09af\u09bc"
     },
     "cropDiagnosis": {
-      "title": "ই-ফসল নির্ণয়",
-      "testYourCrop": "আপনার ফসল পরীক্ষা করুন",
+      "title": "\u0987-\u09ab\u09b8\u09b2 \u09a8\u09bf\u09b0\u09cd\u09a3\u09af\u09bc",
+      "testYourCrop": "\u0986\u09aa\u09a8\u09be\u09b0 \u09ab\u09b8\u09b2 \u09aa\u09b0\u09c0\u0995\u09cd\u09b7\u09be \u0995\u09b0\u09c1\u09a8",
       "steps": {
-        "takePicture": "একটি ছবি নিন",
-        "seeDiagnosis": "নির্ণয় এবং চিকিৎসা দেখুন",
-        "getMedicine": "ওষুধ পান"
+        "takePicture": "\u098f\u0995\u099f\u09bf \u099b\u09ac\u09bf \u09a8\u09bf\u09a8",
+        "seeDiagnosis": "\u09a8\u09bf\u09b0\u09cd\u09a3\u09af\u09bc \u098f\u09ac\u0982 \u099a\u09bf\u0995\u09bf\u09ce\u09b8\u09be \u09a6\u09c7\u0996\u09c1\u09a8",
+        "getMedicine": "\u0993\u09b7\u09c1\u09a7 \u09aa\u09be\u09a8"
       }
     },
     "features": {
-      "title": "সব বৈশিষ্ট্য",
-      "governmentScheme": "সরকারি প্রকল্প",
-      "reportsAndTreatment": "রিপোর্ট এবং চিকিৎসা",
-      "fertilizerCalculator": "সার ক্যালকুলেটর",
-      "diseaseLibrary": "রোগের গ্রন্থাগার",
-      "automaticWater": "পানির জন্য স্বয়ংক্রিয় সিস্টেম",
-      "seeds": "বীজ"
+      "title": "\u09b8\u09ac \u09ac\u09c8\u09b6\u09bf\u09b7\u09cd\u099f\u09cd\u09af",
+      "governmentScheme": "\u09b8\u09b0\u0995\u09be\u09b0\u09bf \u09aa\u09cd\u09b0\u0995\u09b2\u09cd\u09aa",
+      "reportsAndTreatment": "\u09b0\u09bf\u09aa\u09cb\u09b0\u09cd\u099f \u098f\u09ac\u0982 \u099a\u09bf\u0995\u09bf\u09ce\u09b8\u09be",
+      "fertilizerCalculator": "\u09b8\u09be\u09b0 \u0995\u09cd\u09af\u09be\u09b2\u0995\u09c1\u09b2\u09c7\u099f\u09b0",
+      "diseaseLibrary": "\u09b0\u09cb\u0997\u09c7\u09b0 \u0997\u09cd\u09b0\u09a8\u09cd\u09a5\u09be\u0997\u09be\u09b0",
+      "automaticWater": "\u09aa\u09be\u09a8\u09bf\u09b0 \u099c\u09a8\u09cd\u09af \u09b8\u09cd\u09ac\u09af\u09bc\u0982\u0995\u09cd\u09b0\u09bf\u09af\u09bc \u09b8\u09bf\u09b8\u09cd\u099f\u09c7\u09ae",
+      "seeds": "\u09ac\u09c0\u099c"
     },
     "navigation": {
-      "crop": "ফসল",
-      "map": "মানচিত্র",
-      "community": "সম্প্রদায়",
-      "you": "আপনি"
+      "crop": "\u09ab\u09b8\u09b2",
+      "map": "\u09ae\u09be\u09a8\u099a\u09bf\u09a4\u09cd\u09b0",
+      "community": "\u09b8\u09ae\u09cd\u09aa\u09cd\u09b0\u09a6\u09be\u09af\u09bc",
+      "you": "\u0986\u09aa\u09a8\u09bf"
+    },
+    "shell": {
+      "brandSub": "Khetra Buddhimatta",
+      "defaultFarmer": "Krishok",
+      "newAnalysis": "Notun Bishleshon",
+      "searchPlaceholder": "Satellite data khujun...",
+      "notifications": "Biggopti",
+      "settings": "Settings",
+      "profileSettings": "Profile Settings",
+      "loadingFarmData": "Apnar farm data load hocche...",
+      "nav": {
+        "dashboard": "Dashboard",
+        "myFarms": "Amar Farm",
+        "fieldMap": "Field Map",
+        "fertilizer": "Sar",
+        "inventory": "Inventory",
+        "analytics": "Bishleshon",
+        "cropScan": "CropScan AI",
+        "profile": "Profile"
+      }
+    },
+    "overview": {
+      "greetingTitle": "Shuvo shokal.",
+      "summaryWithFarms": "Apnar {{farmCount}} farm ebong {{cropCount}} active crop ache.",
+      "summaryEmpty": "Shuru korte prothom farm setup korun.",
+      "clearSkies": "Porishkar akash",
+      "farms": "Farm",
+      "crops": "Crop",
+      "totalArea": "Mot elaka",
+      "acrossAllFarms": "Shob farm mile",
+      "cropProgress": "Crop progress",
+      "maturity": "\u092a\u0930\u093f\u092a\u0915\u094d\u0935\u0924\u093e",
+      "healthy": "\u0938\u094d\u0935\u0938\u094d\u0925",
+      "moisture": "\u0928\u092e\u0940",
+      "nitrogen": "\u0928\u093e\u0907\u091f\u094d\u0930\u094b\u091c\u0928",
+      "optimal": "\u0909\u0924\u094d\u0924\u092e",
+      "estimatedHarvest": "\u0905\u0928\u0941\u092e\u093e\u0928\u093f\u0924 \u0915\u091f\u093e\u0908",
+      "notSet": "\u0938\u0947\u091f \u0928\u0939\u0940\u0902",
+      "noCropsYet": "\u0905\u092d\u0940 \u0915\u094b\u0908 \u092b\u0938\u0932 \u0928\u0939\u0940\u0902",
+      "addCropsDesc": "\u0935\u093f\u0915\u093e\u0938 \u091f\u094d\u0930\u0948\u0915 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u092b\u0938\u0932\u0947\u0902 \u091c\u094b\u0921\u093c\u0947\u0902",
+      "addCrop": "\u092b\u0938\u0932 \u091c\u094b\u0921\u093c\u0947\u0902",
+      "priorityTasks": "Priority kaj",
+      "viewAll": "Shob dekhun",
+      "priorities": {
+        "high": "\u0909\u091a\u094d\u091a",
+        "routine": "\u0928\u093f\u092f\u092e\u093f\u0924",
+        "backlog": "\u092c\u093e\u0915\u0940"
+      },
+      "tasks": {
+        "irrigation": {
+          "name": "\u0938\u093f\u0902\u091a\u093e\u0908 \u0938\u093f\u0902\u0915",
+          "desc": "\u0938\u0947\u0902\u0938\u0930 \u0938\u093f\u0902\u0915 \u0915\u0930\u0947\u0902",
+          "due": "\u0906\u091c \u0926\u0947\u092f"
+        },
+        "pest": {
+          "name": "\u0915\u0940\u091f \u0928\u093f\u0930\u0940\u0915\u094d\u0937\u0923",
+          "desc": "\u092e\u0948\u0928\u0941\u0905\u0932 \u091c\u093e\u0902\u091a",
+          "due": "4 \u0918\u0902\u091f\u0947 \u092e\u0947\u0902 \u0926\u0947\u092f"
+        },
+        "inventory": {
+          "name": "\u0907\u0928\u094d\u0935\u0947\u0902\u091f\u0930\u0940 \u0911\u0921\u093f\u091f",
+          "desc": "\u0938\u094d\u091f\u0949\u0915 \u0905\u092a\u0921\u0947\u091f \u0915\u0930\u0947\u0902",
+          "due": "\u0915\u094b\u0908 \u0938\u092e\u092f\u0938\u0940\u092e\u093e \u0928\u0939\u0940\u0902"
+        }
+      },
+      "liveSatellite": "Live Satellite",
+      "fieldTelemetry": "Field telemetry",
+      "liveFeed": "Live feed",
+      "openFieldMapToDraw": "\u0938\u0940\u092e\u093e \u092c\u0928\u093e\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u092e\u093e\u0928\u091a\u093f\u0924\u094d\u0930 \u0916\u094b\u0932\u0947\u0902",
+      "noFarmLocation": "\u0916\u0947\u0924 \u0938\u094d\u0925\u093e\u0928 \u0938\u0947\u091f \u0928\u0939\u0940\u0902",
+      "signalStrength": "\u0938\u093f\u0917\u094d\u0928\u0932 \u0936\u0915\u094d\u0924\u093f",
+      "soilTemp": "\u092e\u093f\u091f\u094d\u091f\u0940 \u0924\u093e\u092a\u092e\u093e\u0928",
+      "ndviIndex": "NDVI \u0938\u0942\u091a\u0915\u093e\u0902\u0915",
+      "openFieldMap": "Field Map khulun",
+      "aiYieldPrediction": "AI Yield Prediction",
+      "yieldDesc": "\u0909\u092a\u091c \u092e\u0947\u0902 12% \u0935\u0943\u0926\u094d\u0927\u093f \u0915\u093e \u0905\u0928\u0941\u092e\u093e\u0928 \u0939\u0948.",
+      "viewForecastReport": "Forecast report dekhun",
+      "estTonnage": "\u0905\u0928\u0941. \u091f\u0928\u0947\u091c",
+      "confidence": "Confidence"
     }
   },
   "diseases": {
-    "corn_leaf_blight": "ভুট্টা পাতা ঝলসানো",
-    "rice_leaf_roller": "ধান পাতা রোলার",
-    "bacterial_blight": "ব্যাকটেরিয়াল ব্লাইট",
-    "brown_spot": "বাদামী দাগ",
-    "leaf_smut": "পাতার কালো দাগ"
+    "corn_leaf_blight": "\u09ad\u09c1\u099f\u09cd\u099f\u09be \u09aa\u09be\u09a4\u09be \u099d\u09b2\u09b8\u09be\u09a8\u09cb",
+    "rice_leaf_roller": "\u09a7\u09be\u09a8 \u09aa\u09be\u09a4\u09be \u09b0\u09cb\u09b2\u09be\u09b0",
+    "bacterial_blight": "\u09ac\u09cd\u09af\u09be\u0995\u099f\u09c7\u09b0\u09bf\u09af\u09bc\u09be\u09b2 \u09ac\u09cd\u09b2\u09be\u0987\u099f",
+    "brown_spot": "\u09ac\u09be\u09a6\u09be\u09ae\u09c0 \u09a6\u09be\u0997",
+    "leaf_smut": "\u09aa\u09be\u09a4\u09be\u09b0 \u0995\u09be\u09b2\u09cb \u09a6\u09be\u0997"
   },
   "language": {
     "english": "English",
-    "hindi": "हिंदी",
-    "bengali": "বাংলা",
-    "selectLanguage": "ভাষা নির্বাচন করুন"
+    "hindi": "\u0939\u093f\u0902\u0926\u0940",
+    "bengali": "\u09ac\u09be\u0982\u09b2\u09be",
+    "selectLanguage": "\u09ad\u09be\u09b7\u09be \u09a8\u09bf\u09b0\u09cd\u09ac\u09be\u099a\u09a8 \u0995\u09b0\u09c1\u09a8"
   },
   "analytics": {
-    "title": "কৃষি বিশ্লেষণ",
-    "loading": "লোড হচ্ছে...",
-    "error": "ডেটা লোড করতে ত্রুটি: {{error}}",
-    "noData": "কোন কৃষি ডেটা উপলব্ধ নেই",
-    "cropPerformance": "ফসলের কর্মক্ষমতা",
-    "weatherInsights": "আবহাওয়ার অন্তর্দৃষ্টি",
-    "temperature": "তাপমাত্রা",
-    "humidity": "আর্দ্রতা"
+    "title": "\u0995\u09c3\u09b7\u09bf \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3",
+    "loading": "\u09b2\u09cb\u09a1 \u09b9\u099a\u09cd\u099b\u09c7...",
+    "error": "\u09a1\u09c7\u099f\u09be \u09b2\u09cb\u09a1 \u0995\u09b0\u09a4\u09c7 \u09a4\u09cd\u09b0\u09c1\u099f\u09bf: {{error}}",
+    "noData": "\u0995\u09cb\u09a8 \u0995\u09c3\u09b7\u09bf \u09a1\u09c7\u099f\u09be \u0989\u09aa\u09b2\u09ac\u09cd\u09a7 \u09a8\u09c7\u0987",
+    "cropPerformance": "\u09ab\u09b8\u09b2\u09c7\u09b0 \u0995\u09b0\u09cd\u09ae\u0995\u09cd\u09b7\u09ae\u09a4\u09be",
+    "weatherInsights": "\u0986\u09ac\u09b9\u09be\u0993\u09af\u09bc\u09be\u09b0 \u0985\u09a8\u09cd\u09a4\u09b0\u09cd\u09a6\u09c3\u09b7\u09cd\u099f\u09bf",
+    "temperature": "\u09a4\u09be\u09aa\u09ae\u09be\u09a4\u09cd\u09b0\u09be",
+    "humidity": "\u0986\u09b0\u09cd\u09a6\u09cd\u09b0\u09a4\u09be"
   }
 }
