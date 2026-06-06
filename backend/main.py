@@ -225,10 +225,21 @@ class YieldCreate(BaseModel):
 class FieldCreate(BaseModel):
     name: str
     area_acres: float
+    polygon: List[Dict[str, float]]
+    center_latitude: Optional[float] = None
+    center_longitude: Optional[float] = None
+
+
+class FieldResponse(BaseModel):
+    id: str
+    farm_id: str
+    name: str
+    area_acres: float
     area_hectares: Optional[float] = None
     polygon: List[Dict[str, float]]
     center_latitude: Optional[float] = None
     center_longitude: Optional[float] = None
+    created_at: Optional[str] = None
 
 class SoilEstimationRequest(BaseModel):
     farm_id: str
@@ -631,18 +642,26 @@ async def get_fields(
     farm_id: str,
     user: dict = Depends(verify_token),
 ) -> dict:
-    res = (
+    # Verify farm ownership before returning fields
+    owned = (
         supabase.table("farms")
-        .select("location")
+        .select("id")
         .eq("id", farm_id)
         .eq("farmer_id", user.id)
         .limit(1)
         .execute()
     )
-    if not res.data:
+    if not owned.data:
         raise HTTPException(status_code=404, detail="Farm not found")
-    fields = (res.data[0].get("location") or {}).get("fields", [])
-    return {"success": True, "data": fields}
+
+    res = (
+        supabase.table("farm_fields")
+        .select("*")
+        .eq("farm_id", farm_id)
+        .order("created_at")
+        .execute()
+    )
+    return {"success": True, "data": res.data or []}
 
 
 @app.post("/api/farms/{farm_id}/fields", status_code=201)
@@ -651,9 +670,10 @@ async def add_field(
     body: FieldCreate,
     user: dict = Depends(verify_token),
 ) -> dict:
+    # Verify farm ownership
     owned = (
         supabase.table("farms")
-        .select("location, total_area")
+        .select("id")
         .eq("id", farm_id)
         .eq("farmer_id", user.id)
         .limit(1)
@@ -662,22 +682,22 @@ async def add_field(
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    current_loc: dict = owned.data[0].get("location") or {}
-    current_fields: list = current_loc.get("fields", [])
-
-    new_field = {
-        "id": str(uuid.uuid4()),
-        **body.model_dump(),
+    payload: dict = {
+        "farm_id": farm_id,
+        "name": body.name,
+        "area_acres": body.area_acres,
+        "polygon": body.polygon,
+        "center_latitude": body.center_latitude,
+        "center_longitude": body.center_longitude,
     }
-    updated_fields = current_fields + [new_field]
-    total_area = sum(f.get("area_acres", 0) for f in updated_fields)
+    # Strip None values so DB defaults apply
+    payload = {k: v for k, v in payload.items() if v is not None}
 
-    supabase.table("farms").update({
-        "location": {**current_loc, "fields": updated_fields},
-        "total_area": total_area,
-    }).eq("id", farm_id).execute()
+    res = supabase.table("farm_fields").insert(payload).execute()
+    if not res.data:
+        raise HTTPException(status_code=500, detail="Failed to save field")
 
-    return {"success": True, "data": new_field}
+    return {"success": True, "data": res.data[0]}
 
 
 @app.delete("/api/farms/{farm_id}/fields/{field_id}")
@@ -686,9 +706,10 @@ async def delete_field(
     field_id: str,
     user: dict = Depends(verify_token),
 ) -> dict:
+    # Verify farm ownership
     owned = (
         supabase.table("farms")
-        .select("location, total_area")
+        .select("id")
         .eq("id", farm_id)
         .eq("farmer_id", user.id)
         .limit(1)
@@ -697,18 +718,7 @@ async def delete_field(
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    current_loc: dict = owned.data[0].get("location") or {}
-    current_fields: list = current_loc.get("fields", [])
-    updated_fields = [f for f in current_fields if f.get("id") != field_id]
-    total_area = (
-        sum(f.get("area_acres", 0) for f in updated_fields)
-        or owned.data[0].get("total_area", 0)
-    )
-
-    supabase.table("farms").update({
-        "location": {**current_loc, "fields": updated_fields},
-        "total_area": total_area,
-    }).eq("id", farm_id).execute()
+    supabase.table("farm_fields").delete().eq("id", field_id).eq("farm_id", farm_id).execute()
     return {"success": True, "message": "Field deleted"}
 
 

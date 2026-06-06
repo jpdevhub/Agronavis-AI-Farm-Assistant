@@ -43,7 +43,6 @@ interface Farm {
     center_latitude?: number;
     center_longitude?: number;
     area_acres?: number;
-    fields?: Field[];
   };
   soil_type?: string;
   irrigation_type?: string;
@@ -105,6 +104,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [crops, setCrops] = useState<Crop[]>([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
+  const [fields, setFields] = useState<Field[]>([]);
   const [pendingField, setPendingField] = useState<{
     fieldName: string;
     coordinates: LatLng[];
@@ -148,6 +148,14 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Reload fields from the dedicated table whenever the selected farm changes
+  useEffect(() => {
+    if (!selectedFarmId) return;
+    farmApi.getFarmFields(selectedFarmId)
+      .then((data: Field[]) => setFields(data || []))
+      .catch(() => setFields([]));
+  }, [selectedFarmId]);
+
   // Handle ?mode=draw from onboarding redirect
   useEffect(() => {
     const mode = router.query.mode as string;
@@ -180,7 +188,10 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           await soilService.estimateSoilHealth(selectedFarmId, geo.state, geo.district);
         }
       } catch { /* silent — soil estimation is best-effort */ }
+      // Refresh both farms (for total_area) and the fields list
       await loadData();
+      const refreshed = await farmApi.getFarmFields(selectedFarmId);
+      setFields(refreshed || []);
       setPendingField(null);
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (err: unknown) {
@@ -198,7 +209,10 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
     try {
       await farmApi.deleteFarmField(selectedFarmId, fieldId);
       setSaveMessage({ type: 'info', text: `"${fieldName}" removed.` });
+      // Refresh both farms (total_area updated by DB trigger) and fields list
       await loadData();
+      const refreshed = await farmApi.getFarmFields(selectedFarmId);
+      setFields(refreshed || []);
       setTimeout(() => setSaveMessage(null), 2500);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete field';
@@ -445,9 +459,9 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                         </div>
                         <div className={s.soilDesc}>
                           {farm.total_area ? `${farm.total_area.toFixed(1)} acres` : 'Area not mapped'} — {farm.irrigation_type || 'Irrigation type not set'}
-                          {(farm.location?.fields?.length ?? 0) > 0 && (
+                          {farm.id === selectedFarmId && fields.length > 0 && (
                             <span style={{ marginLeft: 6, color: '#059669', fontWeight: 600 }}>
-                              · {farm.location!.fields!.length} field{farm.location!.fields!.length !== 1 ? 's' : ''} mapped
+                              · {fields.length} field{fields.length !== 1 ? 's' : ''} mapped
                             </span>
                           )}
                         </div>
@@ -531,7 +545,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           ) : (
             <>
               {/* ── Polygon drawing tool ── */}
-              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border)', marginBottom: 20 }}>
+              <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 20 }}>
                 <PolygonMapper
                   initialCenter={
                     selectedFarm?.location?.center_latitude && selectedFarm?.location?.center_longitude
@@ -602,9 +616,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
               )}
 
               {/* ── Saved fields list ── */}
-              {(() => {
-                const fields = selectedFarm?.location?.fields ?? [];
-                return fields.length > 0 ? (
+              {fields.length > 0 ? (
                   <div style={{ background: 'white', border: '1px solid var(--color-border)', borderRadius: 14, overflow: 'hidden' }}>
                     <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)' }}>
@@ -623,7 +635,6 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                           borderBottom: idx < fields.length - 1 ? '1px solid var(--color-border)' : 'none',
                         }}
                       >
-                        {/* Colour swatch — cycles through a palette */}
                         <div style={{
                           width: 12, height: 12, borderRadius: '50%', flexShrink: 0,
                           background: FIELD_COLORS[idx % FIELD_COLORS.length],
@@ -660,8 +671,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                   <div style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 13, background: 'white', border: '1px solid var(--color-border)', borderRadius: 14 }}>
                     No fields mapped yet. Draw a boundary above and give it a name to add your first field.
                   </div>
-                );
-              })()}
+                )}
             </>
           )}
         </>

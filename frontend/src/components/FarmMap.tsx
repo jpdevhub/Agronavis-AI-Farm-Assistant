@@ -37,7 +37,6 @@ interface Farm {
     village?: string;
     /** Legacy single-polygon stored directly on the farm */
     polygon?: Array<{ lat: number; lng: number }>;
-    fields?: Field[];
   };
   total_area: number;
   soil_type?: string;
@@ -62,6 +61,8 @@ const FarmMap: React.FC<FarmMapProps> = ({
   height = '400px',
 }) => {
   const [farms, setFarms] = useState<Farm[]>([]);
+  // Map from farm ID → its fields fetched from farm_fields table
+  const [fieldsByFarm, setFieldsByFarm] = useState<Record<string, Field[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mapCenter, setMapCenter] = useState<[number, number]>([centerLat, centerLng]);
@@ -74,40 +75,51 @@ const FarmMap: React.FC<FarmMapProps> = ({
 
         if (farmId) {
           const farm = await farmApi.getFarm(farmId);
-          if (farm) {
-            setFarms([farm]);
-            // Prefer centre from named fields, then legacy polygon centroid, then explicit lat/lng
-            const firstField = farm.location?.fields?.[0];
-            if (firstField?.center_latitude && firstField?.center_longitude) {
-              setMapCenter([firstField.center_latitude, firstField.center_longitude]);
-              setMapZoom(16);
-            } else if (farm.location?.polygon && farm.location.polygon.length >= 3) {
-              const poly = farm.location.polygon;
-              setMapCenter([
-                poly.reduce((s: number, p: { lat: number }) => s + p.lat, 0) / poly.length,
-                poly.reduce((s: number, p: { lng: number }) => s + p.lng, 0) / poly.length,
-              ]);
-              setMapZoom(16);
-            } else if (farm.location?.latitude && farm.location?.longitude) {
-              setMapCenter([farm.location.latitude, farm.location.longitude]);
-              setMapZoom(16);
-            }
-          } else {
-            setError('Farm not found');
+          if (!farm) { setError('Farm not found'); return; }
+
+          setFarms([farm]);
+
+          // Load fields from the dedicated table
+          const farmFields: Field[] = await farmApi.getFarmFields(farmId).catch(() => []);
+          setFieldsByFarm({ [farmId]: farmFields });
+
+          // Set map centre from first field, then legacy polygon centroid, then lat/lng
+          const firstField = farmFields[0];
+          if (firstField?.center_latitude && firstField?.center_longitude) {
+            setMapCenter([firstField.center_latitude, firstField.center_longitude]);
+            setMapZoom(16);
+          } else if (farm.location?.polygon && farm.location.polygon.length >= 3) {
+            const poly = farm.location.polygon;
+            setMapCenter([
+              poly.reduce((s: number, p: { lat: number }) => s + p.lat, 0) / poly.length,
+              poly.reduce((s: number, p: { lng: number }) => s + p.lng, 0) / poly.length,
+            ]);
+            setMapZoom(16);
+          } else if (farm.location?.latitude && farm.location?.longitude) {
+            setMapCenter([farm.location.latitude, farm.location.longitude]);
+            setMapZoom(16);
           }
         } else if (showAllFarms) {
           const allFarms: Farm[] = await farmApi.getFarms();
           const farmsWithData = allFarms.filter(
             f =>
-              (f.location?.fields?.length ?? 0) > 0 ||
-              (f.location?.polygon?.length ?? 0) >= 3 ||
-              (f.location?.latitude && f.location?.longitude)
+              (f.location?.latitude && f.location?.longitude) ||
+              (f.location?.polygon?.length ?? 0) >= 3
           );
           setFarms(farmsWithData);
 
+          // Load fields for each farm in parallel
+          const entries = await Promise.all(
+            farmsWithData.map(async f => {
+              const ff: Field[] = await farmApi.getFarmFields(f.id).catch(() => []);
+              return [f.id, ff] as [string, Field[]];
+            })
+          );
+          setFieldsByFarm(Object.fromEntries(entries));
+
           if (farmsWithData.length > 0) {
             const first = farmsWithData[0];
-            const firstField = first.location?.fields?.[0];
+            const firstField = entries[0]?.[1]?.[0];
             if (firstField?.center_latitude && firstField?.center_longitude) {
               setMapCenter([firstField.center_latitude, firstField.center_longitude]);
             } else if (first.location?.latitude && first.location?.longitude) {
@@ -165,29 +177,28 @@ const FarmMap: React.FC<FarmMapProps> = ({
         />
 
         {farms.map(farm => {
-          const fields: Field[] = farm.location?.fields ?? [];
+          const fields: Field[] = fieldsByFarm[farm.id] ?? [];
           const hasFields = fields.length > 0;
           const hasLegacyPolygon =
-            !hasFields &&
-            (farm.location?.polygon?.length ?? 0) >= 3;
+            !hasFields && (farm.location?.polygon?.length ?? 0) >= 3;
 
-          // Marker position: first field centre → legacy polygon centroid → explicit lat/lng
+          // Marker position: first field centre → legacy polygon centroid → lat/lng
           const markerLat =
             fields[0]?.center_latitude ??
             farm.location?.latitude ??
             (hasLegacyPolygon
-              ? farm.location!.polygon!.reduce((s, p) => s + p.lat, 0) / farm.location!.polygon!.length
+              ? farm.location!.polygon!.reduce((s: number, p: { lat: number }) => s + p.lat, 0) / farm.location!.polygon!.length
               : undefined);
           const markerLng =
             fields[0]?.center_longitude ??
             farm.location?.longitude ??
             (hasLegacyPolygon
-              ? farm.location!.polygon!.reduce((s, p) => s + p.lng, 0) / farm.location!.polygon!.length
+              ? farm.location!.polygon!.reduce((s: number, p: { lng: number }) => s + p.lng, 0) / farm.location!.polygon!.length
               : undefined);
 
           return (
             <React.Fragment key={farm.id}>
-              {/* Named fields — each gets its own colour */}
+              {/* Named fields from farm_fields table — each gets its own colour */}
               {hasFields &&
                 fields.map((field, idx) => {
                   if (!field.polygon || field.polygon.length < 3) return null;
@@ -200,19 +211,23 @@ const FarmMap: React.FC<FarmMapProps> = ({
                     >
                       <Popup>
                         <div style={{ minWidth: 160 }}>
-                          <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 14 }}>{field.name}</div>
+                          <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 14 }}>
+                            {field.name}
+                          </div>
                           <div style={{ fontSize: 13, color: '#374151' }}>
                             {field.area_acres.toFixed(2)} acres
                             {field.area_hectares ? ` · ${field.area_hectares.toFixed(2)} ha` : ''}
                           </div>
-                          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>{farm.name}</div>
+                          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                            {farm.name}
+                          </div>
                         </div>
                       </Popup>
                     </Polygon>
                   );
                 })}
 
-              {/* Legacy single polygon — shown only if no named fields exist */}
+              {/* Legacy single polygon — only shown when no named fields exist */}
               {hasLegacyPolygon && (
                 <Polygon
                   positions={farm.location!.polygon!.map(p => [p.lat, p.lng] as [number, number])}
