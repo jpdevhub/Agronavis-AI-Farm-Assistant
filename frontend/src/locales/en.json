@@ -111,6 +111,85 @@
     "title": "Farm Monitoring Dashboard",
     "welcome": "Welcome",
     "signOut": "Sign Out",
+    "shell": {
+      "brandSub": "Field Intelligence",
+      "defaultFarmer": "Farmer",
+      "newAnalysis": "New Analysis",
+      "searchPlaceholder": "Search satellite data...",
+      "notifications": "Notifications",
+      "settings": "Settings",
+      "profileSettings": "Profile Settings",
+      "loadingFarmData": "Loading your farm data...",
+      "nav": {
+        "dashboard": "Dashboard",
+        "myFarms": "My Farms",
+        "fieldMap": "Field Map",
+        "fertilizer": "Fertilizer",
+        "inventory": "Inventory",
+        "analytics": "Analytics",
+        "cropScan": "CropScan AI",
+        "profile": "Profile"
+      }
+    },
+    "overview": {
+      "greetingTitle": "Good morning.",
+      "summaryWithFarms": "You have {{farmCount}} farm(s) and {{cropCount}} active crop(s).",
+      "summaryEmpty": "Set up your first farm to get started.",
+      "clearSkies": "Clear Skies",
+      "farms": "Farms",
+      "crops": "Crops",
+      "totalArea": "Total Area",
+      "acrossAllFarms": "Across all farms",
+      "cropProgress": "Crop Progress",
+      "maturity": "Maturity",
+      "healthy": "Healthy",
+      "moisture": "Moisture",
+      "nitrogen": "Nitrogen",
+      "optimal": "Optimal",
+      "estimatedHarvest": "Estimated Harvest",
+      "notSet": "Not set",
+      "noCropsYet": "No crops yet",
+      "addCropsDesc": "Add crops to track growth progress",
+      "addCrop": "Add Crop",
+      "priorityTasks": "Priority Tasks",
+      "viewAll": "View All",
+      "priorities": {
+        "high": "High",
+        "routine": "Routine",
+        "backlog": "Backlog"
+      },
+      "tasks": {
+        "irrigation": {
+          "name": "Irrigation Sync",
+          "desc": "Sync sensor array",
+          "due": "Due today"
+        },
+        "pest": {
+          "name": "Pest Inspection",
+          "desc": "Manual spot check",
+          "due": "Due in 4 hours"
+        },
+        "inventory": {
+          "name": "Inventory Audit",
+          "desc": "Update fertilizer stock",
+          "due": "No deadline"
+        }
+      },
+      "liveSatellite": "Live Satellite",
+      "fieldTelemetry": "Field telemetry",
+      "liveFeed": "LIVE FEED",
+      "openFieldMapToDraw": "Open Field Map to draw boundary",
+      "noFarmLocation": "No farm location set",
+      "signalStrength": "Signal Strength",
+      "soilTemp": "Soil Temp",
+      "ndviIndex": "NDVI Index",
+      "openFieldMap": "Open Field Map",
+      "aiYieldPrediction": "AI Yield Prediction",
+      "yieldDesc": "Based on soil moisture and historical weather patterns, we predict a 12% increase in yield compared to the previous season.",
+      "viewForecastReport": "View Forecast Report",
+      "estTonnage": "Est. Tonnage",
+      "confidence": "Confidence"
+    },
     "menu": {
       "settings": "Settings",
       "legalNotices": "Legal Notices",

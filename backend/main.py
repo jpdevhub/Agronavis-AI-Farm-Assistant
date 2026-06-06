@@ -122,9 +122,9 @@ if os.path.exists(MODEL_PATH):
     resnet_model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
     resnet_model = resnet_model.to(device)
     resnet_model.eval()
-    print(f"✅ ResNet18 loaded — {NUM_CLASSES} classes on {device}")
+    print(f"[OK] ResNet18 loaded - {NUM_CLASSES} classes on {device}")
 else:
-    print(f"⚠️  Model weights not found at {MODEL_PATH}. Inference will fail.")
+    print(f"[WARN] Model weights not found at {MODEL_PATH}. Inference will fail.")
 
 # CLIP model (OOD guard) — lazy load to keep startup fast
 clip_model = None
@@ -136,12 +136,12 @@ def load_clip():
         return
     try:
         from transformers import CLIPModel, CLIPProcessor
-        print("Loading CLIP (OOD guard)…")
+        print("Loading CLIP (OOD guard)...")
         clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
         clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-        print("✅ CLIP loaded")
+        print("[OK] CLIP loaded")
     except Exception as e:
-        print(f"⚠️  CLIP unavailable: {e}")
+        print(f"[WARN] CLIP unavailable: {e}")
 
 
 # ── Pydantic schemas ─────────────────────────────────────────────────────────
@@ -231,6 +231,24 @@ class SoilEstimationRequest(BaseModel):
     farm_id: str
     state: str
     district: str
+
+class SoilHealthInput(BaseModel):
+    ph: float
+    nitrogen: float
+    phosphorus: float
+    potassium: float
+    organic_matter: Optional[float] = None
+
+class YieldPredictionRequest(BaseModel):
+    crop_type: str
+    soil_health: SoilHealthInput
+
+class YieldPredictionResponse(BaseModel):
+    farm_id: str
+    crop_type: str
+    area_hectares: float
+    predicted_yield_tons: float
+    confidence: str
 
 
 # ── Utility ──────────────────────────────────────────────────────────────────
@@ -774,6 +792,131 @@ async def estimate_soil(body: SoilEstimationRequest, user=Depends(verify_token))
         return {"success": True, "data": res.data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ── Yield Prediction 
+
+BASE_YIELD_TONS_PER_HA: Dict[str, float] = {
+    "wheat":       3.5,
+    "rice":        4.0,
+    "maize":       3.0,
+    "corn":        3.0,
+    "sugarcane":  70.0,
+    "cotton":      1.8,
+    "tomato":     25.0,
+    "potato":     20.0,
+    "soybean":     1.5,
+    "groundnut":   1.8,
+    "barley":      2.8,
+    "sorghum":     1.5,
+    "millet":      1.2,
+    "chickpea":    1.0,
+    "lentil":      1.0,
+}
+
+def _compute_polygon_area_hectares(polygon: list[dict]) -> float:
+    """
+    Replicates geoUtils.calculatePolygonArea using the Shoelace formula.
+    Expects polygon as list of {lat, lng} dicts — same shape stored by FieldCreate.
+    Returns area in hectares.
+    """
+    if len(polygon) < 3:
+        return 0.0
+
+    
+    avg_lat = sum(p["lat"] for p in polygon) / len(polygon)
+    lat_to_m = 111320.0
+    lng_to_m = 111320.0 * abs(__import__("math").cos(__import__("math").radians(avg_lat)))
+
+    coords = [(p["lng"] * lng_to_m, p["lat"] * lat_to_m) for p in polygon]
+    n = len(coords)
+    area_sq_m = abs(
+        sum(
+            coords[i][0] * coords[(i + 1) % n][1] -
+            coords[(i + 1) % n][0] * coords[i][1]
+            for i in range(n)
+        )
+    ) / 2.0
+
+    return area_sq_m / 10_000.0
+
+
+def _soil_modifier(soil: SoilHealthInput) -> float:
+    """
+    Returns a multiplier (0.5 – 1.2) based on soil health inputs.
+    pH sweet-spot: 6.0–7.5. N/P/K scored against ideal ranges.
+    """
+    import math
+
+    
+    ph_score = max(0.0, 1.0 - abs(soil.ph - 6.75) / 3.0)
+
+    
+    n_score = min(soil.nitrogen / 140.0, 1.0)
+    p_score = min(soil.phosphorus / 30.0,  1.0)
+    k_score = min(soil.potassium / 200.0,  1.0)
+
+    
+    om_score = min((soil.organic_matter or 1.5) / 3.0, 1.0)
+
+    raw = (ph_score * 0.25 + n_score * 0.25 + p_score * 0.20 + k_score * 0.20 + om_score * 0.10)
+
+    
+    return round(0.5 + raw * 0.7, 4)
+
+
+@app.post("/api/farms/{farm_id}/yield-prediction", response_model=YieldPredictionResponse)
+async def predict_yield(
+    farm_id: str,
+    body: YieldPredictionRequest,
+    user=Depends(verify_token),
+):
+    
+    farm_res = supabase.table("farms").select(
+        "id, location, total_area"
+    ).eq("id", farm_id).eq("farmer_id", user.id).limit(1).execute()
+
+    if not farm_res.data:
+        raise HTTPException(status_code=404, detail="Farm not found")
+
+    farm = farm_res.data[0]
+    location = farm.get("location") or {}
+    fields: list = location.get("fields", [])
+
+    if fields:
+        area_ha = sum(
+            _compute_polygon_area_hectares(f.get("polygon", []))
+            for f in fields
+        )
+    else:
+        area_acres = farm.get("total_area") or 0.0
+        area_ha = area_acres / 2.471
+
+    if area_ha <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Farm has no area data. Draw a field polygon first or set total_area."
+        )
+
+    crop_key = body.crop_type.lower().strip()
+    base_yield = BASE_YIELD_TONS_PER_HA.get(crop_key)
+    if base_yield is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Crop type '{body.crop_type}' not supported. Supported: {list(BASE_YIELD_TONS_PER_HA.keys())}"
+        )
+
+    modifier = _soil_modifier(body.soil_health)
+    predicted_tons = round(area_ha * base_yield * modifier, 2)
+
+    confidence = "high" if modifier >= 0.85 else "medium" if modifier >= 0.65 else "low"
+
+    return YieldPredictionResponse(
+        farm_id=farm_id,
+        crop_type=body.crop_type,
+        area_hectares=round(area_ha, 4),
+        predicted_yield_tons=predicted_tons,
+        confidence=confidence,
+    )
 
 
 # ── Yields ────────────────────────────────────────────────────────────────────

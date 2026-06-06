@@ -50,14 +50,47 @@ Thank you for your interest in contributing to AgroNavis! This guide will help y
 - ML models (ResNet18) should be instantiated at startup or lazily loaded outside the request handlers.
 
 ### Commits
-Use [Conventional Commits](https://www.conventionalcommits.org/):
+Use [Conventional Commits](https://www.conventionalcommits.org/). Format: `type(optional-scope): description`
 
+**Commit types:**
+- `feat` — new feature
+- `fix` — bug fix
+- `docs` — documentation only
+- `style` — code style (whitespace, formatting, missing semicolons)
+- `refactor` — code change that doesn't fix a bug or add a feature
+- `test` — add or update tests
+- `chore` — dependency updates, config changes, build system
+- `perf` — performance improvements
+- `ci` — CI/CD pipeline changes
+- `revert` — revert a previous commit
+
+**Scopes** (optional, but recommended):
+- `frontend` — Next.js UI changes
+- `backend` — FastAPI endpoints, business logic
+- `auth` — authentication/authorization
+- `ml` — machine learning model, inference
+- `db` — database, Supabase migrations
+- `infra` — deployment, Docker, environment setup
+
+**Examples (good):**
 ```
-feat: add crop export to CSV
-fix: handle null farm location gracefully
-docs: add fastapi setup notes
-chore: update torch to 2.4
+feat(ml): add ResNet18 confidence threshold filter
+fix(auth): handle expired JWT token on refresh
+docs: add fastapi local setup steps to README
+chore(deps): update torch to 2.4.0
+feat(frontend): add crop calendar view
+fix(db): correct migration for nullable timestamp
+perf(backend): cache model weights on startup
+feat!: replace Pages Router with App Router
 ```
+
+**Examples (bad):**
+- `"fixed stuff"` — vague, missing type
+- `"WIP"` — not descriptive
+- `"feat: updated the crop model and fixed auth bug and added docs"` — multiple unrelated changes
+- `"feat(frontend): add feature"` — empty description
+
+**Keep commits single-line** — no multi-line body or footer. One logical change per commit.
 
 ---
 

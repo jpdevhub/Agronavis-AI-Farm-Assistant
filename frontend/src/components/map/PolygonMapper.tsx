@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { usePolygonArea } from '../../hooks/usePolygonArea';
 import SearchBox from './SearchBox';
 import type { LatLng } from '../../utils/geoUtils';
-
+import WeatherStatusBadge from './WeatherStatusBadge';
 // Leaflet must be loaded client-side only (it accesses window)
 // So we lazy-load the inner map component
 const MapInner = dynamic(() => import('./MapInner'), {
@@ -95,6 +95,9 @@ export default function PolygonMapper({ onPolygonComplete, initialCenter, showIn
 
       {/* Map */}
       <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--color-border-tertiary)' }}>
+        <div style={{position: 'absolute',top: '12px',right: '200px',zIndex: 800}}>
+          <WeatherStatusBadge lat={mapCenter.lat} lng={mapCenter.lng}/>
+        </div>
         <MapInner
           center={mapCenter}
           zoom={mapZoom}
