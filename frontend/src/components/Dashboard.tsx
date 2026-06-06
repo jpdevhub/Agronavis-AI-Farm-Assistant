@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
+import { useTranslation } from 'react-i18next';
 import s from '../styles/Dashboard.module.css';
 import { farmApi, cropApi } from '../utils/farmApi';
 import { soilService } from '../utils/soilService';
@@ -91,6 +92,7 @@ const FertDot: React.FC<{ color: string }> = ({ color }) => (
 
 const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const [farms, setFarms] = useState<Farm[]>([]);
   const [crops, setCrops] = useState<Crop[]>([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
@@ -210,11 +212,11 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
       {activeTab === 'overview' && (
         <>
           <div className={s.greeting}>
-            <h2 className={s.greetingTitle}>Good morning.</h2>
+            <h2 className={s.greetingTitle}>{t('dashboard.overview.greetingTitle')}</h2>
             <p className={s.greetingSub}>
               {hasFarms
-                ? `You have ${farms.length} farm${farms.length > 1 ? 's' : ''} and ${crops.length} active crop${crops.length !== 1 ? 's' : ''}.`
-                : 'Set up your first farm to get started.'}
+                ? t('dashboard.overview.summaryWithFarms', { farmCount: farms.length, cropCount: crops.length })
+                : t('dashboard.overview.summaryEmpty')}
             </p>
           </div>
 
@@ -222,32 +224,32 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           <div className={s.overviewGrid} style={{ marginBottom: 20 }}>
             <div className={s.weatherCard} style={{ gridColumn: 'span 2' }}>
               <div>
-                <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 2 }}>Clear Skies</div>
+                <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 2 }}>{t('dashboard.overview.clearSkies')}</div>
                 <div className={s.weatherTemp}>24°C</div>
               </div>
               <div className={s.weatherMeta}>
                 <div className={s.weatherMetaItem}>
-                  <div className={s.weatherMetaKey}>Humidity</div>
+                  <div className={s.weatherMetaKey}>{t('weather.humidity')}</div>
                   <div className={s.weatherMetaVal}>42%</div>
                 </div>
                 <div className={s.weatherMetaItem}>
-                  <div className={s.weatherMetaKey}>Wind</div>
+                  <div className={s.weatherMetaKey}>{t('weather.wind')}</div>
                   <div className={s.weatherMetaVal}>12 km/h</div>
                 </div>
                 <div className={s.weatherMetaItem}>
-                  <div className={s.weatherMetaKey}>Farms</div>
+                  <div className={s.weatherMetaKey}>{t('dashboard.overview.farms')}</div>
                   <div className={s.weatherMetaVal}>{farms.length}</div>
                 </div>
                 <div className={s.weatherMetaItem}>
-                  <div className={s.weatherMetaKey}>Crops</div>
+                  <div className={s.weatherMetaKey}>{t('dashboard.overview.crops')}</div>
                   <div className={s.weatherMetaVal}>{crops.length}</div>
                 </div>
               </div>
             </div>
 
             <div className={s.card} style={{ cursor: 'pointer' }} onClick={() => setActiveTab('farms')}>
-              <div className={s.cardTitle}>Total Area</div>
-              <div className={s.cardSub}>Across all farms</div>
+              <div className={s.cardTitle}>{t('dashboard.overview.totalArea')}</div>
+              <div className={s.cardSub}>{t('dashboard.overview.acrossAllFarms')}</div>
               <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)' }}>
                 {farms.reduce((acc, f) => acc + (f.total_area || 0), 0).toFixed(1)}
                 <span style={{ fontSize: 16, fontWeight: 600, color: '#10b981' }}> ac</span>
@@ -260,7 +262,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
             {/* Crop progress */}
             <div className={s.card}>
               <div className={s.cardHeader}>
-                <div className={s.cardTitle}>Crop Progress</div>
+                <div className={s.cardTitle}>{t('dashboard.overview.cropProgress')}</div>
               </div>
               {crops.length > 0 ? (
                 <>
@@ -275,35 +277,35 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                     </svg>
                     <div style={{ position: 'absolute', textAlign: 'center' }}>
                       <div className={s.progressLabel}>75%</div>
-                      <div className={s.progressSub}>Maturity</div>
+                      <div className={s.progressSub}>{t('dashboard.overview.maturity')}</div>
                     </div>
                   </div>
                   <div className={s.cropMeta}>
                     <span className={s.cropTag}>{crops[0].crop_type}</span>
-                    <span className={s.cropHealthBadge}>Healthy</span>
+                    <span className={s.cropHealthBadge}>{t('dashboard.overview.healthy')}</span>
                   </div>
                   <div className={s.cropStats}>
                     <div className={s.cropStat}>
-                      <div className={s.cropStatLabel}>Moisture</div>
+                      <div className={s.cropStatLabel}>{t('dashboard.overview.moisture')}</div>
                       <div className={s.cropStatVal}>68%</div>
                     </div>
                     <div className={s.cropStat}>
-                      <div className={s.cropStatLabel}>Nitrogen</div>
-                      <div className={`${s.cropStatVal} ${s.cropStatValGreen}`}>Optimal</div>
+                      <div className={s.cropStatLabel}>{t('dashboard.overview.nitrogen')}</div>
+                      <div className={`${s.cropStatVal} ${s.cropStatValGreen}`}>{t('dashboard.overview.optimal')}</div>
                     </div>
                   </div>
                   <div className={s.harvestRow}>
-                    <span>Estimated Harvest</span>
-                    <span style={{ fontWeight: 700 }}>{crops[0].expected_harvest_date || 'Not set'}</span>
+                    <span>{t('dashboard.overview.estimatedHarvest')}</span>
+                    <span style={{ fontWeight: 700 }}>{crops[0].expected_harvest_date || t('dashboard.overview.notSet')}</span>
                   </div>
                   <div className={s.harvestBar}><div className={s.harvestBarFill} /></div>
                 </>
               ) : (
                 <div className={s.emptyState}>
-                  <div className={s.emptyTitle}>No crops yet</div>
-                  <div className={s.emptyDesc}>Add crops to track growth progress</div>
+                  <div className={s.emptyTitle}>{t('dashboard.overview.noCropsYet')}</div>
+                  <div className={s.emptyDesc}>{t('dashboard.overview.addCropsDesc')}</div>
                   <button className={s.emptyBtn} onClick={() => router.push('/onboarding/crops?farmId=' + (farms[0]?.id || ''))}>
-                    Add Crop
+                    {t('dashboard.overview.addCrop')}
                   </button>
                 </div>
               )}
@@ -313,20 +315,20 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
             {/* Satellite card */}
             <div className={`${s.card} ${s.satelliteCard}`}>
-              <div className={s.cardTitle}>Live Satellite</div>
-              <div className={s.cardSub} style={{ marginBottom: 12 }}>Field telemetry</div>
+              <div className={s.cardTitle}>{t('dashboard.overview.liveSatellite')}</div>
+              <div className={s.cardSub} style={{ marginBottom: 12 }}>{t('dashboard.overview.fieldTelemetry')}</div>
               <div className={s.mapPlaceholder}>
-                <div className={s.liveBadge}>LIVE FEED</div>
+                <div className={s.liveBadge}>{t('dashboard.overview.liveFeed')}</div>
                 <div className={s.coordBadge}>
                   {selectedFarm?.location?.center_latitude?.toFixed(4) || '22.5726'}° N,{' '}
                   {selectedFarm?.location?.center_longitude?.toFixed(4) || '88.3639'}° E
                 </div>
                 <div className={s.mapPlaceholderText} style={{ position: 'absolute', top: '40%' }}>
-                  {hasFarms ? 'Open Field Map to draw boundary' : 'No farm location set'}
+                  {hasFarms ? t('dashboard.overview.openFieldMapToDraw') : t('dashboard.overview.noFarmLocation')}
                 </div>
               </div>
               <div className={s.signalStrength}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)' }}>Signal Strength</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)' }}>{t('dashboard.overview.signalStrength')}</span>
                 <div className={s.signalDots}>
                   {[true, true, true, false].map((active, i) => (
                     <div key={i} className={`${s.signalDot} ${!active ? s.signalDotWeak : ''}`} />
@@ -337,26 +339,26 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                 <div className={s.telemetryItem}><div className={s.telemetryLabel}>Soil Temp</div><div className={s.telemetryVal}>19.4°C</div></div>
                 <div className={s.telemetryItem}><div className={s.telemetryLabel}>NDVI Index</div><div className={s.telemetryVal}>0.82</div></div>
               </div>
-              <button className={s.expandBtn} onClick={() => setActiveTab('map')}>Open Field Map</button>
+              <button className={s.expandBtn} onClick={() => setActiveTab('map')}>{t('dashboard.overview.openFieldMap')}</button>
             </div>
           </div>
 
           {/* AI Yield banner */}
           <div className={s.yieldBanner} style={{ marginTop: 24 }}>
             <div>
-              <div className={s.yieldTitle}>AI Yield Prediction</div>
+              <div className={s.yieldTitle}>{t('dashboard.overview.aiYieldPrediction')}</div>
               <div className={s.yieldDesc}>
-                Based on soil moisture and historical weather patterns, we predict a 12% increase in yield compared to the previous season.
+                {t('dashboard.overview.yieldDesc')}
               </div>
-              <button className={s.yieldBtn} onClick={() => router.push('/weather-forecast')}>View Forecast Report</button>
+              <button className={s.yieldBtn} onClick={() => router.push('/weather-forecast')}>{t('dashboard.overview.viewForecastReport')}</button>
             </div>
             <div className={s.yieldStats}>
               <div className={s.yieldStat}>
-                <div className={s.yieldStatLabel}>Est. Tonnage</div>
+                <div className={s.yieldStatLabel}>{t('dashboard.overview.estTonnage')}</div>
                 <div className={s.yieldStatVal}>2.4k</div>
               </div>
               <div className={s.yieldStat}>
-                <div className={s.yieldStatLabel}>Confidence</div>
+                <div className={s.yieldStatLabel}>{t('dashboard.overview.confidence')}</div>
                 <div className={s.yieldStatVal}>94%</div>
               </div>
             </div>
@@ -585,6 +587,8 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
         <>
           <FertilizerWeatherAdvisory coordinates={fertCoordinates} />
           <div className={s.fertSection}>
+        <div className={s.fertSection} id="fertilizer-print-area">
+          {/* Left: Calculator */}
           <div>
             <div className={s.fertTitle}>Fertilizer Calculator</div>
             <div className={s.fertDesc}>
@@ -713,7 +717,9 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
             <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 16 }}>
               Prices are indicative. Contact your local agri-input supplier for actual rates.
             </div>
-
+            <button className={s.printBtn} onClick={() => window.print()}>
+              Print Report
+            </button>
             <button className={s.orderBtn}>Generate Purchase Order</button>
           </div>
         </div>

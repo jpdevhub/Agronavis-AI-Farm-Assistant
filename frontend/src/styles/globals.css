@@ -95,3 +95,23 @@ input, select, textarea {
   font-family: inherit;
   font-size: inherit;
 }
+
+/* For printing fertilizer recommendations without the rest of the dashboard UI */
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #fertilizer-print-area,
+  #fertilizer-print-area * {
+    visibility: visible;
+  }
+
+  #fertilizer-print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}
