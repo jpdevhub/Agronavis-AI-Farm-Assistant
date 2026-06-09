@@ -108,6 +108,8 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
   const [crops, setCrops] = useState<Crop[]>([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
   const [fields, setFields] = useState<Field[]>([]);
+  // Map of farmId → fields[] for ALL farms (used in My Farms cards)
+  const [allFarmsFields, setAllFarmsFields] = useState<Record<string, Field[]>>({});
   const [pendingField, setPendingField] = useState<{
     fieldName: string;
     coordinates: LatLng[];
@@ -123,6 +125,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
   // Fertilizer calc state
   const [fertFarmId, setFertFarmId] = useState('');
+  const [fertFieldId, setFertFieldId] = useState(''); // '' = entire farm
   const [fertCrop, setFertCrop] = useState('Rice');
   const [fertMethod, setFertMethod] = useState('Broadcasting');
 
@@ -133,29 +136,47 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
     try {
       const farmsData = await farmApi.getFarms();
       setFarms(farmsData || []);
-      if (farmsData?.length > 0 && !selectedFarmId) {
-        setSelectedFarmId(farmsData[0].id);
-        setFertFarmId(farmsData[0].id);
+      if (farmsData?.length > 0) {
+        if (!selectedFarmId) {
+          setSelectedFarmId(farmsData[0].id);
+          setFertFarmId(farmsData[0].id);
+        }
+        // Load crops for first farm
         try {
           const cropsData = await cropApi.getFarmCrops(farmsData[0].id);
           setCrops(cropsData || []);
-          if (cropsData?.length > 0) setFertCrop(cropsData[0].crop_type);
+          if (cropsData?.length > 0 && !fertCrop) setFertCrop(cropsData[0].crop_type);
         } catch { /* no crops */ }
+        // Load fields for ALL farms so My Farms page shows correct counts
+        const fieldsMap: Record<string, Field[]> = {};
+        await Promise.all(
+          farmsData.map(async (farm: Farm) => {
+            try {
+              const flds = await farmApi.getFarmFields(farm.id);
+              fieldsMap[farm.id] = flds || [];
+            } catch { fieldsMap[farm.id] = []; }
+          })
+        );
+        setAllFarmsFields(fieldsMap);
       }
     } catch (err) {
       console.error('Error loading farms:', err);
     } finally {
       setLoading(false);
     }
-  }, [selectedFarmId]);
+  }, [selectedFarmId, fertCrop]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Reload fields from the dedicated table whenever the selected farm changes
+  // Reload fields for selected farm whenever selectedFarmId changes
   useEffect(() => {
     if (!selectedFarmId) return;
     farmApi.getFarmFields(selectedFarmId)
-      .then((data: Field[]) => setFields(data || []))
+      .then((data: Field[]) => {
+        setFields(data || []);
+        // Keep allFarmsFields in sync
+        setAllFarmsFields(prev => ({ ...prev, [selectedFarmId]: data || [] }));
+      })
       .catch(() => setFields([]));
   }, [selectedFarmId]);
 
@@ -225,12 +246,19 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
     }
   };
 
-  // Fertilizer calc — all values derived from farm area + selected crop
+  // Fertilizer calc — area comes from farm_fields sum (kept in sync by DB trigger via total_area)
   const fertFarm = farms.find(f => f.id === fertFarmId) || farms[0];
   const soilKey = fertFarm?.soil_type || 'default';
   const npk = NPK_BY_SOIL[soilKey] || NPK_BY_SOIL.default;
   const dosage = FERT_BY_CROP[fertCrop] || FERT_BY_CROP.default;
-  const area = fertFarm?.total_area || 1;
+  // If a specific field is selected, use its area; otherwise use total farm area from DB trigger
+  const fertFields = allFarmsFields[fertFarm?.id || ''] || [];
+  const selectedFertField = fertFields.find(f => f.id === fertFieldId);
+  const area = selectedFertField
+    ? selectedFertField.area_acres
+    : (fertFarm?.total_area && fertFarm.total_area > 0) ? fertFarm.total_area : 1;
+  // Dynamic cost/acre: (urea*$0.35 + dap*$0.55 + potash*$0.30) / 50kg bag weight
+  const costPerAcre = ((dosage.urea * 0.35 + dosage.dap * 0.55 + dosage.potash * 0.30) / 50).toFixed(2);
   const ureaTons  = ((dosage.urea   * area) / 2000).toFixed(2);
   const dapTons   = ((dosage.dap    * area) / 2000).toFixed(2);
   const potashTons= ((dosage.potash * area) / 2000).toFixed(2);
@@ -461,10 +489,10 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                           </div>
                         </div>
                         <div className={s.soilDesc}>
-                          {farm.total_area ? `${farm.total_area.toFixed(1)} acres` : 'Area not mapped'} — {farm.irrigation_type || 'Irrigation type not set'}
-                          {farm.id === selectedFarmId && fields.length > 0 && (
+                          {farm.total_area && farm.total_area > 0 ? `${farm.total_area.toFixed(1)} acres` : 'Area not mapped'} — {farm.irrigation_type || 'Irrigation type not set'}
+                          {(allFarmsFields[farm.id]?.length ?? 0) > 0 && (
                             <span style={{ marginLeft: 6, color: '#059669', fontWeight: 600 }}>
-                              · {fields.length} field{fields.length !== 1 ? 's' : ''} mapped
+                              · {allFarmsFields[farm.id].length} field{allFarmsFields[farm.id].length !== 1 ? 's' : ''} mapped
                             </span>
                           )}
                         </div>
@@ -496,7 +524,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                   </div>
                   <div className={s.insightRow}>
                     <span className={s.insightKey}>Est. Cost/Acre</span>
-                    <span className={s.insightValCost}>$22.40</span>
+                    <span className={s.insightValCost}>${costPerAcre}</span>
                   </div>
                   <button className={s.viewRecsBtn} onClick={() => setActiveTab('fertilizer')}>
                     Open Fertilizer Calculator
@@ -693,13 +721,28 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
             <div className={s.selectRow}>
               <div>
                 <div className={s.selectLabel}>Farm Plot</div>
-                <select className={s.fertSelect} value={fertFarmId} onChange={e => setFertFarmId(e.target.value)}>
+                <select className={s.fertSelect} value={fertFarmId} onChange={e => {
+                  setFertFarmId(e.target.value);
+                  setFertFieldId(''); // reset field when farm changes
+                }}>
                   {farms.length > 0
                     ? farms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)
                     : <option value="">No farms — add one first</option>
                   }
                 </select>
               </div>
+              {/* Field selector — populated from farm_fields table */}
+              {fertFields.length > 0 && (
+                <div>
+                  <div className={s.selectLabel}>Specific Field</div>
+                  <select className={s.fertSelect} value={fertFieldId} onChange={e => setFertFieldId(e.target.value)}>
+                    <option value="">Entire Farm ({(fertFarm?.total_area || 0).toFixed(1)} acres)</option>
+                    {fertFields.map(f => (
+                      <option key={f.id} value={f.id}>{f.name} ({f.area_acres.toFixed(1)} ac)</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <div className={s.selectLabel}>Application Method</div>
                 <select className={s.fertSelect} value={fertMethod} onChange={e => setFertMethod(e.target.value)}>
