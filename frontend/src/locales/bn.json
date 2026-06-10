@@ -241,8 +241,19 @@
       "tasks": {
         "title": "Shob kaj shomponn!",
         "desc": "Shandhu hoyeche. Ajer shob kaj hoyeche. Kaal abar check korun.",
-        "cta": "Farm Overview Dekhun"
+        "cta": "Farm Overview Dekhun",
+        "resetCta": "Agamikal er jonno reset korun"
       }
+    },
+    "cropsTab": {
+      "title": "Amar Fasol",
+      "subtitle": "Apnar farme bopon, briddhi porjay, ebong fosol katar tarikh track korun.",
+      "plantCrop": "+ Fasol ropon korun",
+      "loading": "Fasol load hocche...",
+      "areaNotSet": "Elaka set kora hoyni",
+      "stage": "Porjay",
+      "growthStageNotSet": "Briddhi porjay set kora hoyni",
+      "scanCrop": "Fasol scan korun"
     }
   },
   "diseases": {

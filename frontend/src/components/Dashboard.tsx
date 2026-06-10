@@ -544,9 +544,9 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
         <>
           <div className={s.cardHeader} style={{ marginBottom: 20 }}>
             <div>
-              <div className={s.fertTitle}>My Crops</div>
+              <div className={s.fertTitle}>{t('dashboard.cropsTab.title')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-                Track planting, growth stages, and harvest dates for your farm.
+                {t('dashboard.cropsTab.subtitle')}
               </div>
             </div>
             {hasFarms && (
@@ -554,13 +554,13 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                 className={s.emptyBtn}
                 onClick={() => router.push('/onboarding/crops?farmId=' + (selectedFarmId || farms[0]?.id || ''))}
               >
-                + Plant a Crop
+                {t('dashboard.cropsTab.plantCrop')}
               </button>
             )}
           </div>
 
           {loading ? (
-            <div className={s.loadingCard}><div className={s.spinner} />Loading crops...</div>
+            <div className={s.loadingCard}><div className={s.spinner} />{t('dashboard.cropsTab.loading')}</div>
           ) : !hasFarms ? (
             /* No farms at all — prompt to add a farm first */
             <EmptyState
@@ -586,12 +586,15 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
             <div className={s.farmsGrid}>
               {crops.map((crop) => {
                 const stage = crop.current_growth_stage || 'Vegetative';
-                const sowingLabel = crop.sowing_date
-                  ? new Date(crop.sowing_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
-                  : 'Not set';
-                const harvestLabel = crop.expected_harvest_date
-                  ? new Date(crop.expected_harvest_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
-                  : 'Not set';
+                const parseDate = (d: string | null | undefined) => {
+                  if (!d) return t('dashboard.notSet');
+                  const date = new Date(d);
+                  return isNaN(date.getTime())
+                    ? t('dashboard.notSet')
+                    : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+                };
+                const sowingLabel = parseDate(crop.sowing_date);
+                const harvestLabel = parseDate(crop.expected_harvest_date);
                 return (
                   <div key={crop.id} className={s.farmCard} style={{ cursor: 'default' }}>
                     {/* Card header */}
@@ -607,7 +610,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                       </div>
                       {/* Area + Season row */}
                       <div className={s.soilDesc}>
-                        {crop.area_allocated > 0 ? `${crop.area_allocated.toFixed(1)} acres` : 'Area not set'}
+                        {crop.area_allocated > 0 ? `${crop.area_allocated.toFixed(1)} acres` : t('dashboard.cropsTab.areaNotSet')}
                         {crop.season && <span style={{ marginLeft: 6, color: '#059669', fontWeight: 600 }}>· {crop.season}</span>}
                       </div>
                       {/* Sowing & Harvest */}
@@ -623,13 +626,13 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                       </div>
                       <div className={s.farmCardFooter}>
                         <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-                          {crop.current_growth_stage ? `Stage: ${crop.current_growth_stage}` : 'Growth stage not set'}
+                          {crop.current_growth_stage ? `${t('dashboard.cropsTab.stage')}: ${crop.current_growth_stage}` : t('dashboard.cropsTab.growthStageNotSet')}
                         </span>
                         <button
                           className={s.viewLink}
                           onClick={() => setActiveTab('cropscan')}
                         >
-                          Scan Crop
+                          {t('dashboard.cropsTab.scanCrop')}
                         </button>
                       </div>
                     </div>

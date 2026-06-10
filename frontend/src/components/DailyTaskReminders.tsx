@@ -107,7 +107,7 @@ const DailyTaskReminders: React.FC = () => {
           variant="tasks"
           title={t('dashboard.emptyStates.tasks.title')}
           description={t('dashboard.emptyStates.tasks.desc')}
-          ctaLabel="Reset for Tomorrow"
+          ctaLabel={t('dashboard.emptyStates.tasks.resetCta')}
           onCta={resetTasks}
         />
       ) : (

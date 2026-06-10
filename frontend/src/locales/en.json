@@ -210,8 +210,19 @@
       "tasks": {
         "title": "All tasks complete!",
         "desc": "Great work. All of today's tasks are done. Check back tomorrow for your next set.",
-        "cta": "View Farm Overview"
+        "cta": "View Farm Overview",
+        "resetCta": "Reset for Tomorrow"
       }
+    },
+    "cropsTab": {
+      "title": "My Crops",
+      "subtitle": "Track planting, growth stages, and harvest dates for your farm.",
+      "plantCrop": "+ Plant a Crop",
+      "loading": "Loading crops...",
+      "areaNotSet": "Area not set",
+      "stage": "Stage",
+      "growthStageNotSet": "Growth stage not set",
+      "scanCrop": "Scan Crop"
     },
     "menu": {
       "settings": "Settings",
