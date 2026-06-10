@@ -123,6 +123,7 @@
       "nav": {
         "dashboard": "Dashboard",
         "myFarms": "My Farms",
+        "myCrops": "My Crops",
         "fieldMap": "Field Map",
         "fertilizer": "Fertilizer",
         "inventory": "Inventory",
@@ -189,6 +190,28 @@
       "viewForecastReport": "View Forecast Report",
       "estTonnage": "Est. Tonnage",
       "confidence": "Confidence"
+    },
+    "emptyStates": {
+      "farms": {
+        "title": "No farms yet",
+        "desc": "Create your first farm to start tracking crops, soil data, and field boundaries.",
+        "cta": "Add Your First Farm"
+      },
+      "crops": {
+        "title": "No crops planted yet",
+        "desc": "Add your first crop to track growth progress, maturity, and harvest dates.",
+        "cta": "Plant Your First Crop"
+      },
+      "fields": {
+        "title": "No fields mapped yet",
+        "desc": "Draw a boundary on the map above and give it a name to add your first field.",
+        "cta": "Start Drawing"
+      },
+      "tasks": {
+        "title": "All tasks complete!",
+        "desc": "Great work. All of today's tasks are done. Check back tomorrow for your next set.",
+        "cta": "View Farm Overview"
+      }
     },
     "menu": {
       "settings": "Settings",

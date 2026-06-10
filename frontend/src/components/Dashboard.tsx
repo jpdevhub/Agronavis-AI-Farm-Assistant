@@ -14,6 +14,7 @@ import AnalyticsDashboard from './AnalyticsDashboard';
 import ResourceDashboard from './ResourceDashboard';
 import CropScanTab from './CropScanTab';
 import DailyTaskReminders from './DailyTaskReminders';
+import EmptyState from './EmptyState';
 
 // SSR-disable Leaflet polygon mapper
 const PolygonMapper = dynamic(() => import('./map/PolygonMapper'), {
@@ -366,13 +367,13 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                   <div className={s.harvestBar}><div className={s.harvestBarFill} /></div>
                 </>
               ) : (
-                <div className={s.emptyState}>
-                  <div className={s.emptyTitle}>{t('dashboard.overview.noCropsYet')}</div>
-                  <div className={s.emptyDesc}>{t('dashboard.overview.addCropsDesc')}</div>
-                  <button className={s.emptyBtn} onClick={() => router.push('/onboarding/crops?farmId=' + (farms[0]?.id || ''))}>
-                    {t('dashboard.overview.addCrop')}
-                  </button>
-                </div>
+                <EmptyState
+                  variant="crops"
+                  title={t('dashboard.emptyStates.crops.title')}
+                  description={t('dashboard.emptyStates.crops.desc')}
+                  ctaLabel={t('dashboard.emptyStates.crops.cta')}
+                  onCta={() => router.push('/onboarding/crops?farmId=' + (farms[0]?.id || ''))}
+                />
               )}
             </div>
 
@@ -449,11 +450,13 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           {loading ? (
             <div className={s.loadingCard}><div className={s.spinner} />Loading farms...</div>
           ) : !hasFarms ? (
-            <div className={s.emptyState}>
-              <div className={s.emptyTitle}>No farms yet</div>
-              <div className={s.emptyDesc}>Create your first farm to start tracking crops and soil data.</div>
-              <button className={s.emptyBtn} onClick={() => router.push('/onboarding/farm')}>Create Farm</button>
-            </div>
+            <EmptyState
+              variant="farms"
+              title={t('dashboard.emptyStates.farms.title')}
+              description={t('dashboard.emptyStates.farms.desc')}
+              ctaLabel={t('dashboard.emptyStates.farms.cta')}
+              onCta={() => router.push('/onboarding/farm')}
+            />
           ) : (
             <>
               <div className={s.farmsGrid}>
@@ -536,6 +539,108 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
         </>
       )}
 
+      {/* ======================== MY CROPS ======================== */}
+      {activeTab === 'crops' && (
+        <>
+          <div className={s.cardHeader} style={{ marginBottom: 20 }}>
+            <div>
+              <div className={s.fertTitle}>My Crops</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+                Track planting, growth stages, and harvest dates for your farm.
+              </div>
+            </div>
+            {hasFarms && (
+              <button
+                className={s.emptyBtn}
+                onClick={() => router.push('/onboarding/crops?farmId=' + (selectedFarmId || farms[0]?.id || ''))}
+              >
+                + Plant a Crop
+              </button>
+            )}
+          </div>
+
+          {loading ? (
+            <div className={s.loadingCard}><div className={s.spinner} />Loading crops...</div>
+          ) : !hasFarms ? (
+            /* No farms at all — prompt to add a farm first */
+            <EmptyState
+              variant="farms"
+              title={t('dashboard.emptyStates.farms.title')}
+              description={t('dashboard.emptyStates.farms.desc')}
+              ctaLabel={t('dashboard.emptyStates.farms.cta')}
+              onCta={() => router.push('/onboarding/farm')}
+            />
+          ) : crops.length === 0 ? (
+            /* Farms exist but no crops yet — show the hero illustrated empty state */
+            <div className={s.card} style={{ padding: '8px 0' }}>
+              <EmptyState
+                variant="crops"
+                title={t('dashboard.emptyStates.crops.title')}
+                description={t('dashboard.emptyStates.crops.desc')}
+                ctaLabel={t('dashboard.emptyStates.crops.cta')}
+                onCta={() => router.push('/onboarding/crops?farmId=' + (selectedFarmId || farms[0]?.id || ''))}
+              />
+            </div>
+          ) : (
+            /* Crops exist — render crop cards */
+            <div className={s.farmsGrid}>
+              {crops.map((crop) => {
+                const stage = crop.current_growth_stage || 'Vegetative';
+                const sowingLabel = crop.sowing_date
+                  ? new Date(crop.sowing_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+                  : 'Not set';
+                const harvestLabel = crop.expected_harvest_date
+                  ? new Date(crop.expected_harvest_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+                  : 'Not set';
+                return (
+                  <div key={crop.id} className={s.farmCard} style={{ cursor: 'default' }}>
+                    {/* Card header */}
+                    <div className={s.farmCardImg} style={{ background: 'linear-gradient(160deg, #052e16, #14532d)' }}>
+                      <span className={s.farmCardPremiumBadge}>{stage.toUpperCase()}</span>
+                    </div>
+                    <div className={s.farmCardBody}>
+                      <div className={s.farmCardName}>
+                        {crop.crop_type}
+                        {crop.variety && (
+                          <span className={s.cropBadge}>{crop.variety}</span>
+                        )}
+                      </div>
+                      {/* Area + Season row */}
+                      <div className={s.soilDesc}>
+                        {crop.area_allocated > 0 ? `${crop.area_allocated.toFixed(1)} acres` : 'Area not set'}
+                        {crop.season && <span style={{ marginLeft: 6, color: '#059669', fontWeight: 600 }}>· {crop.season}</span>}
+                      </div>
+                      {/* Sowing & Harvest */}
+                      <div className={s.farmNpkGrid} style={{ marginTop: 0 }}>
+                        <div className={s.npkItem}>
+                          <div className={s.npkLabel}>SOWING</div>
+                          <div className={s.npkVal} style={{ fontSize: 12 }}>{sowingLabel}</div>
+                        </div>
+                        <div className={s.npkItem}>
+                          <div className={s.npkLabel}>HARVEST</div>
+                          <div className={s.npkVal} style={{ fontSize: 12 }}>{harvestLabel}</div>
+                        </div>
+                      </div>
+                      <div className={s.farmCardFooter}>
+                        <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                          {crop.current_growth_stage ? `Stage: ${crop.current_growth_stage}` : 'Growth stage not set'}
+                        </span>
+                        <button
+                          className={s.viewLink}
+                          onClick={() => setActiveTab('cropscan')}
+                        >
+                          Scan Crop
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
       {/* ======================== FIELD MAP ======================== */}
       {activeTab === 'map' && (
         <>
@@ -568,11 +673,13 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           )}
 
           {!hasFarms ? (
-            <div className={s.emptyState}>
-              <div className={s.emptyTitle}>No farm to map</div>
-              <div className={s.emptyDesc}>Create a farm first, then draw its field boundaries here.</div>
-              <button className={s.emptyBtn} onClick={() => router.push('/onboarding/farm')}>Create Farm</button>
-            </div>
+            <EmptyState
+              variant="farms"
+              title={t('dashboard.emptyStates.farms.title')}
+              description={t('dashboard.emptyStates.farms.desc')}
+              ctaLabel={t('dashboard.emptyStates.farms.cta')}
+              onCta={() => router.push('/onboarding/farm')}
+            />
           ) : (
             <>
               {/* ── Polygon drawing tool ── */}
@@ -699,8 +806,12 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 13, background: 'white', border: '1px solid var(--color-border)', borderRadius: 14 }}>
-                    No fields mapped yet. Draw a boundary above and give it a name to add your first field.
+                  <div style={{ background: 'white', border: '1px solid var(--color-border)', borderRadius: 14, overflow: 'hidden' }}>
+                    <EmptyState
+                      variant="fields"
+                      title={t('dashboard.emptyStates.fields.title')}
+                      description={t('dashboard.emptyStates.fields.desc')}
+                    />
                   </div>
                 )}
             </>

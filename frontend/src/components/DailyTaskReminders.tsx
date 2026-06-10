@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import s from '../styles/Dashboard.module.css';
+import EmptyState from './EmptyState';
+import { useTranslation } from 'react-i18next';
 
 type TaskId = 'water' | 'fertilize' | 'harvest';
 
@@ -55,6 +57,7 @@ const parseStoredTaskState = (value: string | null): TaskState => {
 };
 
 const DailyTaskReminders: React.FC = () => {
+  const { t } = useTranslation();
   const [taskState, setTaskState] = useState<TaskState>(DEFAULT_TASK_STATE);
   const [hasLoadedLocalState, setHasLoadedLocalState] = useState(false);
   const todayKey = useMemo(getTodayKey, []);
@@ -79,6 +82,11 @@ const DailyTaskReminders: React.FC = () => {
     }));
   };
 
+  /** Reset all tasks so the farmer can use this card to mark them again */
+  const resetTasks = () => {
+    setTaskState(DEFAULT_TASK_STATE);
+  };
+
   return (
     <div className={s.card}>
       <div className={s.cardHeader}>
@@ -93,36 +101,47 @@ const DailyTaskReminders: React.FC = () => {
         </span>
       </div>
 
-      <div className={s.tasksCard}>
-        {TASKS.map(task => {
-          const checked = taskState[task.id];
+      {/* ── All-done: show a beautiful illustrated celebration state ── */}
+      {allComplete ? (
+        <EmptyState
+          variant="tasks"
+          title={t('dashboard.emptyStates.tasks.title')}
+          description={t('dashboard.emptyStates.tasks.desc')}
+          ctaLabel="Reset for Tomorrow"
+          onCta={resetTasks}
+        />
+      ) : (
+        <div className={s.tasksCard}>
+          {TASKS.map(task => {
+            const checked = taskState[task.id];
 
-          return (
-            <label
-              key={task.id}
-              className={`${s.dailyTaskItem} ${checked ? s.dailyTaskItemDone : ''}`}
-            >
-              <input
-                className={s.dailyTaskCheckbox}
-                type="checkbox"
-                checked={checked}
-                onChange={() => toggleTask(task.id)}
-              />
-              <span className={s.dailyTaskCheckmark} aria-hidden="true">
-                {checked && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
-              </span>
-              <span className={s.dailyTaskInfo}>
-                <span className={s.taskName}>{task.title}</span>
-                <span className={s.taskDesc}>{task.description}</span>
-              </span>
-            </label>
-          );
-        })}
-      </div>
+            return (
+              <label
+                key={task.id}
+                className={`${s.dailyTaskItem} ${checked ? s.dailyTaskItemDone : ''}`}
+              >
+                <input
+                  className={s.dailyTaskCheckbox}
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleTask(task.id)}
+                />
+                <span className={s.dailyTaskCheckmark} aria-hidden="true">
+                  {checked && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </span>
+                <span className={s.dailyTaskInfo}>
+                  <span className={s.taskName}>{task.title}</span>
+                  <span className={s.taskDesc}>{task.description}</span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
