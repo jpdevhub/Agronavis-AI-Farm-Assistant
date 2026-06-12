@@ -91,17 +91,21 @@ export default function PolygonMapper({ onPolygonComplete, initialCenter, showIn
       </div>
 
       {/* Search bar (floats above the map visually) */}
-      <SearchBox onLocationSelect={handleLocationSelect} />
+      <div id="polygon-search">
+  <SearchBox onLocationSelect={handleLocationSelect} />
+</div>
 
       {/* Map */}
       <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--color-border-tertiary)' }}>
-        <MapInner
-          center={mapCenter}
-          zoom={mapZoom}
-          points={points}
-          onMapClick={addPoint}
-        />
-
+       <div id="polygon-map">
+  <MapInner
+    center={mapCenter}
+    zoom={mapZoom}
+    points={points}
+    onMapClick={addPoint}
+  />
+</div>
+      </div>
         {/* Instructions overlay (top-left of map) */}
         <div style={{
           position: 'absolute', top: '12px', right: '12px',
@@ -116,7 +120,6 @@ export default function PolygonMapper({ onPolygonComplete, initialCenter, showIn
           2. Click corners of your field<br/>
           3. Drop 3+ pins to form a polygon
         </div>
-      </div>
 
       {/* Live stats bar */}
       <div style={{
@@ -182,6 +185,7 @@ export default function PolygonMapper({ onPolygonComplete, initialCenter, showIn
         <div style={{ display: 'flex', gap: '8px' }}>
           {points.length > 0 && (
             <button
+              id="confirm-boundary-btn"
               onClick={removeLastPoint}
               style={{
                 padding: '6px 12px', border: '1px solid #d1d5db',

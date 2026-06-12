@@ -265,6 +265,7 @@ const CropScanTab: React.FC = () => {
               </>
             ) : (
               <div
+                id="cropscan-upload-zone"
                 className={`${styles.uploadZone} ${dragging ? styles.uploadZoneDragging : ''}`}
                 onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
                 onDragLeave={() => setDragging(false)}

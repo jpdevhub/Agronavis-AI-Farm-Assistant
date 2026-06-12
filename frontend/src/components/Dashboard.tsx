@@ -12,7 +12,7 @@ import AnalyticsDashboard from './AnalyticsDashboard';
 import ResourceDashboard from './ResourceDashboard';
 import CropScanTab from './CropScanTab';
 import DailyTaskReminders from './DailyTaskReminders';
-
+import OnboardingTour from "./OnboardingTour";
 // SSR-disable Leaflet polygon mapper
 const PolygonMapper = dynamic(() => import('./map/PolygonMapper'), {
   ssr: false,
@@ -199,6 +199,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
   return (
     <div>
+      <OnboardingTour />
       {/* ======================== OVERVIEW ======================== */}
       {activeTab === 'overview' && (
         <>
