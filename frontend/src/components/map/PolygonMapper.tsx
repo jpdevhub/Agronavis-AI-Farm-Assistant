@@ -163,7 +163,6 @@ export default function PolygonMapper({
           2. Search your village<br />
           3. Click 4 corners to mark boundary
         </div>
-      </div>
 
       {/* Live stats bar */}
       <div style={{
@@ -223,6 +222,7 @@ export default function PolygonMapper({
         <div style={{ display: 'flex', gap: '8px' }}>
           {points.length > 0 && (
             <button
+              id="confirm-boundary-btn"
               onClick={removeLastPoint}
               style={{
                 padding: '6px 12px', border: '1px solid #d1d5db',
