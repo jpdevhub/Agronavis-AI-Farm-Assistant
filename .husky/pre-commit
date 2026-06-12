@@ -1,0 +1,13 @@
+# Pre-commit hook disabled by default.
+
+# Uncomment below to run linting/testing before commits.
+
+# Useful patterns:
+
+# - npm run lint (check code style)
+
+# - npm test (run unit tests)
+
+# - npm run type-check (TS type checking)
+
+npm run lint
