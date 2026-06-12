@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently --names \"API,WEB\" --prefix-colors \"green,cyan\" \"npm run dev:api\" \"npm run dev:web\"",
-    "dev:api": "node -e \"const{execSync}=require('child_process');const cmd=process.platform==='win32'?'backend\\\\\\\\venv\\\\\\\\Scripts\\\\\\\\uvicorn.exe main:app --reload --port 8000 --app-dir backend':'cd backend && uvicorn main:app --reload --port 8000';execSync(cmd,{stdio:'inherit',shell:true})\"",
+    "dev:api": "node -e \"const{execSync}=require('child_process');const cmd=process.platform==='win32'?'backend\\\\\\\\venv\\\\\\\\Scripts\\\\\\\\uvicorn.exe main:app --reload --port 8000 --app-dir backend':'cd backend && ./venv/bin/uvicorn main:app --reload --port 8000';execSync(cmd,{stdio:'inherit',shell:true})\"",
     "dev:web": "cd frontend && npm run dev",
     "install:frontend": "npm install --prefix frontend",
     "build": "npm run build --prefix frontend",

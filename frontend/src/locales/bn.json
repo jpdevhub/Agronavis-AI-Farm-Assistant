@@ -154,6 +154,7 @@
       "nav": {
         "dashboard": "Dashboard",
         "myFarms": "Amar Farm",
+        "myCrops": "Amar Fasol",
         "fieldMap": "Field Map",
         "fertilizer": "Sar",
         "inventory": "Inventory",
@@ -220,6 +221,39 @@
       "viewForecastReport": "Forecast report dekhun",
       "estTonnage": "\u0905\u0928\u0941. \u091f\u0928\u0947\u091c",
       "confidence": "Confidence"
+    },
+    "emptyStates": {
+      "farms": {
+        "title": "Ekhono kono farm nei",
+        "desc": "Crop, mati data ebong field boundary track korte apnar prothom farm toiri korun.",
+        "cta": "Prothom Farm Jogdun"
+      },
+      "crops": {
+        "title": "Ekhono kono crop lagano hoyni",
+        "desc": "Boidhi, poripokwota ebong shongroho tarikha track korte apnar prothom crop jogdun.",
+        "cta": "Prothom Crop Lagdun"
+      },
+      "fields": {
+        "title": "Ekhono kono field map kora hoyni",
+        "desc": "Uporer mapey ekti shima eken ebong tar ekta nam diye apnar prothom field jog korun.",
+        "cta": "Ake shuru korun"
+      },
+      "tasks": {
+        "title": "Shob kaj shomponn!",
+        "desc": "Shandhu hoyeche. Ajer shob kaj hoyeche. Kaal abar check korun.",
+        "cta": "Farm Overview Dekhun",
+        "resetCta": "Agamikal er jonno reset korun"
+      }
+    },
+    "cropsTab": {
+      "title": "Amar Fasol",
+      "subtitle": "Apnar farme bopon, briddhi porjay, ebong fosol katar tarikh track korun.",
+      "plantCrop": "+ Fasol ropon korun",
+      "loading": "Fasol load hocche...",
+      "areaNotSet": "Elaka set kora hoyni",
+      "stage": "Porjay",
+      "growthStageNotSet": "Briddhi porjay set kora hoyni",
+      "scanCrop": "Fasol scan korun"
     }
   },
   "diseases": {

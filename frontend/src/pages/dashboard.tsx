@@ -37,6 +37,18 @@ const NAV = [
     ),
   },
   {
+    id: 'crops',
+    labelKey: 'dashboard.shell.nav.myCrops',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22V12"/>
+        <path d="M12 12C12 12 8 9 8 5a4 4 0 0 1 8 0c0 4-4 7-4 7Z"/>
+        <path d="M12 12C12 12 16 9 16 5"/>
+        <path d="M6 22h12"/>
+      </svg>
+    ),
+  },
+  {
     id: 'map',
     labelKey: 'dashboard.shell.nav.fieldMap',
     icon: (
