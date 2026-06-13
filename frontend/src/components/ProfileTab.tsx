@@ -23,8 +23,12 @@ const ProfileTab: React.FC = () => {
   const [profile, setProfile] = useState<FarmerProfile | null>(null);
   const [farmCount, setFarmCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [highContrast, setHighContrast] = useState(false);
 
   useEffect(() => {
+    const hc = localStorage.getItem('high-contrast') === 'true';
+    setHighContrast(hc);
+
     async function load() {
       try {
         const [profileRes, farmsRes] = await Promise.all([
@@ -41,6 +45,16 @@ const ProfileTab: React.FC = () => {
     }
     load();
   }, []);
+
+  const handleToggleHighContrast = (checked: boolean) => {
+    setHighContrast(checked);
+    localStorage.setItem('high-contrast', checked ? 'true' : 'false');
+    if (checked) {
+      document.documentElement.setAttribute('data-theme', 'high-contrast');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -185,6 +199,35 @@ const ProfileTab: React.FC = () => {
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </button>
+        </div>
+      </div>
+
+      {/* Settings Section */}
+      <div className={styles.menuSection}>
+        <div className={styles.menuCard}>
+          <div className={styles.settingsItem}>
+            <div className={styles.settingsLabelContainer}>
+              <div className={`${styles.menuItemIcon} ${styles.iconOrange}`}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </div>
+              <div className={styles.settingsText}>
+                <span className={styles.menuItemLabel}>High Contrast Mode</span>
+                <span className={styles.settingsDesc}>Optimized for outdoor use & direct sunlight</span>
+              </div>
+            </div>
+            <label className={styles.switch} htmlFor="high-contrast-toggle">
+              <input 
+                id="high-contrast-toggle"
+                type="checkbox" 
+                checked={highContrast} 
+                onChange={(e) => handleToggleHighContrast(e.target.checked)} 
+              />
+              <span className={styles.slider}></span>
+            </label>
+          </div>
         </div>
       </div>
 

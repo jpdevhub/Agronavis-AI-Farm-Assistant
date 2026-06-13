@@ -299,3 +299,109 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+/* App Settings Section & Toggle Switch */
+.settingsItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  gap: 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #f8fafc;
+  text-align: left;
+}
+
+.settingsItem:last-child {
+  border-bottom: none;
+}
+
+.settingsLabelContainer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.settingsText {
+  display: flex;
+  flex-direction: column;
+}
+
+.settingsDesc {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: .2s;
+  border-radius: 28px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.switch input:checked + .slider {
+  background-color: #10b981;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* High Contrast state overrides for switch components */
+:global([data-theme='high-contrast']) .slider {
+  border: 3px solid #000000 !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+:global([data-theme='high-contrast']) .slider:before {
+  background-color: #000000 !important;
+  border: 1px solid #000000 !important;
+}
+
+:global([data-theme='high-contrast']) .switch input:checked + .slider {
+  background-color: #000000 !important;
+  background: #000000 !important;
+}
+
+:global([data-theme='high-contrast']) .switch input:checked + .slider:before {
+  background-color: #ffffff !important;
+  transform: translateX(20px);
+}
+

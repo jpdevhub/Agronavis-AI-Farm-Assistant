@@ -115,3 +115,175 @@ input, select, textarea {
     width: 100%;
   }
 }
+
+/* ============================================================
+   AgroNavis — High Contrast Mode (Direct Sunlight Visibility)
+   ============================================================ */
+
+[data-theme='high-contrast'] {
+  --green-50: #ffffff;
+  --green-100: #ffffff;
+  --green-200: #000000;
+  --green-300: #000000;
+  --green-500: #000000;
+  --green-600: #000000;
+  --green-700: #000000;
+  --green-800: #000000;
+  --green-900: #000000;
+  --green-950: #000000;
+
+  --gray-50: #ffffff;
+  --gray-100: #ffffff;
+  --gray-200: #000000;
+  --gray-300: #000000;
+  --gray-400: #000000;
+  --gray-500: #000000;
+  --gray-600: #000000;
+  --gray-700: #000000;
+  --gray-800: #000000;
+  --gray-900: #000000;
+
+  --color-primary: #000000 !important;
+  --color-primary-light: #000000 !important;
+  --color-surface: #ffffff !important;
+  --color-bg: #ffffff !important;
+  --color-border: #000000 !important;
+  --color-text-primary: #000000 !important;
+  --color-text-secondary: #000000 !important;
+  --color-text-muted: #000000 !important;
+  
+  --color-border-secondary: #000000 !important;
+  --color-border-tertiary: #000000 !important;
+
+  --shadow-sm: none !important;
+  --shadow-md: none !important;
+  --shadow-lg: none !important;
+}
+
+[data-theme='high-contrast'] body {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Force thick borders, white backgrounds, and black text on all common components */
+[data-theme='high-contrast'] button,
+[data-theme='high-contrast'] select,
+[data-theme='high-contrast'] input,
+[data-theme='high-contrast'] textarea,
+[data-theme='high-contrast'] aside,
+[data-theme='high-contrast'] header,
+[data-theme='high-contrast'] [class*="card"],
+[data-theme='high-contrast'] [class*="Card"],
+[data-theme='high-contrast'] [class*="item"],
+[data-theme='high-contrast'] [class*="Item"],
+[data-theme='high-contrast'] [class*="tab"],
+[data-theme='high-contrast'] [class*="Tab"],
+[data-theme='high-contrast'] [class*="btn"],
+[data-theme='high-contrast'] [class*="Btn"],
+[data-theme='high-contrast'] [class*="box"],
+[data-theme='high-contrast'] [class*="Box"],
+[data-theme='high-contrast'] [class*="panel"],
+[data-theme='high-contrast'] [class*="Panel"],
+[data-theme='high-contrast'] [class*="container"],
+[data-theme='high-contrast'] [class*="Container"],
+[data-theme='high-contrast'] [class*="wrapper"],
+[data-theme='high-contrast'] [class*="Wrapper"],
+[data-theme='high-contrast'] [class*="row"],
+[data-theme='high-contrast'] [class*="Row"],
+[data-theme='high-contrast'] [class*="bar"],
+[data-theme='high-contrast'] [class*="Bar"] {
+  border: 3px solid #000000 !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Active navigation or selected elements: invert to black background with white text */
+[data-theme='high-contrast'] [class*="active"],
+[data-theme='high-contrast'] [class*="Active"],
+[data-theme='high-contrast'] [class*="selected"],
+[data-theme='high-contrast'] [class*="Selected"] {
+  background-color: #000000 !important;
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+[data-theme='high-contrast'] [class*="active"] *,
+[data-theme='high-contrast'] [class*="Active"] *,
+[data-theme='high-contrast'] [class*="selected"] * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Force SVGs to high contrast */
+[data-theme='high-contrast'] svg {
+  stroke: #000000 !important;
+}
+[data-theme='high-contrast'] svg * {
+  stroke: #000000 !important;
+}
+
+[data-theme='high-contrast'] [class*="active"] svg,
+[data-theme='high-contrast'] [class*="active"] svg *,
+[data-theme='high-contrast'] [class*="Active"] svg,
+[data-theme='high-contrast'] [class*="Active"] svg *,
+[data-theme='high-contrast'] [class*="selected"] svg,
+[data-theme='high-contrast'] [class*="selected"] svg * {
+  stroke: #ffffff !important;
+}
+
+[data-theme='high-contrast'] svg[fill]:not([fill="none"]),
+[data-theme='high-contrast'] svg *[fill]:not([fill="none"]) {
+  fill: #000000 !important;
+}
+[data-theme='high-contrast'] [class*="active"] svg[fill]:not([fill="none"]),
+[data-theme='high-contrast'] [class*="active"] svg *[fill]:not([fill="none"]),
+[data-theme='high-contrast'] [class*="Active"] svg[fill]:not([fill="none"]),
+[data-theme='high-contrast'] [class*="Active"] svg *[fill]:not([fill="none"]),
+[data-theme='high-contrast'] [class*="selected"] svg[fill]:not([fill="none"]),
+[data-theme='high-contrast'] [class*="selected"] svg *[fill]:not([fill="none"]) {
+  fill: #ffffff !important;
+}
+
+/* Force visual containers (headers, cards, badges) to black text on white bg */
+[data-theme='high-contrast'] [class*="hero"],
+[data-theme='high-contrast'] [class*="Hero"],
+[data-theme='high-contrast'] [class*="banner"],
+[data-theme='high-contrast'] [class*="Banner"],
+[data-theme='high-contrast'] [class*="avatar"],
+[data-theme='high-contrast'] [class*="Avatar"],
+[data-theme='high-contrast'] [class*="badge"],
+[data-theme='high-contrast'] [class*="Badge"] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border: 3px solid #000000 !important;
+  color: #000000 !important;
+}
+
+/* Ensure all text nodes are high contrast */
+[data-theme='high-contrast'] p,
+[data-theme='high-contrast'] h1,
+[data-theme='high-contrast'] h2,
+[data-theme='high-contrast'] h3,
+[data-theme='high-contrast'] h4,
+[data-theme='high-contrast'] h5,
+[data-theme='high-contrast'] h6,
+[data-theme='high-contrast'] span,
+[data-theme='high-contrast'] div,
+[data-theme='high-contrast'] label {
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+
+[data-theme='high-contrast'] [class*="active"] p,
+[data-theme='high-contrast'] [class*="active"] span,
+[data-theme='high-contrast'] [class*="active"] div,
+[data-theme='high-contrast'] [class*="Active"] p,
+[data-theme='high-contrast'] [class*="Active"] span,
+[data-theme='high-contrast'] [class*="Active"] div,
+[data-theme='high-contrast'] [class*="selected"] p,
+[data-theme='high-contrast'] [class*="selected"] span,
+[data-theme='high-contrast'] [class*="selected"] div {
+  color: #ffffff !important;
+}

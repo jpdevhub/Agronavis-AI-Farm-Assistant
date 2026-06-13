@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
@@ -13,6 +14,15 @@ const PWAInstallPrompt = dynamic(
 );
 
 function MyApp({ Component, pageProps }: AppProps) {
+  useEffect(() => {
+    const isHighContrast = localStorage.getItem('high-contrast') === 'true';
+    if (isHighContrast) {
+      document.documentElement.setAttribute('data-theme', 'high-contrast');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <Head>
@@ -25,4 +35,4 @@ function MyApp({ Component, pageProps }: AppProps) {
   )
 }
 
-export default MyApp
+export default MyApp
