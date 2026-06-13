@@ -1024,10 +1024,12 @@ async def search_wiki(q: str, category: str = "All Topics", user=Depends(verify_
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ── Chatbot ───────────────────────────────────────────────────────────────────
 
+# ── Chatbot ───────────────────────────────────────────────────────────────────
 from chatbot import router as chatbot_router
-app.include_router(chatbot_router)
+from fastapi import Depends
+from auth import verify_token
+app.include_router(chatbot_router, dependencies=[Depends(verify_token)])
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
