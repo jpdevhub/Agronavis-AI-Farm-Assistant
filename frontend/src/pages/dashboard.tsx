@@ -235,19 +235,18 @@ const DashboardPage: React.FC = () => {
           </header>
 
           <div className={s.content}>
-            {loading ? (
-              <div className={s.loadingState}>
-                <div className={s.spinner} />
-                {t('dashboard.shell.loadingFarmData')}
-              </div>
-            ) : (
-              {activeTab === 'chatbot' ? (
-                <AgronomyChatbot />
-              ) : (
-                <DashboardContent activeTab={activeTab} setActiveTab={setActiveTab} />
-              )}
-            )}
-          </div>
+  {loading ? (
+    <div className={s.loadingState}>
+      <div className={s.spinner} />
+      {t('dashboard.shell.loadingFarmData')}
+    </div>
+  ) : (
+    <>
+      {activeTab === 'chatbot' && <AgronomyChatbot />}
+      {activeTab !== 'chatbot' && <DashboardContent activeTab={activeTab} setActiveTab={setActiveTab} />}
+    </>
+  )}
+</div>
         </div>
       </div>
     </ProtectedRoute>
