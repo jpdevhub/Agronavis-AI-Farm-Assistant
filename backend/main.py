@@ -1026,7 +1026,6 @@ async def search_wiki(q: str, category: str = "All Topics", user=Depends(verify_
 
 
 # ── Chatbot ───────────────────────────────────────────────────────────────────
-from chatbot import router as chatbot_router
 from fastapi import Depends
 from auth import verify_token
 app.include_router(chatbot_router, dependencies=[Depends(verify_token)])
