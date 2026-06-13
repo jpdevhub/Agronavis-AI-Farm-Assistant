@@ -5,6 +5,7 @@ import { useAuth } from '../auth/context/AuthContext';
 import ProtectedRoute from '../auth/components/ProtectedRoute';
 import { farmApi, profileApi } from '../utils/farmApi';
 import DashboardContent from '../components/Dashboard';
+import AgronomyChatbot from '../components/AgronomyChatbot';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import s from '../styles/AppShell.module.css';
 
@@ -98,6 +99,15 @@ const NAV = [
         <path d="M9 14h2"/>
         <path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/>
         <path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/>
+      </svg>
+    ),
+  },
+  {
+    id: 'chatbot',
+    labelKey: 'chatbot.title',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
       </svg>
     ),
   },
@@ -237,15 +247,18 @@ const DashboardPage: React.FC = () => {
           </header>
 
           <div className={s.content}>
-            {loading ? (
-              <div className={s.loadingState}>
-                <div className={s.spinner} />
-                {t('dashboard.shell.loadingFarmData')}
-              </div>
-            ) : (
-              <DashboardContent activeTab={activeTab} setActiveTab={setActiveTab} />
-            )}
-          </div>
+  {loading ? (
+    <div className={s.loadingState}>
+      <div className={s.spinner} />
+      {t('dashboard.shell.loadingFarmData')}
+    </div>
+  ) : (
+    <>
+      {activeTab === 'chatbot' && <AgronomyChatbot />}
+      {activeTab !== 'chatbot' && <DashboardContent activeTab={activeTab} setActiveTab={setActiveTab} />}
+    </>
+  )}
+</div>
         </div>
       </div>
     </ProtectedRoute>
