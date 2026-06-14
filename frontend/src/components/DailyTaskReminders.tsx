@@ -87,6 +87,14 @@ const DailyTaskReminders: React.FC = () => {
     setTaskState(DEFAULT_TASK_STATE);
   };
 
+  const markAllAsDone = () => {
+  setTaskState({
+    water: true,
+    fertilize: true,
+    harvest: true,
+  });
+};
+
   return (
     <div className={s.card}>
       <div className={s.cardHeader}>
@@ -96,9 +104,21 @@ const DailyTaskReminders: React.FC = () => {
             {completedCount}/{TASKS.length} complete today
           </div>
         </div>
-        <span className={`${s.taskStatusBadge} ${allComplete ? s.taskStatusBadgeDone : ''}`}>
-          {allComplete ? 'Done' : 'Today'}
-        </span>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {!allComplete && (
+            <button
+              type="button"
+              className={s.taskDoneBtn}
+              onClick={markAllAsDone}
+            >
+              Mark All as Done
+            </button>
+          )}
+
+          <span className={`${s.taskStatusBadge} ${allComplete ? s.taskStatusBadgeDone : ''}`}>
+            {allComplete ? 'Done' : 'Today'}
+          </span>
+        </div>
       </div>
 
       {/* ── All-done: show a beautiful illustrated celebration state ── */}
