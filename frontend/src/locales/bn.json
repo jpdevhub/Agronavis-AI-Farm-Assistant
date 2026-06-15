@@ -245,6 +245,13 @@
         "resetCta": "Agamikal er jonno reset korun"
       }
     },
+    "dailyTasks": {
+      "title": "দৈনিক কাজ",
+      "completeToday": "আজ সম্পন্ন",
+      "markAllDone": "সব সম্পন্ন করুন",
+      "today": "আজ",
+      "done": "সম্পন্ন"
+    },
     "cropsTab": {
       "title": "Amar Fasol",
       "subtitle": "Apnar farme bopon, briddhi porjay, ebong fosol katar tarikh track korun.",

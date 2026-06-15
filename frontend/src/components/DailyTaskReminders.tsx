@@ -99,9 +99,11 @@ const DailyTaskReminders: React.FC = () => {
     <div className={s.card}>
       <div className={s.cardHeader}>
         <div>
-          <div className={s.cardTitle}>Daily Tasks</div>
+          <div className={s.cardTitle}>
+            {t('dashboard.dailyTasks.title')}
+          </div>
           <div className={s.taskSummary}>
-            {completedCount}/{TASKS.length} complete today
+            {completedCount}/{TASKS.length} {t('dashboard.dailyTasks.completeToday')}
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -111,12 +113,14 @@ const DailyTaskReminders: React.FC = () => {
               className={s.taskDoneBtn}
               onClick={markAllAsDone}
             >
-              Mark All as Done
+              {t('dashboard.dailyTasks.markAllDone')}
             </button>
           )}
 
           <span className={`${s.taskStatusBadge} ${allComplete ? s.taskStatusBadgeDone : ''}`}>
-            {allComplete ? 'Done' : 'Today'}
+            {allComplete
+              ? t('dashboard.dailyTasks.done')
+              : t('dashboard.dailyTasks.today')}
           </span>
         </div>
       </div>
