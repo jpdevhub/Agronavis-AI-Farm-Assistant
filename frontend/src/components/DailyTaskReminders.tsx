@@ -142,9 +142,11 @@ const DailyTaskReminders: React.FC = () => {
             return (
               <label
                 key={task.id}
+                htmlFor={`task-${task.id}`}
                 className={`${s.dailyTaskItem} ${checked ? s.dailyTaskItemDone : ''}`}
               >
                 <input
+                  id={`task-${task.id}`}
                   className={s.dailyTaskCheckbox}
                   type="checkbox"
                   checked={checked}
