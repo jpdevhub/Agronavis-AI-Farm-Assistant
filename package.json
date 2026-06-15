@@ -9,7 +9,7 @@
     "install:frontend": "npm install --prefix frontend",
     "build": "npm run build --prefix frontend",
     "lint": "npm run lint --prefix frontend",
-    "prepare": "husky || true"
+    "prepare": "husky"
   },
   "devDependencies": {
     "supabase": "^2.105.0",
