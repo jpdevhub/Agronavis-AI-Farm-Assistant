@@ -28,6 +28,7 @@ from PIL import Image
 from typing import List, Optional, Any, Dict
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
+from chatbot import router as chatbot_router
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from supabase import create_client, Client
@@ -1022,6 +1023,11 @@ async def search_wiki(q: str, category: str = "All Topics", user=Depends(verify_
         return {"results": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Chatbot ───────────────────────────────────────────────────────────────────
+from fastapi import Depends
+app.include_router(chatbot_router, dependencies=[Depends(verify_token)])
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
