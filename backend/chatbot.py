@@ -69,17 +69,24 @@ async def _call_gemini(system_prompt: str, history: list, message: str) -> str:
     payload = {
         "system_instruction": {"parts": [{"text": system_prompt}]},
         "contents": messages,
-        "generationConfig": {"maxOutputTokens": 512, "temperature": 0.7},
+        "generationConfig": {"maxOutputTokens": 2048, "temperature": 0.7},
     }
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        resp = await client.post(url, json=payload)
-        if resp.status_code != 200:
-            return _fallback_response(message)
-        data = resp.json()
-        return data["candidates"][0]["content"]["parts"][0]["text"]
+    import asyncio as _asyncio
+    for attempt in range(3):
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(url, json=payload)
+        print(f"[chatbot] Gemini status={resp.status_code} (attempt {attempt + 1})")
+        if resp.status_code == 200:
+            data = resp.json()
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+        if resp.status_code == 503 and attempt < 2:
+            await _asyncio.sleep(2 ** attempt)   # 1s, then 2s
+            continue
+        print(f"[chatbot] Gemini error body: {resp.text}")
+        return _fallback_response(message)
 
 
 def _fallback_response(message: str) -> str:

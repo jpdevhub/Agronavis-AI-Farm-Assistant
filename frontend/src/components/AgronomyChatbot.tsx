@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '../lib/supabase';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   role: 'user' | 'bot';
@@ -44,9 +47,14 @@ export default function AgronomyChatbot({ crop, soilType, location }: Props) {
         content: m.content,
       }));
 
+      const { data: { session } } = await supabase.auth.getSession();
+
       const res = await fetch(`${API_BASE}/api/v1/chatbot/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session?.access_token}` } : {})
+        },
         body: JSON.stringify({
           message: text,
           crop: crop ?? '',
@@ -129,7 +137,15 @@ export default function AgronomyChatbot({ crop, soilType, location }: Props) {
               borderTopRightRadius: msg.role === 'user' ? '4px' : '12px',
               borderTopLeftRadius: msg.role === 'bot' ? '4px' : '12px',
             }}>
-              {msg.content}
+              {msg.role === 'user' ? (
+                msg.content
+              ) : (
+                <div className="chatbot-markdown-content" style={{ overflowX: 'auto' }}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {msg.content}
+                  </ReactMarkdown>
+                </div>
+              )}
             </div>
           </div>
         ))}
