@@ -135,7 +135,9 @@ export default function PolygonMapper({
       </div>
 
       {/* Search bar */}
-      <SearchBox onLocationSelect={handleLocationSelect} />
+      <div id="polygon-search">
+        <SearchBox onLocationSelect={handleLocationSelect} />
+</div>
 
       {/* Map */}
 <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--color-border-tertiary)' }}>

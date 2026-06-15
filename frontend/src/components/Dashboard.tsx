@@ -275,7 +275,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
   return (
     <div>
-      <OnboardingTour />
+      <OnboardingTour setActiveTab={setActiveTab} />
       {/* ======================== OVERVIEW ======================== */}
       {activeTab === 'overview' && (
         <>

@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Joyride } from "react-joyride";
+import {Joyride} from "react-joyride";
 
-export default function OnboardingTour() {
+export default function OnboardingTour({
+  setActiveTab,
+}: {
+  setActiveTab: (tab: string) => void;
+}) {
   const [run, setRun] = useState(false);
 
   useEffect(() => {
@@ -11,7 +15,6 @@ export default function OnboardingTour() {
       setRun(true);
     }
   }, []);
-
   return (
     <Joyride
         run={run}
