@@ -277,5 +277,14 @@
     "weatherInsights": "Weather Insights",
     "temperature": "Temperature",
     "humidity": "Humidity"
+  },
+  "chatbot": {
+    "title": "AgroBot — Farm Assistant",
+    "greeting": "Hello! I am AgroBot. Ask me anything about your crops, soil, or farming practices.",
+    "placeholder": "Ask about your crops, soil, pests...",
+    "send": "Send",
+    "thinking": "AgroBot is thinking...",
+    "error": "Sorry, I could not process that. Please try again.",
+    "networkError": "Network error. Please check your connection."
   }
 }
