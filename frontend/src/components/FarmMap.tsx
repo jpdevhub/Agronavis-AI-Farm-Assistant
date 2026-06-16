@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const NDVILayer = dynamic(() => import('./NDVILayer'), { ssr: false });
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from 'react-leaflet';
 import L from 'leaflet';
 import { farmApi } from '../utils/farmApi';
@@ -67,6 +70,7 @@ const FarmMap: React.FC<FarmMapProps> = ({
   const [error, setError] = useState('');
   const [mapCenter, setMapCenter] = useState<[number, number]>([centerLat, centerLng]);
   const [mapZoom, setMapZoom] = useState(zoom);
+  const [ndviVisible, setNdviVisible] = useState(false);
 
   useEffect(() => {
     const loadFarmData = async () => {
@@ -166,6 +170,22 @@ const FarmMap: React.FC<FarmMapProps> = ({
 
   return (
     <div className={`${styles.mapContainer} ${heightClass}`}>
+      <div style={{ position: 'relative' }}>
+      {farmId && (
+        <button
+          onClick={() => setNdviVisible(v => !v)}
+          style={{
+            position: 'absolute', top: '10px', right: '10px', zIndex: 1000,
+            background: ndviVisible ? '#16a34a' : 'white',
+            color: ndviVisible ? 'white' : '#374151',
+            border: '1px solid #d1d5db', borderRadius: '8px',
+            padding: '6px 12px', fontSize: '13px', fontWeight: 600,
+            cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+          }}
+        >
+          {ndviVisible ? 'Hide NDVI' : 'Show NDVI'}
+        </button>
+      )}
       <MapContainer
         center={mapCenter}
         zoom={mapZoom}
@@ -271,6 +291,10 @@ const FarmMap: React.FC<FarmMapProps> = ({
           );
         })}
       </MapContainer>
+        {farmId && ndviVisible && (
+          <NDVILayer farmId={farmId} visible={ndviVisible} />
+        )}
+    </div>
     </div>
   );
 };
