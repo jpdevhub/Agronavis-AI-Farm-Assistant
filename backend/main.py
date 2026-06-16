@@ -1044,7 +1044,6 @@ async def get_ndvi(
     date_to: Optional[str] = Query(None),
     user=Depends(verify_token),
 ):
-    from datetime import datetime, timedelta
     from sentinelhub import (
         SHConfig, BBox, CRS, SentinelHubRequest, DataCollection,
         MimeType, bbox_to_dimensions,
@@ -1054,7 +1053,10 @@ async def get_ndvi(
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    from datetime import timezone
+    from datetime import datetime, timedelta, timezone
+    to_date = date_to or datetime.utcnow().strftime("%Y-%m-%d")
+    from_date = date_from or (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d")
+
     cached = supabase.table("ndvi_cache").select("*").eq("farm_id", farm_id).eq("date_from", from_date).eq("date_to", to_date).order("created_at", desc=True).limit(1).execute()
     if cached.data:
         cached_at = datetime.fromisoformat(cached.data[0]["created_at"].replace("Z", "+00:00"))
@@ -1069,9 +1071,6 @@ async def get_ndvi(
     config = SHConfig()
     config.sh_client_id = client_id
     config.sh_client_secret = client_secret
-
-    to_date = date_to or datetime.utcnow().strftime("%Y-%m-%d")
-    from_date = date_from or (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d")
 
     farm = supabase.table("farms").select("location").eq("id", farm_id).limit(1).execute()
     location = farm.data[0].get("location") or {}
@@ -1152,6 +1151,7 @@ function evaluatePixel(sample) {
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
 
 
 
