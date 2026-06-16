@@ -34,7 +34,7 @@ const NDVIOverlay: React.FC<{ bbox: number[]; opacity: number }> = ({ bbox, opac
     }
 
     const imageUrl = canvas.toDataURL();
-    const overlay = L.imageOverlay(imageUrl, bounds, { opacity });
+    const overlay = L.imageOverlay(imageUrl, bounds, { opacity, alt: 'NDVI illustration — connect Sentinel Hub for real imagery' });
     overlay.addTo(map);
     layerRef.current = overlay;
 
@@ -129,3 +129,4 @@ const NDVILayer: React.FC<NDVILayerProps> = ({ farmId, visible, dateFrom, dateTo
 };
 
 export default NDVILayer;
+

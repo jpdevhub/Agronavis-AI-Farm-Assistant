@@ -1054,12 +1054,12 @@ async def get_ndvi(
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    cached = supabase.table("ndvi_cache").select("*").eq("farm_id", farm_id).order("created_at", desc=True).limit(1).execute()
+    from datetime import timezone
+    cached = supabase.table("ndvi_cache").select("*").eq("farm_id", farm_id).eq("date_from", from_date).eq("date_to", to_date).order("created_at", desc=True).limit(1).execute()
     if cached.data:
-        from datetime import timezone
         cached_at = datetime.fromisoformat(cached.data[0]["created_at"].replace("Z", "+00:00"))
         if (datetime.now(timezone.utc) - cached_at).total_seconds() < 86400:
-            return {"success": True, "data": cached.data[0]}
+            return {"success": True, "data": {**cached.data[0], "resolution": 60}}
 
     client_id = os.environ.get("SENTINEL_HUB_CLIENT_ID", "")
     client_secret = os.environ.get("SENTINEL_HUB_CLIENT_SECRET", "")
@@ -1077,7 +1077,7 @@ async def get_ndvi(
     location = farm.data[0].get("location") or {}
     lat = location.get("latitude")
     lng = location.get("longitude")
-    if not lat or not lng:
+    if lat is None or lng is None:
         raise HTTPException(status_code=400, detail="Farm has no location coordinates")
 
     offset = 0.05
@@ -1116,6 +1116,8 @@ function evaluatePixel(sample) {
 
     import numpy as np
     import base64, struct
+    if not ndvi_data or len(ndvi_data) == 0:
+        raise HTTPException(status_code=404, detail="No satellite imagery found for this farm and date range")
     ndvi_array = ndvi_data[0]
     ndvi_min = float(np.nanmin(ndvi_array))
     ndvi_max = float(np.nanmax(ndvi_array))
@@ -1150,6 +1152,7 @@ function evaluatePixel(sample) {
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
 
 
 

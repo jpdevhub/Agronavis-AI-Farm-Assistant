@@ -31,9 +31,9 @@ const NDVILegend: React.FC<NDVILegendProps> = ({ ndviMean }) => {
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {[
-          { color: '#16a34a', label: 'Healthy (=0.6)' },
-          { color: '#ca8a04', label: 'Moderate (0.4–0.6)' },
-          { color: '#ea580c', label: 'Sparse (0.2–0.4)' },
+          { color: '#16a34a', label: 'Healthy (>=0.6)' },
+          { color: '#ca8a04', label: 'Moderate (0.4-0.6)' },
+          { color: '#ea580c', label: 'Sparse (0.2-0.4)' },
           { color: '#dc2626', label: 'Stress (<0.2)' },
         ].map(item => (
           <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -55,3 +55,4 @@ const NDVILegend: React.FC<NDVILegendProps> = ({ ndviMean }) => {
 };
 
 export default NDVILegend;
+
