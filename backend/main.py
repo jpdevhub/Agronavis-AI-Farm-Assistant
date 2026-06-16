@@ -1,7 +1,6 @@
 """
 AgroNavis — Python/FastAPI Backend
-====================================
-Single-process server handling:
+=============================Single-process server handling:
   • All farm/crop/resource/soil/yield/profile CRUD (replaces Node.js/Express)
   • ML inference: ResNet18 plant disease detection + CLIP OOD guard
   • Disease wiki (Supabase crop_diseases table)
@@ -264,6 +263,11 @@ class YieldPredictionResponse(BaseModel):
     area_hectares: float
     predicted_yield_tons: float
     confidence: str
+class NDVIRequest(BaseModel):
+    farm_id: str
+    polygon: List[Dict[str, float]]
+    date_from: Optional[str] = None
+    date_to: Optional[str] = None
 
 
 # ── Utility ──────────────────────────────────────────────────────────────────
@@ -1032,6 +1036,120 @@ app.include_router(chatbot_router, dependencies=[Depends(verify_token)])
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
+
+@app.get("/api/ndvi")
+async def get_ndvi(
+    farm_id: str = Query(...),
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    user=Depends(verify_token),
+):
+    from datetime import datetime, timedelta
+    from sentinelhub import (
+        SHConfig, BBox, CRS, SentinelHubRequest, DataCollection,
+        MimeType, bbox_to_dimensions,
+    )
+
+    owned = supabase.table("farms").select("id").eq("id", farm_id).eq("farmer_id", user.id).limit(1).execute()
+    if not owned.data:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    cached = supabase.table("ndvi_cache").select("*").eq("farm_id", farm_id).order("created_at", desc=True).limit(1).execute()
+    if cached.data:
+        from datetime import timezone
+        cached_at = datetime.fromisoformat(cached.data[0]["created_at"].replace("Z", "+00:00"))
+        if (datetime.now(timezone.utc) - cached_at).total_seconds() < 86400:
+            return {"success": True, "data": cached.data[0]}
+
+    client_id = os.environ.get("SENTINEL_HUB_CLIENT_ID", "")
+    client_secret = os.environ.get("SENTINEL_HUB_CLIENT_SECRET", "")
+    if not client_id or not client_secret:
+        raise HTTPException(status_code=503, detail="Sentinel Hub credentials not configured")
+
+    config = SHConfig()
+    config.sh_client_id = client_id
+    config.sh_client_secret = client_secret
+
+    to_date = date_to or datetime.utcnow().strftime("%Y-%m-%d")
+    from_date = date_from or (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d")
+
+    farm = supabase.table("farms").select("location").eq("id", farm_id).limit(1).execute()
+    location = farm.data[0].get("location") or {}
+    lat = location.get("latitude")
+    lng = location.get("longitude")
+    if not lat or not lng:
+        raise HTTPException(status_code=400, detail="Farm has no location coordinates")
+
+    offset = 0.05
+    bbox = BBox(bbox=[lng - offset, lat - offset, lng + offset, lat + offset], crs=CRS.WGS84)
+    size = bbox_to_dimensions(bbox, resolution=60)
+
+    evalscript = """
+//VERSION=3
+function setup() {
+  return { input: ["B04", "B08"], output: { bands: 1, sampleType: "FLOAT32" } };
+}
+function evaluatePixel(sample) {
+  let ndvi = (sample.B08 - sample.B04) / (sample.B08 + sample.B04);
+  return [ndvi];
+}
+"""
+
+    try:
+        request = SentinelHubRequest(
+            evalscript=evalscript,
+            input_data=[
+                SentinelHubRequest.input_data(
+                    data_collection=DataCollection.SENTINEL2_L2A,
+                    time_interval=(from_date, to_date),
+                    mosaicking_order="leastCC",
+                )
+            ],
+            responses=[SentinelHubRequest.output_response("default", MimeType.TIFF)],
+            bbox=bbox,
+            size=size,
+            config=config,
+        )
+        ndvi_data = request.get_data()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Sentinel Hub request failed: {str(e)}")
+
+    import numpy as np
+    import base64, struct
+    ndvi_array = ndvi_data[0]
+    ndvi_min = float(np.nanmin(ndvi_array))
+    ndvi_max = float(np.nanmax(ndvi_array))
+    ndvi_mean = float(np.nanmean(ndvi_array))
+
+    result = {
+        "farm_id": farm_id,
+        "date_from": from_date,
+        "date_to": to_date,
+        "bbox": [lng - offset, lat - offset, lng + offset, lat + offset],
+        "ndvi_min": round(ndvi_min, 4),
+        "ndvi_max": round(ndvi_max, 4),
+        "ndvi_mean": round(ndvi_mean, 4),
+        "resolution": 60,
+    }
+
+    try:
+        supabase.table("ndvi_cache").insert({
+            "farm_id": farm_id,
+            "date_from": from_date,
+            "date_to": to_date,
+            "ndvi_min": result["ndvi_min"],
+            "ndvi_max": result["ndvi_max"],
+            "ndvi_mean": result["ndvi_mean"],
+            "bbox": result["bbox"],
+        }).execute()
+    except Exception as e:
+        print(f"Warning: could not cache NDVI result: {e}")
+
+    return {"success": True, "data": result}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+

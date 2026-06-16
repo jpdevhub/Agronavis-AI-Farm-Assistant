@@ -27,3 +27,6 @@ transformers>=4.40.0
 
 # Web search (disease wiki)
 duckduckgo-search>=6.2.0
+
+# Sentinel Hub (NDVI satellite imagery)
+sentinelhub>=3.10.0
