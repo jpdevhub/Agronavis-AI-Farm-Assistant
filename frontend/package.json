@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "postinstall": "node -e \"const fs=require('fs');const path=require('path');const src=path.join(__dirname,'node_modules','onnxruntime-web','dist');const dest=path.join(__dirname,'public','wasm');if(fs.existsSync(src)){fs.mkdirSync(dest,{recursive:true});fs.readdirSync(src).filter(f=>f.endsWith('.wasm')).forEach(f=>fs.copyFileSync(path.join(src,f),path.join(dest,f)));console.log('Copied onnxruntime-web WASM files to public/wasm')} else {console.warn('onnxruntime-web node_modules not found, skipping wasm copy')}\""
+    "postinstall": "node -e \"const fs=require('fs');const path=require('path');const src=path.join(__dirname,'node_modules','onnxruntime-web','dist');const dest=path.join(__dirname,'public','wasm');if(fs.existsSync(src)){fs.mkdirSync(dest,{recursive:true});fs.readdirSync(src).filter(f=>f.endsWith('.wasm')).forEach(f=>fs.copyFileSync(path.join(src,f),path.join(dest,f)));console.log('Copied onnxruntime-web WASM files to public/wasm')} else {console.error('Error: onnxruntime-web node_modules not found. WASM files are required for offline inference.');process.exit(1)}\""
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",

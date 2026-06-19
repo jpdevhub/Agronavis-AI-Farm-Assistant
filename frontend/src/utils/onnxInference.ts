@@ -16,37 +16,48 @@ export interface LocalDiagnosisResult {
 }
 
 let session: any = null;
+let sessionPromise: Promise<any> | null = null;
 
 /**
  * Lazy loads and returns the ONNX runtime session.
  * Configures the WebAssembly binary runtime paths to point locally to /wasm/
  * to ensure that the app can run fully offline inside the service worker cache.
+ * Uses a cached promise to prevent race conditions during concurrent startup calls.
  */
 async function getInferenceSession(): Promise<any> {
   if (session) {
     return session;
+  }
+  if (sessionPromise) {
+    return sessionPromise;
   }
 
   if (typeof window === 'undefined') {
     throw new Error('ONNX Runtime Web is only supported in browser environments.');
   }
 
-  try {
-    const ort = await import('onnxruntime-web');
-    
-    // Crucial: Set WASM path locally for PWA offline support
-    ort.env.wasm.wasmPaths = '/wasm/';
-    
-    // Load model from public folder
-    session = await ort.InferenceSession.create('/model/plant_disease_resnet18.onnx', {
-      executionProviders: ['wasm']
-    });
-    console.log('[LocalInference] ONNX Inference Session loaded successfully.');
-    return session;
-  } catch (error) {
-    console.error('[LocalInference] Failed to load ONNX session:', error);
-    throw new Error('Could not initialize the local disease scanner model.');
-  }
+  sessionPromise = (async () => {
+    try {
+      const ort = await import('onnxruntime-web');
+      
+      // Crucial: Set WASM path locally for PWA offline support
+      ort.env.wasm.wasmPaths = '/wasm/';
+      
+      // Load model from public folder
+      const activeSession = await ort.InferenceSession.create('/model/plant_disease_resnet18.onnx', {
+        executionProviders: ['wasm']
+      });
+      session = activeSession;
+      console.log('[LocalInference] ONNX Inference Session loaded successfully.');
+      return session;
+    } catch (error) {
+      sessionPromise = null; // Clear cached promise on failure to allow retry
+      console.error('[LocalInference] Failed to load ONNX session:', error);
+      throw new Error('Could not initialize the local disease scanner model.');
+    }
+  })();
+
+  return sessionPromise;
 }
 
 /**
@@ -134,16 +145,27 @@ export async function runLocalONNXInference(file: File): Promise<LocalDiagnosisR
     // 2. Create multi-dimensional ONNX tensor [1, 3, 224, 224]
     const inputTensor = new ort.Tensor('float32', floatArray, [1, 3, 224, 224]);
 
-    // 3. Execute inference using WASM execution provider
-    const feeds = { input: inputTensor };
+    // 3. Execute inference using WASM execution provider with dynamic input/output names
+    const inputName = activeSession.inputNames[0] || 'input';
+    const outputName = activeSession.outputNames[0] || 'output';
+
+    const feeds = { [inputName]: inputTensor };
     const results = await activeSession.run(feeds);
 
-    // 4. Retrieve logits output tensor
-    const outputTensor = results.output;
+    // 4. Retrieve logits output tensor dynamically
+    const outputTensor = results[outputName];
     if (!outputTensor || !outputTensor.data) {
       throw new Error('Model inference returned an empty output tensor.');
     }
     const output = outputTensor.data as Float32Array;
+
+    // Assert that logits output size matches the local CLASS_NAMES database size
+    if (output.length !== CLASS_NAMES.length) {
+      throw new Error(
+        `ONNX model output shape mismatch: got logits length of ${output.length}, ` +
+        `but expected ${CLASS_NAMES.length} classes based on local database.`
+      );
+    }
 
     // 5. Postprocess: Argmax + numerically stable Softmax
     let maxLogit = -Infinity;

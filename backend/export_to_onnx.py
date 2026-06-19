@@ -37,21 +37,10 @@ def export_model():
             print(f"[ERROR] Failed to load model weights: {e}")
             raise
     else:
-        print(f"[WARN] Fine-tuned weights not found at {MODEL_PATH}.")
-        print("[INFO] Falling back to standard ResNet18 structure with torchvision pretrained weights for structural validation...")
-        try:
-            # Load torchvision weights for layers other than FC (final classification layer)
-            model_pretrained = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
-            pretrained_dict = model_pretrained.state_dict()
-            model_dict = model.state_dict()
-
-            # Filter out final fc layer weights
-            pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict and "fc" not in k}
-            model_dict.update(pretrained_dict)
-            model.load_state_dict(model_dict)
-            print("[INFO] Success: Initialized model layers using torchvision ImageNet weights.")
-        except Exception as e:
-            print(f"[WARN] Could not initialize with torchvision weights: {e}. Exporting model with random weights.")
+        raise FileNotFoundError(
+            f"Fine-tuned model weights not found at {MODEL_PATH}. "
+            "Please ensure you have placed the trained ResNet18 model (.pth file) in the backend/model/ directory before exporting."
+        )
 
     model.eval()
 

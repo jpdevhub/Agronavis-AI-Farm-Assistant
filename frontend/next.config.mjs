@@ -25,7 +25,7 @@ const withPWA = withPWAInit({
         urlPattern: ({ url }) => url.pathname.endsWith('.onnx') || url.pathname.endsWith('.wasm'),
         handler: 'CacheFirst',
         options: {
-          cacheName: 'agronavis-ml-assets',
+          cacheName: 'agronavis-ml-assets-v1',
           expiration: {
             maxEntries: 10,
             maxAgeSeconds: 30 * 24 * 60 * 60, // Cache for 30 days

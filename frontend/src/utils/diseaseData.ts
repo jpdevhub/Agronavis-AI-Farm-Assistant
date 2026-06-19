@@ -234,11 +234,27 @@ export function formatClassName(raw: string): string {
 }
 
 export function extractCropType(className: string): string {
-  const parts = className.split("_");
-  if (parts[0] === "healthy") {
-    return parts[1] ? parts[1].replace(/\b\w/g, c => c.toUpperCase()) : "Unknown";
+  // Strip common prefixes
+  let cleanName = className;
+  if (className.startsWith("healthy_")) {
+    cleanName = className.substring(8);
+  } else if (className.startsWith("diseased_")) {
+    cleanName = className.substring(9);
   }
-  return parts[0].replace(/\b\w/g, c => c.toUpperCase());
+
+  // Handle multi-word crop names (e.g. bell_pepper)
+  let cropRaw = "";
+  if (cleanName.startsWith("bell_pepper_")) {
+    cropRaw = "bell_pepper";
+  } else {
+    // Standard crops: first segment before underscore
+    cropRaw = cleanName.split("_")[0] || "Unknown";
+  }
+
+  // Capitalize each token and format
+  return cropRaw
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
 }
 
 export function getSymptoms(className: string): string[] {
