@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Joyride } from "react-joyride";
+import { Joyride, EVENTS, STATUS, EventData } from "react-joyride";
 
 export default function OnboardingTour({
   setActiveTab,
@@ -17,29 +17,51 @@ export default function OnboardingTour({
     }
   }, []);
 
-  useEffect(() => {
-    if (stepIndex <= 2) {
-      setActiveTab("map");
-    } else {
-      setActiveTab("cropscan");
-    }
-  }, [stepIndex, setActiveTab]);
-
   return (
     <Joyride
-  run={run}
-  stepIndex={stepIndex}
-  continuous
-  onEvent={(data) => {
-    const { index } = data;
+      run={run}
+      stepIndex={stepIndex}
+      continuous
+      onEvent={(data: EventData) => {
+    const { action, index, status, type } = data;
 
-    if (index <= 2) {
-      setActiveTab("map");
-    } else {
-      setActiveTab("cropscan");
+    if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
+      setRun(false);
+      localStorage.setItem("agronavis-tour-seen", "true");
+    } else if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      const nextStepIndex = index + (action === "prev" ? -1 : 1);
+
+      if (nextStepIndex <= 2) {
+        setActiveTab("map");
+      } else {
+        setActiveTab("cropscan");
+      }
+
+      setTimeout(() => {
+        setStepIndex(nextStepIndex);
+      }, 50);
     }
-
-    setStepIndex(index);
+  }}
+  styles={{
+    buttonPrimary: {
+      backgroundColor: '#10b981',
+      borderRadius: '8px',
+      padding: '8px 16px',
+      fontWeight: 600,
+    },
+    buttonBack: {
+      color: '#64748b',
+    },
+    tooltip: {
+      borderRadius: '12px',
+      padding: '20px',
+      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+    }
+  }}
+  options={{
+    primaryColor: '#10b981',
+    textColor: '#0f172a',
+    zIndex: 10000,
   }}
   steps={[
     {
