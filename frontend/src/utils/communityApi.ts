@@ -1,30 +1,41 @@
-// Safe structural index fallback to completely bypass global compiler type limits
-const globalEnv = typeof window !== 'undefined' ? (window as any) : {};
-const BASE_URL = (globalEnv.process?.env?.NEXT_PUBLIC_API_URL) || 'http://localhost:8000';
+// Safe structural index fallback using Next.js build-time inlining
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
 /**
  * Helper to fetch local storage session auth headers uniformly 
  * matching existing project api patterns.
  */
-function getAuthHeaders(): Record<string, string> {
+export function getAuthHeaders(): Record<string, string> {
+  // SSR safety check for Next.js environments
   if (typeof window === 'undefined') return {};
   
   // Checking your project's native supabase auth localStorage key schema
   const supabaseSessionKey = Object.keys(localStorage).find(key => 
     key.startsWith('sb-') && key.endsWith('-auth-token')
-  );
-  
+  ) || Object.keys(localStorage).find(key => key.startsWith('sb-'));
+
+  // 1. Initialize the correct base headers object literal structure
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  };
+
+  // 2. Safely parse and attach the token if a session exists inside try/catch guard
   if (supabaseSessionKey) {
-    const sessionData = JSON.parse(localStorage.getItem(supabaseSessionKey) || '{}');
-    const token = sessionData?.access_token;
+    let token: string | undefined;
+    try {
+      const sessionData = JSON.parse(localStorage.getItem(supabaseSessionKey) || '{}');
+      token = sessionData?.access_token;
+    } catch (e) {
+      console.error("Failed to parse auth token from localStorage:", e);
+    }
+
     if (token) {
-      return {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
+      headers['Authorization'] = `Bearer ${token}`;
     }
   }
-  return { 'Content-Type': 'application/json' };
+
+  // 3. Return the fully formed object cleanly
+  return headers;
 }
 
 export interface Comment {

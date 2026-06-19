@@ -37,7 +37,7 @@ export default function CommunityPage() {
       setTitle('');
       setContent('');
       setImageUrl('');
-      fetchFeed();
+      await fetchFeed();
     } catch (err: any) {
       alert(err.message || 'Error creating post');
     }
@@ -50,7 +50,7 @@ export default function CommunityPage() {
     try {
       await communityApi.createComment(postId, text);
       setCommentInputs(prev => ({ ...prev, [postId]: '' }));
-      fetchFeed();
+      await fetchFeed();
     } catch (err: any) {
       alert(err.message || 'Error submitting comment');
     }
@@ -104,9 +104,11 @@ export default function CommunityPage() {
       {/* FEED STATUS */}
       {loading && <p style={{ textAlign: 'center', color: '#6b7280' }}>Loading community updates...</p>}
       {error && <p style={{ color: '#dc2626', textAlign: 'center' }}>{error}</p>}
-      {!loading && posts.length === 0 && (
-        <p style={{ textAlign: 'center', color: '#6b7280' }}>No posts available. Be the first to share something!</p>
-      )}
+      {!error && !loading && posts.length === 0 && (
+          <p style={{ textAlign: 'center', color: '#6b7280' }}>
+            No posts available. Be the first to share something!
+          </p>
+        )}
 
       {/* RENDER FEED POSTS */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

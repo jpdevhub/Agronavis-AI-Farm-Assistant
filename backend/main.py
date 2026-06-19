@@ -32,6 +32,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from collections import defaultdict
+from transformers import CLIPModel, CLIPProcessor
+from duckduckgo_search import DDGS
 
 # Try to load root .env first, fallback to current dir
 env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
@@ -135,7 +138,7 @@ def load_clip():
     if clip_model is not None:
         return
     try:
-        from transformers import CLIPModel, CLIPProcessor
+        
         print("Loading CLIP (OOD guard)…")
         clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
         clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
@@ -820,7 +823,7 @@ async def get_disease(disease_id: str, user=Depends(verify_token)):
 @app.get("/api/wiki/search")
 async def search_wiki(q: str, category: str = "All Topics", user=Depends(verify_token)):
     try:
-        from duckduckgo_search import DDGS
+        
         query = f"{q} {category}" if category and category != "All Topics" else q
         results = []
         with DDGS() as ddgs:
@@ -856,13 +859,25 @@ async def get_community_feed(user=Depends(verify_token)):
         comments_response = supabase.table("comments").select("*").order("created_at", desc=False).execute()
         all_comments = comments_response.data or []
         
-        # Nest comments within their respective posts securely
+    
+
+        # Build a post_id -> comments[] index once
+        comments_by_post = defaultdict(list)
+        for comment in all_comments:
+            comments_by_post[comment["post_id"]].append(comment)
+
+    # Nest comments within their respective posts securely in O(1) time
         for post in posts:
-            post["comments"] = [c for c in all_comments if c["post_id"] == post["id"]]
+            post["comments"] = comments_by_post.get(post["id"], [])
             
         return {"success": True, "data": posts}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log the real internal error securely on the server side
+        print(f"Error fetching community feed: {str(e)}") 
+        raise HTTPException(
+            status_code=500, 
+            detail="An internal server error occurred while processing the community feed."
+        )
 
 
 @app.post("/api/community/posts", status_code=201)
@@ -878,7 +893,12 @@ async def create_community_post(body: PostCreate, user=Depends(verify_token)):
         res = supabase.table("posts").insert(payload).execute()
         return {"success": True, "data": (res.data[0] if res.data else None)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log the real internal error securely on the server side
+        print(f"Error fetching community feed: {str(e)}") 
+        raise HTTPException(
+            status_code=500, 
+            detail="An internal server error occurred while processing the community feed."
+        )
 
 
 @app.post("/api/community/comments", status_code=201)
@@ -893,7 +913,12 @@ async def create_community_comment(body: CommentCreate, user=Depends(verify_toke
         res = supabase.table("comments").insert(payload).execute()
         return {"success": True, "data": (res.data[0] if res.data else None)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log the real internal error securely on the server side
+        print(f"Error fetching community feed: {str(e)}") 
+        raise HTTPException(
+            status_code=500, 
+            detail="An internal server error occurred while processing the community feed."
+        )
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
