@@ -830,6 +830,70 @@ async def search_wiki(q: str, category: str = "All Topics", user=Depends(verify_
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ── Pydantic schemas for Community Feature ───────────────────────────────────
+
+class PostCreate(BaseModel):
+    title: str
+    content: str
+    image_url: Optional[str] = None
+
+class CommentCreate(BaseModel):
+    post_id: str
+    content: str
+
+
+# ── Community Feed Endpoints ──────────────────────────────────────────────────
+
+@app.get("/api/community/posts")
+async def get_community_feed(user=Depends(verify_token)):
+    """Fetches all community posts sorted by newest first along with nested comments."""
+    try:
+        # Fetch posts
+        posts_response = supabase.table("posts").select("*").order("created_at", desc=True).execute()
+        posts = posts_response.data or []
+        
+        # Fetch comments
+        comments_response = supabase.table("comments").select("*").order("created_at", desc=False).execute()
+        all_comments = comments_response.data or []
+        
+        # Nest comments within their respective posts securely
+        for post in posts:
+            post["comments"] = [c for c in all_comments if c["post_id"] == post["id"]]
+            
+        return {"success": True, "data": posts}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/community/posts", status_code=201)
+async def create_community_post(body: PostCreate, user=Depends(verify_token)):
+    """Creates a new post mapped to the authenticated user."""
+    try:
+        payload = {
+            "user_id": user.id,
+            "title": body.title,
+            "content": body.content,
+            "image_url": body.image_url
+        }
+        res = supabase.table("posts").insert(payload).execute()
+        return {"success": True, "data": (res.data[0] if res.data else None)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/community/comments", status_code=201)
+async def create_community_comment(body: CommentCreate, user=Depends(verify_token)):
+    """Adds a comment to an existing post mapped to the authenticated user."""
+    try:
+        payload = {
+            "post_id": body.post_id,
+            "user_id": user.id,
+            "content": body.content
+        }
+        res = supabase.table("comments").insert(payload).execute()
+        return {"success": True, "data": (res.data[0] if res.data else None)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
