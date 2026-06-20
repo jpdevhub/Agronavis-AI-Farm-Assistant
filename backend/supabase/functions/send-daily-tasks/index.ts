@@ -156,7 +156,7 @@ serve(async () => {
     if (!tokens || tokens.length === 0) continue;
 
     const title = notif.titles.length === 1 ? notif.titles[0] : `You have ${notif.titles.length} tasks today`;
-    const body = notif.bodies.slice(0, 2).join(" • ");
+    const body = notif.bodies.slice(0, 2).join(" | ");
 
     for (const { fcm_token } of tokens) {
       const result = await sendFCMNotification(accessToken, fcm_token, title, body);

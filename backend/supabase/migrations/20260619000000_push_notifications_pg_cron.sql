@@ -47,7 +47,7 @@ SELECT cron.schedule(
     'send-daily-task-notifications',
     '30 0 * * *',
     $$
-    SELECT extensions.http_post(
+    SELECT net.http_post(
         url     := 'https://<YOUR_PROJECT_REF>.supabase.co/functions/v1/send-daily-tasks',
         headers := jsonb_build_object(
             'Content-Type',  'application/json',
