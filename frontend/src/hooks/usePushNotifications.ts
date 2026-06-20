@@ -20,13 +20,25 @@ export function usePushNotifications() {
     if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) return;
 
     const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    let unsubscribe: (() => void) | undefined;
 
     const setup = async () => {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") return;
 
       try {
-        const swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+        const swParams = new URLSearchParams({
+          apiKey: firebaseConfig.apiKey ?? "",
+          authDomain: firebaseConfig.authDomain ?? "",
+          projectId: firebaseConfig.projectId ?? "",
+          storageBucket: firebaseConfig.storageBucket ?? "",
+          messagingSenderId: firebaseConfig.messagingSenderId ?? "",
+          appId: firebaseConfig.appId ?? "",
+        });
+
+        const swRegistration = await navigator.serviceWorker.register(
+          `/firebase-messaging-sw.js?${swParams.toString()}`
+        );
 
         const messaging = getMessaging(app);
 
@@ -41,7 +53,7 @@ export function usePushNotifications() {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/device-tokens`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/device-tokens`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -50,11 +62,15 @@ export function usePushNotifications() {
           body: JSON.stringify({ fcm_token: fcmToken, device_type: "web" }),
         });
 
-        onMessage(messaging, (payload) => {
+        if (!res.ok) {
+          console.error("Failed to register device token with backend:", res.status);
+        }
+
+        unsubscribe = onMessage(messaging, (payload) => {
           if (payload.notification) {
             new Notification(payload.notification.title ?? "AgroNavis", {
               body: payload.notification.body,
-              icon: "/icons/icon-192x192.png",
+              icon: "/images/icon.png",
             });
           }
         });
@@ -65,6 +81,10 @@ export function usePushNotifications() {
     };
 
     setup();
+
+    return () => {
+      unsubscribe?.();
+    };
   }, []);
 
   return { token, error };

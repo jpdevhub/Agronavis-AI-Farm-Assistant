@@ -580,6 +580,10 @@ async def upsert_profile(body: ProfileCreate, user=Depends(verify_token)):
 # ── Device Tokens ──────────────────────────────────────────────────────────
 @app.post("/api/device-tokens", status_code=201)
 async def register_device_token(body: DeviceTokenCreate, user=Depends(verify_token)):
+    existing = supabase.table("device_tokens").select("farmer_id").eq("fcm_token", body.fcm_token).limit(1).execute()
+    if existing.data and existing.data[0]["farmer_id"] != user.id:
+        raise HTTPException(status_code=403, detail="This device token is already registered to another account.")
+
     payload = {
         "farmer_id": user.id,
         "fcm_token": body.fcm_token,
@@ -587,8 +591,6 @@ async def register_device_token(body: DeviceTokenCreate, user=Depends(verify_tok
         "is_active": True,
     }
     res = supabase.table("device_tokens").upsert(payload, on_conflict="fcm_token").execute()
-    return {"success": True, "data": (res.data[0] if res.data else None)}
-
     return {"success": True, "data": (res.data[0] if res.data else None)}
 
 

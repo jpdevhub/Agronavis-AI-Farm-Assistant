@@ -6,6 +6,19 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID")!;
 const FIREBASE_SERVICE_ACCOUNT = Deno.env.get("FIREBASE_SERVICE_ACCOUNT")!;
 
+function pemToBinary(pem: string): ArrayBuffer {
+  const cleaned = pem
+    .replace(/-----BEGIN PRIVATE KEY-----/, "")
+    .replace(/-----END PRIVATE KEY-----/, "")
+    .replace(/\s/g, "");
+  const binaryString = atob(cleaned);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
 async function getFirebaseAccessToken(): Promise<string> {
   const serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
 
@@ -28,7 +41,7 @@ async function getFirebaseAccessToken(): Promise<string> {
 
   const privateKey = await crypto.subtle.importKey(
     "pkcs8",
-    new TextEncoder().encode(serviceAccount.private_key),
+    pemToBinary(serviceAccount.private_key),
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
     false,
     ["sign"]
@@ -58,8 +71,8 @@ async function sendFCMNotification(
   fcmToken: string,
   title: string,
   body: string
-): Promise<void> {
-  await fetch(
+): Promise<{ ok: boolean; shouldDeactivate: boolean }> {
+  const res = await fetch(
     `https://fcm.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/messages:send`,
     {
       method: "POST",
@@ -76,6 +89,15 @@ async function sendFCMNotification(
       }),
     }
   );
+
+  if (res.ok) return { ok: true, shouldDeactivate: false };
+
+  const errorBody = await res.json().catch(() => null);
+  const errorStatus = errorBody?.error?.status;
+  console.error(`FCM send failed for token ${fcmToken.slice(0, 12)}...: ${res.status} ${errorStatus ?? ""}`);
+
+  const shouldDeactivate = errorStatus === "UNREGISTERED" || errorStatus === "INVALID_ARGUMENT" || errorStatus === "NOT_FOUND";
+  return { ok: false, shouldDeactivate };
 }
 
 serve(async () => {
@@ -120,6 +142,10 @@ serve(async () => {
     farmerNotifications[farmerId].bodies.push(`Your ${crop.crop_type} (${crop.variety}) is ready for harvest today.`);
   }
 
+  let sent = 0;
+  let failed = 0;
+  const tokensToDeactivate: string[] = [];
+
   for (const [farmerId, notif] of Object.entries(farmerNotifications)) {
     const { data: tokens } = await supabase
       .from("device_tokens")
@@ -133,11 +159,24 @@ serve(async () => {
     const body = notif.bodies.slice(0, 2).join(" • ");
 
     for (const { fcm_token } of tokens) {
-      await sendFCMNotification(accessToken, fcm_token, title, body);
+      const result = await sendFCMNotification(accessToken, fcm_token, title, body);
+      if (result.ok) {
+        sent++;
+      } else {
+        failed++;
+        if (result.shouldDeactivate) tokensToDeactivate.push(fcm_token);
+      }
     }
   }
 
-  return new Response(JSON.stringify({ message: "Notifications sent successfully" }), {
+  if (tokensToDeactivate.length > 0) {
+    await supabase
+      .from("device_tokens")
+      .update({ is_active: false })
+      .in("fcm_token", tokensToDeactivate);
+  }
+
+  return new Response(JSON.stringify({ message: "Notifications processed", sent, failed }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });
