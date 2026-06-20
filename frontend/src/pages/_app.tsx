@@ -10,7 +10,7 @@ import 'leaflet/dist/leaflet.css'
 import { useHighContrastMode } from '../hooks/useHighContrastMode'
 import { usePushNotifications } from '../hooks/usePushNotifications'
 
-// Load PWA components only on client (uses browser APIs � no SSR)
+// Load PWA components only on client (uses browser APIs -- no SSR)
 const PWAInstallPrompt = dynamic(
   () => import('../components/PWAInstallPrompt'),
   { ssr: false }
@@ -31,9 +31,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
       </Head>
       <Component {...pageProps} />
-      {/* PWA "Add to Home Screen" banner � appears on mobile automatically */}
+      {/* PWA "Add to Home Screen" banner -- appears on mobile automatically */}
       <PWAInstallPrompt />
-      {/* Offline indicator � shows red banner when user loses connectivity */}
+      {/* Offline indicator -- shows red banner when user loses connectivity */}
       <OfflineIndicator />
     </AuthProvider>
   )
