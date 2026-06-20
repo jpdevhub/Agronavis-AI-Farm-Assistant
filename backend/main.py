@@ -207,6 +207,10 @@ class ProfileCreate(BaseModel):
     years_of_experience: Optional[int] = None
     education_level: Optional[str] = None
 
+class DeviceTokenCreate(BaseModel):
+    fcm_token: str
+    device_type: str = "web"
+
 class ResourceCreate(BaseModel):
     farm_id: str
     resource_type: str
@@ -572,6 +576,19 @@ async def get_profile(user=Depends(verify_token)):
 async def upsert_profile(body: ProfileCreate, user=Depends(verify_token)):
     payload = {**body.model_dump(exclude_none=True), "id": user.id}
     res = supabase.table("farmers").upsert(payload).execute()
+
+# ── Device Tokens ──────────────────────────────────────────────────────────
+@app.post("/api/device-tokens", status_code=201)
+async def register_device_token(body: DeviceTokenCreate, user=Depends(verify_token)):
+    payload = {
+        "farmer_id": user.id,
+        "fcm_token": body.fcm_token,
+        "device_type": body.device_type,
+        "is_active": True,
+    }
+    res = supabase.table("device_tokens").upsert(payload, on_conflict="fcm_token").execute()
+    return {"success": True, "data": (res.data[0] if res.data else None)}
+
     return {"success": True, "data": (res.data[0] if res.data else None)}
 
 
