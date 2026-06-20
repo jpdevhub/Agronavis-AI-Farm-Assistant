@@ -25,12 +25,12 @@ import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any, Dict, Literal
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from chatbot import router as chatbot_router
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
@@ -208,8 +208,8 @@ class ProfileCreate(BaseModel):
     education_level: Optional[str] = None
 
 class DeviceTokenCreate(BaseModel):
-    fcm_token: str
-    device_type: str = "web"
+    fcm_token: str = Field(min_length=1)
+    device_type: Literal["web", "android", "ios"] = "web"
 
 class ResourceCreate(BaseModel):
     farm_id: str
@@ -580,18 +580,17 @@ async def upsert_profile(body: ProfileCreate, user=Depends(verify_token)):
 # ── Device Tokens ──────────────────────────────────────────────────────────
 @app.post("/api/device-tokens", status_code=201)
 async def register_device_token(body: DeviceTokenCreate, user=Depends(verify_token)):
-    existing = supabase.table("device_tokens").select("farmer_id").eq("fcm_token", body.fcm_token).limit(1).execute()
-    if existing.data and existing.data[0]["farmer_id"] != user.id:
-        raise HTTPException(status_code=403, detail="This device token is already registered to another account.")
-
-    payload = {
-        "farmer_id": user.id,
-        "fcm_token": body.fcm_token,
-        "device_type": body.device_type,
-        "is_active": True,
-    }
-    res = supabase.table("device_tokens").upsert(payload, on_conflict="fcm_token").execute()
-    return {"success": True, "data": (res.data[0] if res.data else None)}
+    try:
+        res = supabase.rpc("upsert_device_token", {
+            "p_farmer_id": user.id,
+            "p_fcm_token": body.fcm_token,
+            "p_device_type": body.device_type,
+        }).execute()
+    except Exception as e:
+        if "TOKEN_OWNED_BY_ANOTHER_USER" in str(e):
+            raise HTTPException(status_code=403, detail="This device token is already registered to another account.")
+        raise
+    return {"success": True, "data": res.data}
 
 
 # ── Farms ─────────────────────────────────────────────────────────────────────
