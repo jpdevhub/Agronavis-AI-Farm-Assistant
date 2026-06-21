@@ -30,6 +30,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
+from image_validation import validate_image_quality
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
@@ -153,6 +154,8 @@ class PredictionResponse(BaseModel):
     crop_type: Optional[str] = None
     symptoms: List[str]
     recommended_action: List[str]
+
+    is_quality_error: bool = False
 
 class FarmCreate(BaseModel):
     name: str
@@ -420,6 +423,27 @@ def _get_treatments(class_name: str) -> List[str]:
 def run_inference(image_bytes: bytes) -> PredictionResponse:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
+    # Image Quality Validation
+    quality = validate_image_quality(image)
+
+    print(
+        f"[QUALITY] "
+        f"score={quality['quality_score']} "
+        f"blur={quality['blur_score']} "
+        f"brightness={quality['brightness']}"
+    )
+
+    if not quality["valid"]:
+        return PredictionResponse(
+            predicted_disease_name="Poor Image Quality",
+            confidence_score=0,
+            is_healthy=False,
+            is_quality_error=True,
+            symptoms=[quality["reason"]],
+            recommended_action=[
+                "Upload a clearer crop image with good lighting."
+            ],
+        )
     # OOD check with CLIP
     load_clip()
     if clip_model is not None and clip_processor is not None:
@@ -461,6 +485,7 @@ def run_inference(image_bytes: bytes) -> PredictionResponse:
         crop_type=_extract_crop_type(class_name),
         symptoms=_get_symptoms(class_name),
         recommended_action=_get_treatments(class_name),
+        is_quality_error=False,
     )
 
 
@@ -469,7 +494,9 @@ def run_inference(image_bytes: bytes) -> PredictionResponse:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # ── Health ───────────────────────────────────────────────────────────────────
-
+@app.get("/test123")
+def test123():
+    return {"message": "correct backend"}
 @app.get("/health")
 async def health():
     return {
@@ -592,9 +619,26 @@ async def get_farm_details(farm_id: str, user=Depends(verify_token)):
 
 @app.post("/api/farms", status_code=201)
 async def create_farm(body: FarmCreate, user=Depends(verify_token)):
+
+    farmer = (
+        supabase.table("farmers")
+        .select("id")
+        .eq("id", user.id)
+        .limit(1)
+        .execute()
+    )
+
+    if not farmer.data:
+        raise HTTPException(
+            status_code=400,
+            detail="Please complete your farmer profile before creating a farm."
+        )
+
     location = body.location or {}
+
     if body.latitude is not None:
         location["latitude"] = body.latitude
+
     if body.longitude is not None:
         location["longitude"] = body.longitude
 
@@ -608,10 +652,15 @@ async def create_farm(body: FarmCreate, user=Depends(verify_token)):
         "irrigation_type": body.irrigation_type,
         "ownership_type": body.ownership_type,
     }
+
     payload = {k: v for k, v in payload.items() if v is not None}
 
     res = supabase.table("farms").insert(payload).execute()
-    return {"success": True, "data": (res.data[0] if res.data else None)}
+
+    return {
+        "success": True,
+        "data": (res.data[0] if res.data else None)
+    }
 
 @app.put("/api/farms/{farm_id}")
 async def update_farm(farm_id: str, body: FarmUpdate, user=Depends(verify_token)):

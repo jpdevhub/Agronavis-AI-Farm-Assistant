@@ -229,6 +229,29 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+.healthyBadge {
+  background: #16a34a;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.diseaseBadge {
+  background: #dc2626;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.qualityBadge {
+  background: #ea580c;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
 
 /* Confidence bar */
 .confidenceSection {

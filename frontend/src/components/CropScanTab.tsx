@@ -86,6 +86,8 @@ const CropScanTab: React.FC = () => {
   // Inference state
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<DiagnosisResult | null>(null)
+  const isQualityError = result?.is_quality_error
+
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
@@ -199,11 +201,18 @@ const CropScanTab: React.FC = () => {
     : ''
 
   // ── Severity badge text ──────────────────────────────────────────────────
-  const severityBadge = result?.is_healthy
-    ? '✓ Healthy'
-    : result
-      ? '⚠ Disease Detected'
-      : ''
+  const severityBadge = isQualityError
+    ? '📷 Image Quality Issue'
+    : result?.is_healthy
+      ? '✓ Healthy'
+      : result
+        ? '⚠ Disease Detected'
+        : '';
+  const badgeClass = isQualityError
+    ? styles.qualityBadge
+    : result?.is_healthy
+      ? styles.healthyBadge
+      : styles.diseaseBadge;
 
   return (
     <div>
@@ -321,24 +330,29 @@ const CropScanTab: React.FC = () => {
                     <div className={styles.resultCrop}>Crop: {result.crop_type}</div>
                   )}
                 </div>
-                <div className={styles.resultBadge}>{severityBadge}</div>
+                <div className={badgeClass}>{severityBadge}</div>
               </div>
 
               {/* Confidence */}
-              <div className={styles.confidenceSection}>
-                <div className={styles.confidenceLabel}>
-                  <span>Confidence Score</span>
-                  <span className={styles.confidenceVal}>{result.confidence_score.toFixed(1)}%</span>
+              {!isQualityError && (
+                <div className={styles.confidenceSection}>
+                  <div className={styles.confidenceLabel}>
+                    <span>Confidence Score</span>
+                    <span className={styles.confidenceVal}>
+                      {result.confidence_score.toFixed(1)}%
+                    </span>
+                  </div>
+
+                  <div className={styles.confidenceBar}>
+                    <div
+                      className={`${styles.confidenceFill} ${confidenceClass}`}
+                      style={{ width: `${result.confidence_score}%` }}
+                    />
+                  </div>
                 </div>
-                <div className={styles.confidenceBar}>
-                  <div
-                    className={`${styles.confidenceFill} ${confidenceClass}`}
-                    style={{ width: `${result.confidence_score}%` }}
-                  />
-                </div>
-              </div>
+              )}
               {/* WhatsApp Share */}
-              {!result.is_healthy && (
+              {!result.is_healthy && !isQualityError && (
                 <div style={{ padding: '8px 16px' }}>
                   <a
                     href={`https://wa.me/?text=${encodeURIComponent(
@@ -371,7 +385,12 @@ const CropScanTab: React.FC = () => {
               <div className={styles.resultBody}>
                 {result.symptoms.length > 0 && (
                   <div className={styles.detailSection}>
-                    <div className={styles.detailTitle}>Observed Symptoms</div>
+                    <div className={styles.detailTitle}>
+                      {isQualityError
+                        ? "Image Quality Issues"
+                        : "Observed Symptoms"}
+                    </div>
+
                     <div className={styles.detailList}>
                       {result.symptoms.map((s, i) => (
                         <div key={i} className={styles.detailItem}>
@@ -382,10 +401,14 @@ const CropScanTab: React.FC = () => {
                     </div>
                   </div>
                 )}
-
                 {result.recommended_action.length > 0 && (
                   <div className={styles.detailSection}>
-                    <div className={styles.detailTitle}>Recommended Actions</div>
+                    <div className={styles.detailTitle}>
+                      {isQualityError
+                        ? "How to Fix"
+                        : "Recommended Actions"}
+                    </div>
+
                     <div className={styles.detailList}>
                       {result.recommended_action.map((a, i) => (
                         <div key={i} className={styles.detailItem}>
