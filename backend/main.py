@@ -894,10 +894,10 @@ async def create_community_post(body: PostCreate, user=Depends(verify_token)):
         return {"success": True, "data": (res.data[0] if res.data else None)}
     except Exception as e:
         # Log the real internal error securely on the server side
-        print(f"Error fetching community feed: {str(e)}") 
+        print(f"Error creating community post: {str(e)}") 
         raise HTTPException(
             status_code=500, 
-            detail="An internal server error occurred while processing the community feed."
+            detail="An internal server error occurred while creating the community post."
         )
 
 
@@ -914,10 +914,10 @@ async def create_community_comment(body: CommentCreate, user=Depends(verify_toke
         return {"success": True, "data": (res.data[0] if res.data else None)}
     except Exception as e:
         # Log the real internal error securely on the server side
-        print(f"Error fetching community feed: {str(e)}") 
+        print(f"Error creating community comment: {str(e)}") 
         raise HTTPException(
             status_code=500, 
-            detail="An internal server error occurred while processing the community feed."
+            detail="An internal server error occurred while creating the community comment."
         )
 
 # ── Entry point ───────────────────────────────────────────────────────────────
