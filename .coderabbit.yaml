@@ -1,0 +1,9 @@
+# CodeRabbit Configuration
+# This file configures how the CodeRabbit AI reviewer behaves in pull requests.
+
+reviews:
+  # When true, CodeRabbit will use the "Request Changes" workflow instead of "Approve".
+  # If it finds issues (bugs, logic errors, etc.), it will mark the PR as "Request Changes".
+  # The contributor must resolve the issues, and CodeRabbit will verify them.
+  # As an admin/maintainer, you can always manually override and approve the PR if needed.
+  request_changes_workflow: true

@@ -5,6 +5,7 @@ import { useAuth } from '../auth/context/AuthContext';
 import { profileApi } from '../utils/farmApi';
 import { farmApi } from '../utils/farmApi';
 import styles from '../styles/ProfileTab.module.css';
+import { useHighContrastMode } from '../hooks/useHighContrastMode';
 
 interface FarmerProfile {
   id: string;
@@ -23,6 +24,7 @@ const ProfileTab: React.FC = () => {
   const [profile, setProfile] = useState<FarmerProfile | null>(null);
   const [farmCount, setFarmCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { highContrast, toggleHighContrast } = useHighContrastMode();
 
   useEffect(() => {
     async function load() {
@@ -72,25 +74,25 @@ const ProfileTab: React.FC = () => {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-hc-target="true">
       {/* Hero */}
-      <div className={styles.hero}>
-        <div className={styles.avatarWrapper}>{initials}</div>
+      <div className={styles.hero} data-hc-target="true">
+        <div className={styles.avatarWrapper} data-hc-target="true">{initials}</div>
         <h2 className={styles.userName}>{displayName}</h2>
         <p className={styles.userEmail}>{user?.email || ''}</p>
       </div>
 
       {/* Stats Strip */}
-      <div className={styles.statsStrip}>
-        <div className={styles.statItem}>
+      <div className={styles.statsStrip} data-hc-target="true">
+        <div className={styles.statItem} data-hc-target="true">
           <div className={styles.statValue}>{farmCount}</div>
           <div className={styles.statLabel}>Farms</div>
         </div>
-        <div className={styles.statItem}>
+        <div className={styles.statItem} data-hc-target="true">
           <div className={styles.statValue}>{profile?.years_of_experience ?? '—'}</div>
           <div className={styles.statLabel}>Years Exp.</div>
         </div>
-        <div className={styles.statItem}>
+        <div className={styles.statItem} data-hc-target="true">
           <div className={styles.statValue}>{memberSince}</div>
           <div className={styles.statLabel}>Member Since</div>
         </div>
@@ -98,7 +100,7 @@ const ProfileTab: React.FC = () => {
 
       {/* Info Section */}
       <div className={styles.infoSection}>
-        <div className={styles.infoCard}>
+        <div className={styles.infoCard} data-hc-target="true">
           <div className={styles.infoRow}>
             <div className={`${styles.infoRowIcon} ${styles.iconGreen}`}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -160,7 +162,7 @@ const ProfileTab: React.FC = () => {
 
       {/* Menu Section */}
       <div className={styles.menuSection}>
-        <div className={styles.menuCard}>
+        <div className={styles.menuCard} data-hc-target="true">
           <button className={styles.menuItem} onClick={() => router.push('/onboarding/farm')}>
             <div className={`${styles.menuItemIcon} ${styles.iconGreen}`}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -185,6 +187,36 @@ const ProfileTab: React.FC = () => {
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </button>
+        </div>
+      </div>
+
+      {/* Settings Section */}
+      <div className={styles.menuSection}>
+        <div className={styles.menuCard} data-hc-target="true">
+          <div className={styles.settingsItem}>
+            <div className={styles.settingsLabelContainer}>
+              <div className={`${styles.menuItemIcon} ${styles.iconOrange}`}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </div>
+              <div className={styles.settingsText}>
+                <span id="high-contrast-label" className={styles.menuItemLabel}>High Contrast Mode</span>
+                <span className={styles.settingsDesc}>Optimized for outdoor use & direct sunlight</span>
+              </div>
+            </div>
+            <label className={styles.switch} htmlFor="high-contrast-toggle">
+              <input 
+                id="high-contrast-toggle"
+                aria-labelledby="high-contrast-label"
+                type="checkbox" 
+                checked={highContrast} 
+                onChange={(e) => toggleHighContrast(e.target.checked)} 
+              />
+              <span className={styles.slider}></span>
+            </label>
+          </div>
         </div>
       </div>
 

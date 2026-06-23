@@ -129,7 +129,7 @@ export default function CropSetup() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.card}>
+      <div className={styles.card} data-hc-target="true">
         {/* Header */}
         <div className={styles.cardHeader}>
           <div className={styles.headerIcon}>

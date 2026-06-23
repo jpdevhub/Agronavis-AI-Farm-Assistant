@@ -211,7 +211,7 @@ const WeatherForecast: React.FC = () => {
     if (conditionLower.includes('cloud') || conditionLower.includes('overcast')) {
       return (
         <div className={styles.weatherIcon}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="80" height="80">
+          <svg data-semantic="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="80" height="80">
             <circle cx="50" cy="50" r="20" fill="#FFD700" />
             <g fill="#B0C4DE">
               <ellipse cx="40" cy="60" rx="15" ry="10" />
@@ -224,7 +224,7 @@ const WeatherForecast: React.FC = () => {
     } else if (conditionLower.includes('clear') || conditionLower.includes('sunny')) {
       return (
         <div className={styles.weatherIcon}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50">
+          <svg data-semantic="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50">
             <circle cx="50" cy="50" r="25" fill="#FFD700" />
             <g fill="#FFD700">
               <rect x="48" y="10" width="4" height="12" />
@@ -242,7 +242,7 @@ const WeatherForecast: React.FC = () => {
     } else if (conditionLower.includes('rain') || conditionLower.includes('drizzle')) {
       return (
         <div className={styles.weatherIcon}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="60" height="60">
+          <svg data-semantic="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="60" height="60">
             <g fill="#B0C4DE">
               <ellipse cx="40" cy="40" rx="15" ry="10" />
               <ellipse cx="60" cy="40" rx="15" ry="10" />

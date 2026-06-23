@@ -29,6 +29,17 @@ export default function Document() {
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </Head>
       <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.getItem('high-contrast') === 'true') {
+                  document.documentElement.setAttribute('data-theme', 'high-contrast');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
         <Main />
         <NextScript />
       </body>

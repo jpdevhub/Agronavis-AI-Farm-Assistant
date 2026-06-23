@@ -95,3 +95,201 @@ input, select, textarea {
   font-family: inherit;
   font-size: inherit;
 }
+
+/* For printing fertilizer recommendations without the rest of the dashboard UI */
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #fertilizer-print-area,
+  #fertilizer-print-area * {
+    visibility: visible;
+  }
+
+  #fertilizer-print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}
+/* Chatbot Markdown Styles */
+.chatbot-markdown-content p {
+  margin-bottom: 0.5em;
+}
+.chatbot-markdown-content p:last-child {
+  margin-bottom: 0;
+}
+.chatbot-markdown-content strong {
+  font-weight: 600;
+}
+.chatbot-markdown-content ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin-bottom: 0.5em;
+}
+.chatbot-markdown-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin-bottom: 0.5em;
+}
+.chatbot-markdown-content li {
+  margin-bottom: 0.25em;
+}
+.chatbot-markdown-content a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+
+/* ============================================================
+   AgroNavis — High Contrast Mode (Direct Sunlight Visibility)
+   ============================================================ */
+
+[data-theme='high-contrast'] {
+  --green-50: #fff;
+  --green-100: #fff;
+  --green-200: #000;
+  --green-300: #000;
+  --green-500: #000;
+  --green-600: #000;
+  --green-700: #000;
+  --green-800: #000;
+  --green-900: #000;
+  --green-950: #000;
+  --gray-50: #fff;
+  --gray-100: #fff;
+  --gray-200: #000;
+  --gray-300: #000;
+  --gray-400: #000;
+  --gray-500: #000;
+  --gray-600: #000;
+  --gray-700: #000;
+  --gray-800: #000;
+  --gray-900: #000;
+  --color-primary: #000;
+  --color-primary-light: #000;
+  --color-surface: #fff;
+  --color-bg: #fff;
+  --color-border: #000;
+  --color-text-primary: #000;
+  --color-text-secondary: #000;
+  --color-text-muted: #000;
+  --color-border-secondary: #000;
+  --color-border-tertiary: #000;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+}
+
+[data-theme='high-contrast'] body {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+/* Force thick borders, white backgrounds, and black text on all common components */
+[data-theme='high-contrast'] button,
+[data-theme='high-contrast'] select,
+[data-theme='high-contrast'] input,
+[data-theme='high-contrast'] textarea,
+[data-theme='high-contrast'] aside,
+[data-theme='high-contrast'] header,
+[data-theme='high-contrast'] [data-hc-target="true"] {
+  border: 3px solid #000 !important;
+  background: #fff !important;
+  color: #000 !important;
+}
+
+/* Active navigation or selected elements: invert to black background with white text */
+[data-theme='high-contrast'] [class~="active"],
+[data-theme='high-contrast'] [class~="Active"],
+[data-theme='high-contrast'] [class~="selected"],
+[data-theme='high-contrast'] [class~="Selected"],
+[data-theme='high-contrast'] [data-hc-state="active"],
+[data-theme='high-contrast'] [data-hc-state="selected"] {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #000 !important;
+}
+
+[data-theme='high-contrast'] [class~="active"] *,
+[data-theme='high-contrast'] [class~="Active"] *,
+[data-theme='high-contrast'] [class~="selected"] *,
+[data-theme='high-contrast'] [class~="Selected"] *,
+[data-theme='high-contrast'] [data-hc-state="active"] *,
+[data-theme='high-contrast'] [data-hc-state="selected"] * {
+  color: #fff !important;
+  stroke: #fff !important;
+}
+
+/* Force SVGs to high contrast */
+[data-theme='high-contrast'] svg:not([data-semantic]) {
+  stroke: #000 !important;
+}
+
+[data-theme='high-contrast'] [class~="active"] svg:not([data-semantic]),
+[data-theme='high-contrast'] [class~="Active"] svg:not([data-semantic]),
+[data-theme='high-contrast'] [class~="selected"] svg:not([data-semantic]),
+[data-theme='high-contrast'] [class~="Selected"] svg:not([data-semantic]),
+[data-theme='high-contrast'] [data-hc-state="active"] svg:not([data-semantic]),
+[data-theme='high-contrast'] [data-hc-state="selected"] svg:not([data-semantic]) {
+  stroke: #fff !important;
+}
+
+[data-theme='high-contrast'] svg[fill]:not([fill="none"]):not([data-semantic]) {
+  fill: #000 !important;
+}
+
+[data-theme='high-contrast'] [class~="active"] svg[fill]:not([fill="none"]):not([data-semantic]),
+[data-theme='high-contrast'] [class~="Active"] svg[fill]:not([fill="none"]):not([data-semantic]),
+[data-theme='high-contrast'] [class~="selected"] svg[fill]:not([fill="none"]):not([data-semantic]),
+[data-theme='high-contrast'] [class~="Selected"] svg[fill]:not([fill="none"]):not([data-semantic]),
+[data-theme='high-contrast'] [data-hc-state="active"] svg[fill]:not([fill="none"]):not([data-semantic]),
+[data-theme='high-contrast'] [data-hc-state="selected"] svg[fill]:not([fill="none"]):not([data-semantic]) {
+  fill: #fff !important;
+}
+
+/* Force visual containers (headers, cards, badges) to black text on white bg */
+[data-theme='high-contrast'] [data-hc-target="true"] {
+  background: #fff !important;
+  border: 3px solid #000 !important;
+  color: #000 !important;
+}
+
+/* Ensure all text nodes are high contrast */
+[data-theme='high-contrast'] p,
+[data-theme='high-contrast'] h1,
+[data-theme='high-contrast'] h2,
+[data-theme='high-contrast'] h3,
+[data-theme='high-contrast'] h4,
+[data-theme='high-contrast'] h5,
+[data-theme='high-contrast'] h6,
+[data-theme='high-contrast'] span,
+[data-theme='high-contrast'] div,
+[data-theme='high-contrast'] label {
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+[data-theme='high-contrast'] [class~="active"] p,
+[data-theme='high-contrast'] [class~="active"] span,
+[data-theme='high-contrast'] [class~="active"] div,
+[data-theme='high-contrast'] [class~="Active"] p,
+[data-theme='high-contrast'] [class~="Active"] span,
+[data-theme='high-contrast'] [class~="Active"] div,
+[data-theme='high-contrast'] [class~="selected"] p,
+[data-theme='high-contrast'] [class~="selected"] span,
+[data-theme='high-contrast'] [class~="selected"] div,
+[data-theme='high-contrast'] [class~="Selected"] p,
+[data-theme='high-contrast'] [class~="Selected"] span,
+[data-theme='high-contrast'] [class~="Selected"] div,
+[data-theme='high-contrast'] [data-hc-state="active"] p,
+[data-theme='high-contrast'] [data-hc-state="active"] span,
+[data-theme='high-contrast'] [data-hc-state="active"] div,
+[data-theme='high-contrast'] [data-hc-state="selected"] p,
+[data-theme='high-contrast'] [data-hc-state="selected"] span,
+[data-theme='high-contrast'] [data-hc-state="selected"] div {
+  color: #fff !important;
+}

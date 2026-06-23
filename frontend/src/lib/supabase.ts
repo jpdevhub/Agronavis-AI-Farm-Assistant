@@ -44,8 +44,31 @@ export const signInWithGoogle = async () => {
   return { data, error };
 };
 
-/** Sign out the current user */
+/** Sign out the current user and clear all cached data */
 export const signOut = async () => {
+  // Clear Workbox runtime caches (API responses)
+  if ('caches' in window) {
+    try {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames
+          .filter(name => name.startsWith('agronavis-'))
+          .map(name => caches.delete(name))
+      );
+    } catch (e) {
+      console.warn('Failed to clear caches:', e);
+    }
+  }
+
+  // Clear IndexedDB offline store (farm data, scans, fields)
+  if ('indexedDB' in window) {
+    try {
+      indexedDB.deleteDatabase('agronavis-offline-db');
+    } catch (e) {
+      console.warn('Failed to clear IndexedDB:', e);
+    }
+  }
+
   const { error } = await supabase.auth.signOut();
   return { error };
 };

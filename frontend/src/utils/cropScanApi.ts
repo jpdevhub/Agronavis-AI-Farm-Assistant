@@ -5,6 +5,7 @@
  */
 import { api } from './farmApi'
 import { supabase } from '../lib/supabase'
+import { getOfflineCropScans, saveOfflineCropScans } from '../lib/offlineStorage'
 
 export interface DiagnosisResult {
   predicted_disease_name: string
@@ -49,13 +50,27 @@ export async function diagnoseImage(
   return data
 }
 
-/**
- * Fetch scan history for the authenticated user.
- * Optionally filtered by farm_id.
+/*
+  Fetch scan history for the authenticated user.
+  Optionally filtered by farm_id.
  */
 export async function getScanHistory(farmId?: string): Promise<CropScan[]> {
-  const params: Record<string, string> = {}
-  if (farmId) params.farm_id = farmId
-  const { data } = await api.get<{ success: boolean; data: CropScan[] }>('/crop-scans', { params })
-  return data.data ?? []
+  try {
+    const params: Record<string, string> = {}
+    if (farmId) params.farm_id = farmId
+    const { data } = await api.get<{
+      success: boolean;
+      data: CropScan[]
+    }>('/crop-scans', { params })
+    const scans = data.data ?? []
+    await saveOfflineCropScans(scans, farmId)
+    return scans
+  } catch (error) {
+    console.warn('getScanHistory: Network request failed, falling back to offline storage:', error instanceof Error ? error.message : error);
+    const cached = await getOfflineCropScans(farmId);
+    if (cached) {
+      return cached;
+    }
+    throw error;
+  }
 }

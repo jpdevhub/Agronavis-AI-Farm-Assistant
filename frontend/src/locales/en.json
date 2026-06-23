@@ -111,6 +111,126 @@
     "title": "Farm Monitoring Dashboard",
     "welcome": "Welcome",
     "signOut": "Sign Out",
+    "shell": {
+      "brandSub": "Field Intelligence",
+      "defaultFarmer": "Farmer",
+      "newAnalysis": "New Analysis",
+      "searchPlaceholder": "Search satellite data...",
+      "notifications": "Notifications",
+      "settings": "Settings",
+      "profileSettings": "Profile Settings",
+      "loadingFarmData": "Loading your farm data...",
+      "nav": {
+        "dashboard": "Dashboard",
+        "myFarms": "My Farms",
+        "myCrops": "My Crops",
+        "fieldMap": "Field Map",
+        "fertilizer": "Fertilizer",
+        "inventory": "Inventory",
+        "analytics": "Analytics",
+        "cropScan": "CropScan AI",
+        "profile": "Profile"
+      }
+    },
+    "overview": {
+      "greetingTitle": "Good morning.",
+      "summaryWithFarms": "You have {{farmCount}} farm(s) and {{cropCount}} active crop(s).",
+      "summaryEmpty": "Set up your first farm to get started.",
+      "clearSkies": "Clear Skies",
+      "farms": "Farms",
+      "crops": "Crops",
+      "totalArea": "Total Area",
+      "acrossAllFarms": "Across all farms",
+      "cropProgress": "Crop Progress",
+      "maturity": "Maturity",
+      "healthy": "Healthy",
+      "moisture": "Moisture",
+      "nitrogen": "Nitrogen",
+      "optimal": "Optimal",
+      "estimatedHarvest": "Estimated Harvest",
+      "notSet": "Not set",
+      "noCropsYet": "No crops yet",
+      "addCropsDesc": "Add crops to track growth progress",
+      "addCrop": "Add Crop",
+      "priorityTasks": "Priority Tasks",
+      "viewAll": "View All",
+      "priorities": {
+        "high": "High",
+        "routine": "Routine",
+        "backlog": "Backlog"
+      },
+      "tasks": {
+        "irrigation": {
+          "name": "Irrigation Sync",
+          "desc": "Sync sensor array",
+          "due": "Due today"
+        },
+        "pest": {
+          "name": "Pest Inspection",
+          "desc": "Manual spot check",
+          "due": "Due in 4 hours"
+        },
+        "inventory": {
+          "name": "Inventory Audit",
+          "desc": "Update fertilizer stock",
+          "due": "No deadline"
+        }
+      },
+      "liveSatellite": "Live Satellite",
+      "fieldTelemetry": "Field telemetry",
+      "liveFeed": "LIVE FEED",
+      "openFieldMapToDraw": "Open Field Map to draw boundary",
+      "noFarmLocation": "No farm location set",
+      "signalStrength": "Signal Strength",
+      "soilTemp": "Soil Temp",
+      "ndviIndex": "NDVI Index",
+      "openFieldMap": "Open Field Map",
+      "aiYieldPrediction": "AI Yield Prediction",
+      "yieldDesc": "Based on soil moisture and historical weather patterns, we predict a 12% increase in yield compared to the previous season.",
+      "viewForecastReport": "View Forecast Report",
+      "estTonnage": "Est. Tonnage",
+      "confidence": "Confidence"
+    },
+    "emptyStates": {
+      "farms": {
+        "title": "No farms yet",
+        "desc": "Create your first farm to start tracking crops, soil data, and field boundaries.",
+        "cta": "Add Your First Farm"
+      },
+      "crops": {
+        "title": "No crops planted yet",
+        "desc": "Add your first crop to track growth progress, maturity, and harvest dates.",
+        "cta": "Plant Your First Crop"
+      },
+      "fields": {
+        "title": "No fields mapped yet",
+        "desc": "Draw a boundary on the map above and give it a name to add your first field.",
+        "cta": "Start Drawing"
+      },
+      "tasks": {
+        "title": "All tasks complete!",
+        "desc": "Great work. All of today's tasks are done. Check back tomorrow for your next set.",
+        "cta": "View Farm Overview",
+        "resetCta": "Reset for Tomorrow"
+      }
+    },
+    "dailyTasks": {
+      "title": "Daily Tasks",
+      "completeToday": "complete today",
+      "markAllDone": "Mark All as Done",
+      "today": "Today",
+      "done": "Done"
+    },
+    "cropsTab": {
+      "title": "My Crops",
+      "subtitle": "Track planting, growth stages, and harvest dates for your farm.",
+      "plantCrop": "+ Plant a Crop",
+      "loading": "Loading crops...",
+      "areaNotSet": "Area not set",
+      "stage": "Stage",
+      "growthStageNotSet": "Growth stage not set",
+      "scanCrop": "Scan Crop"
+    },
     "menu": {
       "settings": "Settings",
       "legalNotices": "Legal Notices",
@@ -164,5 +284,14 @@
     "weatherInsights": "Weather Insights",
     "temperature": "Temperature",
     "humidity": "Humidity"
+  },
+  "chatbot": {
+    "title": "AgroBot — Farm Assistant",
+    "greeting": "Hello! I am AgroBot. Ask me anything about your crops, soil, or farming practices.",
+    "placeholder": "Ask about your crops, soil, pests...",
+    "send": "Send",
+    "thinking": "AgroBot is thinking...",
+    "error": "Sorry, I could not process that. Please try again.",
+    "networkError": "Network error. Please check your connection."
   }
 }

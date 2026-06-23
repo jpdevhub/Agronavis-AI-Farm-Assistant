@@ -10,6 +10,7 @@
 
 import axios from 'axios';
 import { supabase } from '../lib/supabase';
+import { getOfflineFarms, saveOfflineFarms, getOfflineFields, saveOfflineFields } from '../lib/offlineStorage';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -28,12 +29,8 @@ api.interceptors.request.use(async (config) => {
     } else {
       config.headers.Authorization = `Bearer ${session.access_token}`;
     }
-    console.log('Sending token:', session.access_token.substring(0, 10) + '...');
-  } else {
-    console.warn('No access token found in session!');
   }
 
-  console.log('Final headers for', config.method, config.url, config.headers);
   return config;
 });
 
@@ -42,8 +39,20 @@ api.interceptors.request.use(async (config) => {
 export const farmApi = {
   /** Get all farms for the authenticated user */
   getFarms: async () => {
-    const { data } = await api.get('/farms');
-    return data.data;
+    try {
+      const { data } = await api.get('/farms');
+      if (data && data.data) {
+        await saveOfflineFarms(data.data);
+      }
+      return data.data;
+    } catch (error) {
+      console.warn('getFarms: Network request failed, falling back to offline storage:', error instanceof Error ? error.message : error);
+      const cached = await getOfflineFarms();
+      if (cached) {
+        return cached;
+      }
+      throw error;
+    }
   },
 
   /** Get farm summary list */
@@ -96,8 +105,20 @@ export const farmApi = {
 
   /** Get all mapped fields for a farm */
   getFarmFields: async (farmId: string) => {
-    const { data } = await api.get(`/farms/${farmId}/fields`);
-    return data.data;
+    try {
+      const { data } = await api.get(`/farms/${farmId}/fields`);
+      if (data && data.data) {
+        await saveOfflineFields(farmId, data.data);
+      }
+      return data.data;
+    } catch (error) {
+      console.warn(`getFarmFields: Network request failed for farm ${farmId}, falling back to offline storage:`, error instanceof Error ? error.message : error);
+      const cached = await getOfflineFields(farmId);
+      if (cached) {
+        return cached;
+      }
+      throw error;
+    }
   },
 
   /** Add a drawn polygon field to a farm */
