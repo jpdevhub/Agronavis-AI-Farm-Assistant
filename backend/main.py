@@ -444,19 +444,20 @@ def translate_disease_fields(
     symptoms: List[str],
     treatments: List[str],
     locale: Optional[str],
-) -> tuple[str, List[str], List[str]]:
+) -> tuple[str, List[str], List[str], str]:
     """
     Translate disease_name, symptoms, and treatments into the requested locale.
     Checks Supabase disease_translations cache first; falls back to Google
     Translate REST v2 on a cache miss and writes the result back to cache.
-    Fails safe -- any error returns the original English values untouched.
+    Fails safe -- any error returns the original English values, with the
+    4th return value reporting the locale actually used (never lies about it).
     """
     if not locale or locale == "en":
-        return disease_name, symptoms, treatments
-
+        return disease_name, symptoms, treatments, "en"
+ 
     if not GOOGLE_TRANSLATE_API_KEY:
-        return disease_name, symptoms, treatments
-
+        return disease_name, symptoms, treatments, "en"
+ 
     # 1. Check cache
     try:
         cached = (
@@ -469,10 +470,10 @@ def translate_disease_fields(
         )
         if cached.data:
             row = cached.data[0]
-            return row["disease_name"], row["symptoms"], row["recommended_action"]
+            return row["disease_name"], row["symptoms"], row["recommended_action"], locale
     except Exception as e:
         print(f"[WARN] disease_translations cache read failed: {e}")
-
+ 
     # 2. Cache miss -- call Google Translate REST v2 in one batched request
     texts_to_translate = [disease_name] + symptoms + treatments
     try:
@@ -492,12 +493,12 @@ def translate_disease_fields(
         translated_texts = [t["translatedText"] for t in translations]
     except Exception as e:
         print(f"[WARN] Google Translate API call failed: {e}")
-        return disease_name, symptoms, treatments
-
+        return disease_name, symptoms, treatments, "en"
+ 
     translated_disease_name = translated_texts[0]
     translated_symptoms = translated_texts[1 : 1 + len(symptoms)]
     translated_treatments = translated_texts[1 + len(symptoms) :]
-
+ 
     # 3. Write to cache (best-effort, do not fail the request if this fails)
     try:
         supabase.table("disease_translations").insert({
@@ -509,8 +510,10 @@ def translate_disease_fields(
         }).execute()
     except Exception as e:
         print(f"[WARN] disease_translations cache write failed: {e}")
+ 
+    return translated_disease_name, translated_symptoms, translated_treatments, locale
+ 
 
-    return translated_disease_name, translated_symptoms, translated_treatments
 
 # ── ML Inference ─────────────────────────────────────────────────────────────
 
@@ -556,7 +559,7 @@ def run_inference(image_bytes: bytes, locale: Optional[str] = None) -> Predictio
     symptoms = _get_symptoms(class_name)
     treatments = _get_treatments(class_name)
 
-    disease_name, symptoms, treatments = translate_disease_fields(
+    disease_name, symptoms, treatments, applied_locale = translate_disease_fields(
         class_name, disease_name, symptoms, treatments, locale
     )
 
@@ -567,7 +570,7 @@ def run_inference(image_bytes: bytes, locale: Optional[str] = None) -> Predictio
         crop_type=_extract_crop_type(class_name),
         symptoms=symptoms,
         recommended_action=treatments,
-        locale=locale or "en",
+        locale=applied_locale,
     )
 
 
