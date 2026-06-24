@@ -8,7 +8,6 @@ import { farmApi, cropApi } from '../utils/farmApi';
 import { soilService } from '../utils/soilService';
 import { useReverseGeocode } from '../hooks/useReverseGeocode';
 import { FIELD_COLORS } from '../utils/mapUtils';
-import { exportFieldsAsGeoJSON, exportFieldsAsKML } from '../utils/exportUtils';
 import type { LatLng } from '../utils/geoUtils';
 import ProfileTab from './ProfileTab';
 import AnalyticsDashboard from './AnalyticsDashboard';
@@ -68,7 +67,7 @@ interface Props {
   setActiveTab: (tab: string) => void;
 }
 
-// Standard NPK soil profiles (mg/kg) â€” based on ICAR reference values
+// Standard NPK soil profiles (mg/kg) — based on ICAR reference values
 const NPK_BY_SOIL: Record<string, { n: number; p: number; k: number }> = {
   loamy:   { n: 142, p: 48, k: 210 },
   clay:    { n: 120, p: 60, k: 180 },
@@ -79,7 +78,7 @@ const NPK_BY_SOIL: Record<string, { n: number; p: number; k: number }> = {
   default: { n: 110, p: 45, k: 170 },
 };
 
-// Recommended fertilizer dosage by crop (lbs/acre) â€” ICAR/FAO crop nutrition guidelines
+// Recommended fertilizer dosage by crop (lbs/acre) — ICAR/FAO crop nutrition guidelines
 const FERT_BY_CROP: Record<string, { urea: number; dap: number; potash: number }> = {
   Rice:      { urea: 220, dap: 110, potash: 165 },
   Wheat:     { urea: 200, dap: 100, potash: 150 },
@@ -100,7 +99,7 @@ const FertDot: React.FC<{ color: string }> = ({ color }) => (
   }} />
 );
 
-// Palette for field colour swatches â€” imported from shared mapUtils
+// Palette for field colour swatches — imported from shared mapUtils
 // (FIELD_COLORS is used by both Dashboard and FarmMap to keep colours in sync)
 
 const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
@@ -110,7 +109,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
   const [crops, setCrops] = useState<Crop[]>([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
   const [fields, setFields] = useState<Field[]>([]);
-  // Map of farmId â†’ fields[] for ALL farms (used in My Farms cards)
+  // Map of farmId → fields[] for ALL farms (used in My Farms cards)
   const [allFarmsFields, setAllFarmsFields] = useState<Record<string, Field[]>>({});
   const [pendingField, setPendingField] = useState<{
     fieldName: string;
@@ -207,13 +206,13 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
         center_latitude: pendingField.centerLat,
         center_longitude: pendingField.centerLng,
       });
-      setSaveMessage({ type: 'success', text: `"${pendingField.fieldName}" saved â€” ${pendingField.areaAcres.toFixed(1)} acres` });
+      setSaveMessage({ type: 'success', text: `"${pendingField.fieldName}" saved — ${pendingField.areaAcres.toFixed(1)} acres` });
       try {
         const geo = await geocode(pendingField.centerLat, pendingField.centerLng);
         if (geo?.state && geo?.district) {
           await soilService.estimateSoilHealth(selectedFarmId, geo.state, geo.district);
         }
-      } catch { /* silent â€” soil estimation is best-effort */ }
+      } catch { /* silent — soil estimation is best-effort */ }
       // Refresh both farms (for total_area) and the fields list
       await loadData();
       const refreshed = await farmApi.getFarmFields(selectedFarmId);
@@ -248,7 +247,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
     }
   };
 
-  // Fertilizer calc â€” area comes from farm_fields sum (kept in sync by DB trigger via total_area)
+  // Fertilizer calc — area comes from farm_fields sum (kept in sync by DB trigger via total_area)
   const fertFarm = farms.find(f => f.id === fertFarmId) || farms[0];
   const soilKey = fertFarm?.soil_type || 'default';
   const npk = NPK_BY_SOIL[soilKey] || NPK_BY_SOIL.default;
@@ -292,7 +291,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
             <div className={s.weatherCard} style={{ gridColumn: 'span 2' }} data-hc-target="true">
               <div>
                 <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 2 }}>{t('dashboard.overview.clearSkies')}</div>
-                <div className={s.weatherTemp}>24Â°C</div>
+                <div className={s.weatherTemp}>24°C</div>
               </div>
               <div className={s.weatherMeta}>
                 <div className={s.weatherMetaItem}>
@@ -387,8 +386,8 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
               <div className={s.mapPlaceholder}>
                 <div className={s.liveBadge}>{t('dashboard.overview.liveFeed')}</div>
                 <div className={s.coordBadge}>
-                  {selectedFarm?.location?.center_latitude?.toFixed(4) || '22.5726'}Â° N,{' '}
-                  {selectedFarm?.location?.center_longitude?.toFixed(4) || '88.3639'}Â° E
+                  {selectedFarm?.location?.center_latitude?.toFixed(4) || '22.5726'}° N,{' '}
+                  {selectedFarm?.location?.center_longitude?.toFixed(4) || '88.3639'}° E
                 </div>
                 <div className={s.mapPlaceholderText} style={{ position: 'absolute', top: '40%' }}>
                   {hasFarms ? t('dashboard.overview.openFieldMapToDraw') : t('dashboard.overview.noFarmLocation')}
@@ -403,7 +402,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                 </div>
               </div>
               <div className={s.telemetryGrid}>
-                <div className={s.telemetryItem}><div className={s.telemetryLabel}>Soil Temp</div><div className={s.telemetryVal}>19.4Â°C</div></div>
+                <div className={s.telemetryItem}><div className={s.telemetryLabel}>Soil Temp</div><div className={s.telemetryVal}>19.4°C</div></div>
                 <div className={s.telemetryItem}><div className={s.telemetryLabel}>NDVI Index</div><div className={s.telemetryVal}>0.82</div></div>
               </div>
               <button className={s.expandBtn} onClick={() => setActiveTab('map')}>{t('dashboard.overview.openFieldMap')}</button>
@@ -493,10 +492,10 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                           </div>
                         </div>
                         <div className={s.soilDesc}>
-                          {farm.total_area && farm.total_area > 0 ? `${farm.total_area.toFixed(1)} acres` : 'Area not mapped'} â€” {farm.irrigation_type || 'Irrigation type not set'}
+                          {farm.total_area && farm.total_area > 0 ? `${farm.total_area.toFixed(1)} acres` : 'Area not mapped'} — {farm.irrigation_type || 'Irrigation type not set'}
                           {(allFarmsFields[farm.id]?.length ?? 0) > 0 && (
                             <span style={{ marginLeft: 6, color: '#059669', fontWeight: 600 }}>
-                              Â· {allFarmsFields[farm.id].length} field{allFarmsFields[farm.id].length !== 1 ? 's' : ''} mapped
+                              · {allFarmsFields[farm.id].length} field{allFarmsFields[farm.id].length !== 1 ? 's' : ''} mapped
                             </span>
                           )}
                         </div>
@@ -563,7 +562,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           {loading ? (
             <div className={s.loadingCard}><div className={s.spinner} />{t('dashboard.cropsTab.loading')}</div>
           ) : !hasFarms ? (
-            /* No farms at all â€” prompt to add a farm first */
+            /* No farms at all — prompt to add a farm first */
             <EmptyState
               variant="farms"
               title={t('dashboard.emptyStates.farms.title')}
@@ -572,7 +571,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
               onCta={() => router.push('/onboarding/farm')}
             />
           ) : crops.length === 0 ? (
-            /* Farms exist but no crops yet â€” show the hero illustrated empty state */
+            /* Farms exist but no crops yet — show the hero illustrated empty state */
             <div className={s.card} style={{ padding: '8px 0' }} data-hc-target="true">
               <EmptyState
                 variant="crops"
@@ -583,7 +582,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
               />
             </div>
           ) : (
-            /* Crops exist â€” render crop cards */
+            /* Crops exist — render crop cards */
             <div className={s.farmsGrid}>
               {crops.map((crop) => {
                 const stage = crop.current_growth_stage || 'Vegetative';
@@ -612,7 +611,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                       {/* Area + Season row */}
                       <div className={s.soilDesc}>
                         {crop.area_allocated > 0 ? `${crop.area_allocated.toFixed(1)} acres` : t('dashboard.cropsTab.areaNotSet')}
-                        {crop.season && <span style={{ marginLeft: 6, color: '#059669', fontWeight: 600 }}>Â· {crop.season}</span>}
+                        {crop.season && <span style={{ marginLeft: 6, color: '#059669', fontWeight: 600 }}>· {crop.season}</span>}
                       </div>
                       {/* Sowing & Harvest */}
                       <div className={s.farmNpkGrid} style={{ marginTop: 0 }}>
@@ -686,7 +685,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
             />
           ) : (
             <>
-              {/* â”€â”€ Polygon drawing tool â”€â”€ */}
+              {/* ── Polygon drawing tool ── */}
               <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 20 }}>
                 <PolygonMapper
                   initialCenter={
@@ -700,7 +699,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                 />
               </div>
 
-              {/* â”€â”€ Pending field confirm panel â”€â”€ */}
+              {/* ── Pending field confirm panel ── */}
               {pendingField && (
                 <div style={{
                   marginBottom: 20,
@@ -721,7 +720,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                       {pendingField.fieldName}
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-                      {pendingField.areaAcres.toFixed(2)} acres &nbsp;Â·&nbsp; {pendingField.areaHectares.toFixed(2)} ha
+                      {pendingField.areaAcres.toFixed(2)} acres &nbsp;·&nbsp; {pendingField.areaHectares.toFixed(2)} ha
                     </div>
                   </div>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
@@ -757,7 +756,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                 </div>
               )}
 
-              {/* â”€â”€ Saved fields list â”€â”€ */}
+              {/* ── Saved fields list ── */}
               {fields.length > 0 ? (
                   <div style={{ background: 'white', border: '1px solid var(--color-border)', borderRadius: 14, overflow: 'hidden' }} data-hc-target="true">
                     <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -765,41 +764,8 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                         Mapped Fields
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-                        {fields.length} field{fields.length !== 1 ? 's' : ''} &nbsp;Â·&nbsp; {selectedFarm?.total_area?.toFixed(1) ?? '0'} acres total
+                        {fields.length} field{fields.length !== 1 ? 's' : ''} &nbsp;·&nbsp; {selectedFarm?.total_area?.toFixed(1) ?? '0'} acres total
                       </div>
-                      {fields.length > 0 && (
-                        <select
-                          aria-label="Export field boundaries"
-                          value=""
-                          onChange={e => {
-                            const format = e.target.value;
-                            const farmName = selectedFarm?.name ?? 'farm';
-                            if (format === 'geojson') {
-                              exportFieldsAsGeoJSON(fields, farmName);
-                            } else if (format === 'kml') {
-                              exportFieldsAsKML(fields, farmName);
-                            }
-                            e.target.value = '';
-                          }}
-                          style={{
-                            padding: '6px 12px',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 8,
-                            background: 'white',
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: 'var(--color-text-primary)',
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                          }}
-                        >
-                          <option value="" disabled>
-                            Export Boundaries
-                          </option>
-                          <option value="geojson">Export as GeoJSON</option>
-                          <option value="kml">Export as KML</option>
-                        </select>
-                      )}
                     </div>
                     {fields.map((field, idx) => (
                       <div
@@ -820,7 +786,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                           </div>
                           <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
                             {field.area_acres.toFixed(2)} acres
-                            {field.area_hectares ? ` Â· ${field.area_hectares.toFixed(2)} ha` : ''}
+                            {field.area_hectares ? ` · ${field.area_hectares.toFixed(2)} ha` : ''}
                           </div>
                         </div>
                         <button
@@ -875,11 +841,11 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                 }}>
                   {farms.length > 0
                     ? farms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)
-                    : <option value="">No farms â€” add one first</option>
+                    : <option value="">No farms — add one first</option>
                   }
                 </select>
               </div>
-              {/* Field selector â€” populated from farm_fields table */}
+              {/* Field selector — populated from farm_fields table */}
               {fertFields.length > 0 && (
                 <div>
                   <div className={s.selectLabel}>Specific Field</div>
@@ -949,7 +915,7 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
                   <FertDot color={item.color} />
                   <div className={s.dosageInfo}>
                     <div className={s.dosageName}>{item.name}</div>
-                    <div className={s.dosageSub}>{item.note} â€” {item.lbs} lbs/acre</div>
+                    <div className={s.dosageSub}>{item.note} — {item.lbs} lbs/acre</div>
                   </div>
                   <div className={s.dosageTotal}>{item.tons} tons</div>
                 </div>
@@ -969,9 +935,9 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 
             <div className={s.shoppingList}>
               {[
-                { name: 'Urea (46-0-0) â€” 50 kg bag', color: '#10b981', bags: ureaBags, tons: ureaTons },
-                { name: 'DAP (18-46-0) â€” 50 kg bag',  color: '#f97316', bags: dapBags,   tons: dapTons },
-                { name: 'MOP (0-0-60) â€” 50 kg bag',   color: '#6366f1', bags: potashBags,tons: potashTons },
+                { name: 'Urea (46-0-0) — 50 kg bag', color: '#10b981', bags: ureaBags, tons: ureaTons },
+                { name: 'DAP (18-46-0) — 50 kg bag',  color: '#f97316', bags: dapBags,   tons: dapTons },
+                { name: 'MOP (0-0-60) — 50 kg bag',   color: '#6366f1', bags: potashBags,tons: potashTons },
               ].map(item => (
                 <div key={item.name} className={s.shoppingItem} data-hc-target="true">
                   <div className={s.shoppingIcon}>
