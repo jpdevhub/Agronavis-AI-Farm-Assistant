@@ -20,6 +20,7 @@ Deployment targets:
 import os
 import io
 import json
+import requests
 import uuid
 import torch
 import torch.nn as nn
@@ -51,6 +52,12 @@ if not SUPABASE_URL:
 
 # Service-role client — used for DB operations after JWT is verified
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY)
+
+# -- Google Cloud Translation (REST v2, API-key auth) ----------------------
+GOOGLE_TRANSLATE_API_KEY = os.environ.get("GOOGLE_TRANSLATE_API_KEY", "")
+TRANSLATE_API_URL = "https://translation.googleapis.com/language/translate/v2"
+if not GOOGLE_TRANSLATE_API_KEY:
+    print("[WARN] GOOGLE_TRANSLATE_API_KEY not set -- disease scan translation will be skipped")
 
 # ── FastAPI app ──────────────────────────────────────────────────────────────
 app = FastAPI(
