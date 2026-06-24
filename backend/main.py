@@ -164,6 +164,7 @@ class PredictionResponse(BaseModel):
     crop_type: Optional[str] = None
     symptoms: List[str]
     recommended_action: List[str]
+    locale: str = "en"
 
 class FarmCreate(BaseModel):
     name: str
