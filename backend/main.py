@@ -514,7 +514,7 @@ def translate_disease_fields(
 
 # ── ML Inference ─────────────────────────────────────────────────────────────
 
-def run_inference(image_bytes: bytes) -> PredictionResponse:
+def run_inference(image_bytes: bytes, locale: Optional[str] = None) -> PredictionResponse:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
     # OOD check with CLIP
@@ -539,6 +539,7 @@ def run_inference(image_bytes: bytes) -> PredictionResponse:
                 is_healthy=False,
                 symptoms=["Image does not appear to be a plant leaf or crop."],
                 recommended_action=["Please upload a clear close-up photo of a plant leaf or crop."],
+                locale=locale or "en",
             )
 
     # ResNet18 inference
@@ -551,13 +552,22 @@ def run_inference(image_bytes: bytes) -> PredictionResponse:
     class_name = CLASS_NAMES[idx.item()]
     is_healthy = class_name.startswith("healthy_")
 
+    disease_name = _format_class_name(class_name)
+    symptoms = _get_symptoms(class_name)
+    treatments = _get_treatments(class_name)
+
+    disease_name, symptoms, treatments = translate_disease_fields(
+        class_name, disease_name, symptoms, treatments, locale
+    )
+
     return PredictionResponse(
-        predicted_disease_name=_format_class_name(class_name),
+        predicted_disease_name=disease_name,
         confidence_score=round(conf.item() * 100, 2),
         is_healthy=is_healthy,
         crop_type=_extract_crop_type(class_name),
-        symptoms=_get_symptoms(class_name),
-        recommended_action=_get_treatments(class_name),
+        symptoms=symptoms,
+        recommended_action=treatments,
+        locale=locale or "en",
     )
 
 
