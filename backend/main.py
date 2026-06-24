@@ -604,18 +604,20 @@ async def diagnose(
     file: UploadFile = File(...),
     farm_id: Optional[str] = Query(None),
     crop_id: Optional[str] = Query(None),
+    locale: Optional[str] = Query(None, description="Target language code, e.g. 'hi', 'es'. Defaults to English."),
     user=Depends(verify_token),
 ):
     """
     Upload a plant image → ResNet18 classification + CLIP OOD guard.
     Optionally saves result to crop_scans table if farm_id provided.
+    Optionally translates symptoms/treatment text via locale param.
     """
     ext = (file.filename or "").lower().split(".")[-1]
     if ext not in {"png", "jpg", "jpeg", "webp"}:
         raise HTTPException(status_code=400, detail="Only PNG/JPG/JPEG/WEBP images are accepted")
 
     contents = await file.read()
-    result = run_inference(contents)
+    result = run_inference(contents, locale=locale)
 
     # Save scan to DB if farm_id is provided
     if farm_id:
