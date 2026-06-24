@@ -438,6 +438,80 @@ def _get_treatments(class_name: str) -> List[str]:
     return DISEASE_TREATMENTS.get(class_name, [f"Consult an agronomist for {_format_class_name(class_name)} treatment"])
 
 
+def translate_disease_fields(
+    class_name: str,
+    disease_name: str,
+    symptoms: List[str],
+    treatments: List[str],
+    locale: Optional[str],
+) -> tuple[str, List[str], List[str]]:
+    """
+    Translate disease_name, symptoms, and treatments into the requested locale.
+    Checks Supabase disease_translations cache first; falls back to Google
+    Translate REST v2 on a cache miss and writes the result back to cache.
+    Fails safe -- any error returns the original English values untouched.
+    """
+    if not locale or locale == "en":
+        return disease_name, symptoms, treatments
+
+    if not GOOGLE_TRANSLATE_API_KEY:
+        return disease_name, symptoms, treatments
+
+    # 1. Check cache
+    try:
+        cached = (
+            supabase.table("disease_translations")
+            .select("disease_name, symptoms, recommended_action")
+            .eq("class_name", class_name)
+            .eq("locale", locale)
+            .limit(1)
+            .execute()
+        )
+        if cached.data:
+            row = cached.data[0]
+            return row["disease_name"], row["symptoms"], row["recommended_action"]
+    except Exception as e:
+        print(f"[WARN] disease_translations cache read failed: {e}")
+
+    # 2. Cache miss -- call Google Translate REST v2 in one batched request
+    texts_to_translate = [disease_name] + symptoms + treatments
+    try:
+        response = requests.post(
+            TRANSLATE_API_URL,
+            params={"key": GOOGLE_TRANSLATE_API_KEY},
+            json={
+                "q": texts_to_translate,
+                "target": locale,
+                "source": "en",
+                "format": "text",
+            },
+            timeout=8,
+        )
+        response.raise_for_status()
+        translations = response.json()["data"]["translations"]
+        translated_texts = [t["translatedText"] for t in translations]
+    except Exception as e:
+        print(f"[WARN] Google Translate API call failed: {e}")
+        return disease_name, symptoms, treatments
+
+    translated_disease_name = translated_texts[0]
+    translated_symptoms = translated_texts[1 : 1 + len(symptoms)]
+    translated_treatments = translated_texts[1 + len(symptoms) :]
+
+    # 3. Write to cache (best-effort, do not fail the request if this fails)
+    try:
+        supabase.table("disease_translations").insert({
+            "class_name": class_name,
+            "locale": locale,
+            "disease_name": translated_disease_name,
+            "symptoms": translated_symptoms,
+            "recommended_action": translated_treatments,
+        }).execute()
+    except Exception as e:
+        print(f"[WARN] disease_translations cache write failed: {e}")
+
+    return translated_disease_name, translated_symptoms, translated_treatments
+
 # ── ML Inference ─────────────────────────────────────────────────────────────
 
 def run_inference(image_bytes: bytes) -> PredictionResponse:
