@@ -1,4 +1,4 @@
-﻿import MarketPriceWidget from "./MarketPriceWidget";
+import MarketPriceWidget from "./MarketPriceWidget";
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
