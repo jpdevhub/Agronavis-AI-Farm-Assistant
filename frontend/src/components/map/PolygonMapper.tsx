@@ -135,21 +135,26 @@ export default function PolygonMapper({
       </div>
 
       {/* Search bar */}
-      <SearchBox onLocationSelect={handleLocationSelect} />
+      <div id="polygon-search">
+        <SearchBox onLocationSelect={handleLocationSelect} />
+</div>
 
       {/* Map */}
-      <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--color-border-tertiary)' }}>
-        <div style={{position: 'absolute',top: '12px',right: '200px',zIndex: 800}}>
-          <WeatherStatusBadge lat={mapCenter.lat} lng={mapCenter.lng}/>
-        </div>
-        <MapInner
-          center={mapCenter}
-          zoom={mapZoom}
-          points={points}
-          onMapClick={addPoint}
-        />
+<div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--color-border-tertiary)' }}>
 
-        {/* How-to overlay */}
+  <div style={{position: 'absolute', top: '12px', right: '200px', zIndex: 800}}>
+    <WeatherStatusBadge lat={mapCenter.lat} lng={mapCenter.lng}/>
+  </div>
+
+  <div id="polygon-map">
+    <MapInner
+      center={mapCenter}
+      zoom={mapZoom}
+      points={points}
+      onMapClick={addPoint}
+    />
+  </div>
+        {/* Instructions overlay (top-left of map) */}
         <div style={{
           position: 'absolute', top: '12px', right: '12px',
           background: 'rgba(255,255,255,0.95)',
@@ -163,8 +168,7 @@ export default function PolygonMapper({
           2. Search your village<br />
           3. Click 4 corners to mark boundary
         </div>
-      </div>
-
+            </div>
       {/* Live stats bar */}
       <div style={{
         display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center',
@@ -248,6 +252,7 @@ export default function PolygonMapper({
           {isComplete && (
             <button
               onClick={handleConfirm}
+              id="confirm-boundary-btn"
               style={{
                 padding: '6px 16px',
                 border: 'none',

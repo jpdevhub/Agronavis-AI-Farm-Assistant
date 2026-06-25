@@ -87,18 +87,42 @@ const DailyTaskReminders: React.FC = () => {
     setTaskState(DEFAULT_TASK_STATE);
   };
 
+  const markAllAsDone = () => {
+  setTaskState({
+    water: true,
+    fertilize: true,
+    harvest: true,
+  });
+};
+
   return (
     <div className={s.card} data-hc-target="true">
       <div className={s.cardHeader}>
         <div>
-          <div className={s.cardTitle}>Daily Tasks</div>
+          <div className={s.cardTitle}>
+            {t('dashboard.dailyTasks.title')}
+          </div>
           <div className={s.taskSummary}>
-            {completedCount}/{TASKS.length} complete today
+            {completedCount}/{TASKS.length} {t('dashboard.dailyTasks.completeToday')}
           </div>
         </div>
-        <span className={`${s.taskStatusBadge} ${allComplete ? s.taskStatusBadgeDone : ''}`}>
-          {allComplete ? 'Done' : 'Today'}
-        </span>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {!allComplete && (
+            <button
+              type="button"
+              className={s.taskDoneBtn}
+              onClick={markAllAsDone}
+            >
+              {t('dashboard.dailyTasks.markAllDone')}
+            </button>
+          )}
+
+          <span className={`${s.taskStatusBadge} ${allComplete ? s.taskStatusBadgeDone : ''}`}>
+            {allComplete
+              ? t('dashboard.dailyTasks.done')
+              : t('dashboard.dailyTasks.today')}
+          </span>
+        </div>
       </div>
 
       {/* ── All-done: show a beautiful illustrated celebration state ── */}
@@ -118,9 +142,11 @@ const DailyTaskReminders: React.FC = () => {
             return (
               <label
                 key={task.id}
+                htmlFor={`task-${task.id}`}
                 className={`${s.dailyTaskItem} ${checked ? s.dailyTaskItemDone : ''}`}
               >
                 <input
+                  id={`task-${task.id}`}
                   className={s.dailyTaskCheckbox}
                   type="checkbox"
                   checked={checked}

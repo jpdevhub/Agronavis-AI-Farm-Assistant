@@ -9,9 +9,14 @@ import 'leaflet/dist/leaflet.css'
 
 import { useHighContrastMode } from '../hooks/useHighContrastMode'
 
-// Load PWA install prompt only on client (uses browser APIs — no SSR)
+// Load PWA components only on client (uses browser APIs — no SSR)
 const PWAInstallPrompt = dynamic(
   () => import('../components/PWAInstallPrompt'),
+  { ssr: false }
+);
+
+const OfflineIndicator = dynamic(
+  () => import('../components/OfflineIndicator'),
   { ssr: false }
 );
 
@@ -26,8 +31,10 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Component {...pageProps} />
       {/* PWA "Add to Home Screen" banner — appears on mobile automatically */}
       <PWAInstallPrompt />
+      {/* Offline indicator — shows red banner when user loses connectivity */}
+      <OfflineIndicator />
     </AuthProvider>
   )
 }
 
-export default MyApp
+export default MyApp
