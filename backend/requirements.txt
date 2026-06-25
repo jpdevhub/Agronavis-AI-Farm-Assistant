@@ -27,3 +27,8 @@ transformers>=4.40.0
 
 # Web search (disease wiki)
 duckduckgo-search>=6.2.0
+
+# ONNX Export and Quantization
+onnx>=1.15.0
+onnxruntime>=1.16.0
+onnxscript>=0.1.0
