@@ -20,6 +20,7 @@ Deployment targets:
 import os
 import io
 import json
+import requests
 import uuid
 import torch
 import torch.nn as nn
@@ -51,6 +52,12 @@ if not SUPABASE_URL:
 
 # Service-role client — used for DB operations after JWT is verified
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY)
+
+# -- Google Cloud Translation (REST v2, API-key auth) ----------------------
+GOOGLE_TRANSLATE_API_KEY = os.environ.get("GOOGLE_TRANSLATE_API_KEY", "")
+TRANSLATE_API_URL = "https://translation.googleapis.com/language/translate/v2"
+if not GOOGLE_TRANSLATE_API_KEY:
+    print("[WARN] GOOGLE_TRANSLATE_API_KEY not set -- disease scan translation will be skipped")
 
 # ── FastAPI app ──────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -157,6 +164,7 @@ class PredictionResponse(BaseModel):
     crop_type: Optional[str] = None
     symptoms: List[str]
     recommended_action: List[str]
+    locale: str = "en"
 
 class FarmCreate(BaseModel):
     name: str
@@ -300,9 +308,86 @@ def _get_treatments(class_name: str) -> List[str]:
     return data.get("treatment") or ["Continue current management practices" if class_name.startswith("healthy_") else f"Consult an agronomist for {_format_class_name(class_name)} treatment"]
 
 
+def translate_disease_fields(
+    class_name: str,
+    disease_name: str,
+    symptoms: List[str],
+    treatments: List[str],
+    locale: Optional[str],
+) -> tuple[str, List[str], List[str], str]:
+    """
+    Translate disease_name, symptoms, and treatments into the requested locale.
+    Checks Supabase disease_translations cache first; falls back to Google
+    Translate REST v2 on a cache miss and writes the result back to cache.
+    Fails safe -- any error returns the original English values, with the
+    4th return value reporting the locale actually used (never lies about it).
+    """
+    if not locale or locale == "en":
+        return disease_name, symptoms, treatments, "en"
+ 
+    if not GOOGLE_TRANSLATE_API_KEY:
+        return disease_name, symptoms, treatments, "en"
+ 
+    # 1. Check cache
+    try:
+        cached = (
+            supabase.table("disease_translations")
+            .select("disease_name, symptoms, recommended_action")
+            .eq("class_name", class_name)
+            .eq("locale", locale)
+            .limit(1)
+            .execute()
+        )
+        if cached.data:
+            row = cached.data[0]
+            return row["disease_name"], row["symptoms"], row["recommended_action"], locale
+    except Exception as e:
+        print(f"[WARN] disease_translations cache read failed: {e}")
+ 
+    # 2. Cache miss -- call Google Translate REST v2 in one batched request
+    texts_to_translate = [disease_name] + symptoms + treatments
+    try:
+        response = requests.post(
+            TRANSLATE_API_URL,
+            params={"key": GOOGLE_TRANSLATE_API_KEY},
+            json={
+                "q": texts_to_translate,
+                "target": locale,
+                "source": "en",
+                "format": "text",
+            },
+            timeout=8,
+        )
+        response.raise_for_status()
+        translations = response.json()["data"]["translations"]
+        translated_texts = [t["translatedText"] for t in translations]
+    except Exception as e:
+        print(f"[WARN] Google Translate API call failed: {e}")
+        return disease_name, symptoms, treatments, "en"
+ 
+    translated_disease_name = translated_texts[0]
+    translated_symptoms = translated_texts[1 : 1 + len(symptoms)]
+    translated_treatments = translated_texts[1 + len(symptoms) :]
+ 
+    # 3. Write to cache (best-effort, do not fail the request if this fails)
+    try:
+        supabase.table("disease_translations").insert({
+            "class_name": class_name,
+            "locale": locale,
+            "disease_name": translated_disease_name,
+            "symptoms": translated_symptoms,
+            "recommended_action": translated_treatments,
+        }).execute()
+    except Exception as e:
+        print(f"[WARN] disease_translations cache write failed: {e}")
+ 
+    return translated_disease_name, translated_symptoms, translated_treatments, locale
+ 
+
+
 # ── ML Inference ─────────────────────────────────────────────────────────────
 
-def run_inference(image_bytes: bytes) -> PredictionResponse:
+def run_inference(image_bytes: bytes, locale: Optional[str] = None) -> PredictionResponse:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
     # OOD check with CLIP
@@ -327,6 +412,7 @@ def run_inference(image_bytes: bytes) -> PredictionResponse:
                 is_healthy=False,
                 symptoms=["Image does not appear to be a plant leaf or crop."],
                 recommended_action=["Please upload a clear close-up photo of a plant leaf or crop."],
+                locale=locale or "en",
             )
 
     # ResNet18 inference
@@ -339,13 +425,22 @@ def run_inference(image_bytes: bytes) -> PredictionResponse:
     class_name = CLASS_NAMES[idx.item()]
     is_healthy = class_name.startswith("healthy_")
 
+    disease_name = _format_class_name(class_name)
+    symptoms = _get_symptoms(class_name)
+    treatments = _get_treatments(class_name)
+
+    disease_name, symptoms, treatments, applied_locale = translate_disease_fields(
+        class_name, disease_name, symptoms, treatments, locale
+    )
+
     return PredictionResponse(
-        predicted_disease_name=_format_class_name(class_name),
+        predicted_disease_name=disease_name,
         confidence_score=round(conf.item() * 100, 2),
         is_healthy=is_healthy,
         crop_type=_extract_crop_type(class_name),
-        symptoms=_get_symptoms(class_name),
-        recommended_action=_get_treatments(class_name),
+        symptoms=symptoms,
+        recommended_action=treatments,
+        locale=applied_locale,
     )
 
 
@@ -382,18 +477,20 @@ async def diagnose(
     file: UploadFile = File(...),
     farm_id: Optional[str] = Query(None),
     crop_id: Optional[str] = Query(None),
+    locale: Optional[str] = Query(None, description="Target language code, e.g. 'hi', 'es'. Defaults to English."),
     user=Depends(verify_token),
 ):
     """
     Upload a plant image → ResNet18 classification + CLIP OOD guard.
     Optionally saves result to crop_scans table if farm_id provided.
+    Optionally translates symptoms/treatment text via locale param.
     """
     ext = (file.filename or "").lower().split(".")[-1]
     if ext not in {"png", "jpg", "jpeg", "webp"}:
         raise HTTPException(status_code=400, detail="Only PNG/JPG/JPEG/WEBP images are accepted")
 
     contents = await file.read()
-    result = run_inference(contents)
+    result = run_inference(contents, locale=locale)
 
     # Save scan to DB if farm_id is provided
     if farm_id:

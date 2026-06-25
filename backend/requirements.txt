@@ -27,3 +27,4 @@ transformers>=4.40.0
 
 # Web search (disease wiki)
 duckduckgo-search>=6.2.0
+requests>=2.31.0
