@@ -214,6 +214,13 @@
         "resetCta": "Reset for Tomorrow"
       }
     },
+    "dailyTasks": {
+      "title": "Daily Tasks",
+      "completeToday": "complete today",
+      "markAllDone": "Mark All as Done",
+      "today": "Today",
+      "done": "Done"
+    },
     "cropsTab": {
       "title": "My Crops",
       "subtitle": "Track planting, growth stages, and harvest dates for your farm.",
