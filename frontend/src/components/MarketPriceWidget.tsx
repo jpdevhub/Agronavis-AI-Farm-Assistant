@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { MarketPriceSkeleton } from "./Skeleton";
 
 const marketPrices = [
   { crop: "Wheat", price: "₹2400 / quintal" },
@@ -8,6 +9,16 @@ const marketPrices = [
 ];
 
 const MarketPriceWidget = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.resolve().then(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <MarketPriceSkeleton />;
+  }
+
   return (
     <div
       style={{

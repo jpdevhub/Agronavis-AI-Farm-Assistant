@@ -1,0 +1,158 @@
+.skeleton {
+  background: #f1f5f9;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0%) 0%,
+    rgb(255 255 255 / 40%) 20%,
+    rgb(255 255 255 / 60%) 60%,
+    rgb(255 255 255 / 0%) 100%
+  );
+  animation: shimmer 1.6s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Farm Card Skeleton */
+.farm-card-skeleton {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+}
+
+.farm-card-image-skeleton {
+  height: 140px;
+  background: #f1f5f9;
+  position: relative;
+  overflow: hidden;
+}
+
+.farm-card-image-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0%) 0%,
+    rgb(255 255 255 / 40%) 20%,
+    rgb(255 255 255 / 60%) 60%,
+    rgb(255 255 255 / 0%) 100%
+  );
+  animation: shimmer 1.6s infinite;
+}
+
+.farm-card-body {
+  padding: 16px;
+}
+
+.npk-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.farm-card-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Crop Card Skeleton */
+.crop-card-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+}
+
+.crop-card-body {
+  flex: 1;
+}
+
+/* Weather Skeleton */
+.weather-skeleton {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+}
+
+.weather-header-skeleton {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.weather-main-skeleton {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.weather-details-skeleton {
+  display: flex;
+  justify-content: space-around;
+}
+
+/* Market Price Skeleton */
+.market-price-skeleton {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.market-price-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+/* Map Skeleton */
+.map-skeleton {
+  height: 600px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Farm Grid Skeleton */
+.farm-grid-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Crop List Skeleton */
+.crop-list-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after,
+  .farm-card-image-skeleton::after {
+    animation: none;
+  }
+}

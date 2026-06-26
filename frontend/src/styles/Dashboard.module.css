@@ -1069,6 +1069,13 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.crop-list-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
 /* ---- Quick insight card ---- */
 .insightCard {
   background: linear-gradient(135deg, #064e3b, #065f46);
