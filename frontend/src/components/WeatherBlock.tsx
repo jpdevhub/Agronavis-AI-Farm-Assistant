@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import styles from '../styles/WeatherWidget.module.css';
+import { WeatherSkeleton } from './Skeleton';
 
 const WEATHER_API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
 
@@ -195,10 +196,7 @@ const WeatherBlock: React.FC<WeatherBlockProps> = ({ farmLocation, compact = fal
         console.log('WeatherBlock: Showing loading state');
         return (
             <div className={`${styles.weatherBlockContainer} ${compact ? styles.compact : ''}`}>
-                <div className={styles.weatherLoading}>
-                    <div className={styles.loadingSpinner}></div>
-                    <div className={styles.loadingText}>{t('weather.loading')}</div>
-                </div>
+                <WeatherSkeleton />
             </div>
         );
     }

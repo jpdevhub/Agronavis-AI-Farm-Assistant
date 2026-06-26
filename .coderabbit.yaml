@@ -1,9 +1,24 @@
 # CodeRabbit Configuration
 # This file configures how the CodeRabbit AI reviewer behaves in pull requests.
 
+# General instructions to guide CodeRabbit's AI behavior
+instructions: |
+  STRICT RULES FOR REVIEWS:
+  1. NO GREEN TICKS FOR BUGS: If you discover a major concern, bug, memory leak, cache-write failure, or security issue, you MUST use the "Request Changes" workflow. You are FORBIDDEN from approving the PR (green tick) if these issues exist.
+  2. NO VAGUE CONCERNS: Do not raise hypothetical, vague, or subjective concerns. Only leave comments if you have a concrete, actionable issue with a specific code fix.
+  3. BLOCK FOR CONTRIBUTOR: Your primary role is to act as a gatekeeper. Contributors MUST resolve your major concerns before the human maintainer spends time reviewing.
+
 reviews:
   # When true, CodeRabbit will use the "Request Changes" workflow instead of "Approve".
-  # If it finds issues (bugs, logic errors, etc.), it will mark the PR as "Request Changes".
-  # The contributor must resolve the issues, and CodeRabbit will verify them.
-  # As an admin/maintainer, you can always manually override and approve the PR if needed.
+  # Combined with GitHub Branch Protection, this prevents the PR from being merged until resolved.
   request_changes_workflow: true
+  
+  # Use the assertive profile to be more strict and direct, avoiding overly polite or lenient approvals.
+  profile: "assertive"
+  
+  # Disable the poem to keep the review professional and concise.
+  poem: false
+
+chat:
+  # Allow contributors to chat with the bot to resolve issues
+  auto_reply: true

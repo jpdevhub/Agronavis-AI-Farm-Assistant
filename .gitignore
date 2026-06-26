@@ -100,3 +100,6 @@ frontend/public/swe-worker-*.js
 # macOS resource forks
 ._*
 .DS_Store
+
+# ─── WASM Auto-generated ────────────────────────────────────────────────────────
+frontend/public/wasm/*.wasm

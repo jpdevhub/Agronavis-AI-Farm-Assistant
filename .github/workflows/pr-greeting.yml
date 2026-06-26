@@ -1,0 +1,34 @@
+name: PR Greetings
+on:
+  pull_request_target:
+    types: [opened, closed]
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Greet on Open
+        if: github.event.action == 'opened'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "👋 Welcome! Thank you for opening this PR. We really appreciate your contribution to Agronavis!\n\nIf you haven't already, please consider giving the repository a ⭐️ to show your support. It helps us grow!"
+            })
+
+      - name: Greet on Merge
+        if: github.event.action == 'closed' && github.event.pull_request.merged == true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "🎉 Awesome work! Your PR has been successfully merged.\n\nThank you for your contribution! If you find this project interesting, please don't forget to star ⭐️ the repository!"
+            })

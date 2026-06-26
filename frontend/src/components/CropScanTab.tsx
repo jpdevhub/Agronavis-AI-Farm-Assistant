@@ -21,6 +21,8 @@ import {
   type CropScan,
 } from '../utils/cropScanApi'
 import { farmApi } from '../utils/farmApi'
+import { runLocalONNXInference } from '../utils/onnxInference'
+import { addOfflineCropScan } from '../lib/offlineStorage'
 
 // ── Icons (inline SVG) ────────────────────────────────────────────────────────
 
@@ -88,6 +90,7 @@ const CropScanTab: React.FC = () => {
   const [result, setResult] = useState<DiagnosisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [scanSource, setScanSource] = useState<'on-device' | 'server' | null>(null)
 
   // History
   const [history, setHistory] = useState<CropScan[]>([])
@@ -132,6 +135,14 @@ const CropScanTab: React.FC = () => {
       setError('Please select a PNG, JPG, or WEBP image.')
       return
     }
+
+    // Validate file size (10MB limit)
+    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+    if (file.size > MAX_SIZE) {
+      setError('File size too large. Maximum size is 10MB.')
+      return
+    }
+
     setSelectedFile(file)
     setResult(null)
     setError(null)
@@ -168,20 +179,62 @@ const CropScanTab: React.FC = () => {
     setError(null)
     setResult(null)
     setSaved(false)
+    setScanSource(null)
+
+    let diagnosis: DiagnosisResult
+    let source: 'on-device' | 'server' = 'server'
+
     try {
-      const diagnosis = await diagnoseImage(
-        selectedFile,
-        selectedFarmId || undefined
-      )
-      setResult(diagnosis)
-      if (selectedFarmId) setSaved(true)
-      // Refresh history after scan
-      await loadHistory(selectedFarmId || undefined)
+      if (typeof window !== 'undefined' && navigator.onLine) {
+        // Attempt online server-side scan
+        diagnosis = await diagnoseImage(
+          selectedFile,
+          selectedFarmId || undefined
+        )
+        source = 'server'
+      } else {
+        throw new Error('Device is offline. Running local scanner.')
+      }
     } catch (err: any) {
-      setError(err.message || 'Scan failed. Make sure the Python backend is running.')
-    } finally {
-      setLoading(false)
+      console.log('Online scan failed or device is offline. Falling back to local ONNX inference:', err)
+      try {
+        const localResult = await runLocalONNXInference(selectedFile)
+        diagnosis = {
+          predicted_disease_name: localResult.predicted_disease_name,
+          confidence_score: localResult.confidence_score,
+          is_healthy: localResult.is_healthy,
+          crop_type: localResult.crop_type,
+          symptoms: localResult.symptoms,
+          recommended_action: localResult.recommended_action
+        }
+        source = 'on-device'
+
+        // Save scan result to IndexedDB local history if a farm is selected
+        if (selectedFarmId) {
+          const offlineScan = {
+            id: Math.random().toString(36).substring(2, 11) + Date.now().toString(),
+            farm_id: selectedFarmId,
+            detected_disease: diagnosis.predicted_disease_name,
+            confidence_score: diagnosis.confidence_score,
+            recommendation: diagnosis.recommended_action.join(' | '),
+            scan_date: new Date().toISOString()
+          }
+          await addOfflineCropScan(offlineScan)
+        }
+      } catch (localErr: any) {
+        setError(localErr.message || 'Scan failed. Local ONNX model couldn\'t be loaded or executed.')
+        setLoading(false)
+        return
+      }
     }
+
+    setResult(diagnosis)
+    setScanSource(source)
+    if (selectedFarmId) setSaved(true)
+
+    // Refresh history after scan
+    await loadHistory(selectedFarmId || undefined)
+    setLoading(false)
   }
 
   // ── Confidence colour ────────────────────────────────────────────────────
@@ -318,9 +371,14 @@ const CropScanTab: React.FC = () => {
                 </div>
                 <div className={styles.resultMeta}>
                   <div className={styles.resultName}>{result.predicted_disease_name}</div>
-                  {result.crop_type && (
-                    <div className={styles.resultCrop}>Crop: {result.crop_type}</div>
-                  )}
+                  <div className={styles.resultCrop}>
+                    {result.crop_type ? `Crop: ${result.crop_type}` : 'Crop: Unknown'}
+                    {scanSource && (
+                      <span style={{ marginLeft: 8, opacity: 0.85 }}>
+                        &middot; {scanSource === 'on-device' ? '⚡ On-Device' : '☁️ Server'}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className={styles.resultBadge}>{severityBadge}</div>
               </div>

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "node -e \"const fs=require('fs');const path=require('path');const src=path.join(__dirname,'node_modules','onnxruntime-web','dist');const dest=path.join(__dirname,'public','wasm');if(fs.existsSync(src)){fs.mkdirSync(dest,{recursive:true});fs.readdirSync(src).filter(f=>f.endsWith('.wasm')).forEach(f=>fs.copyFileSync(path.join(src,f),path.join(dest,f)));console.log('Copied onnxruntime-web WASM files to public/wasm')} else {console.error('Error: onnxruntime-web node_modules not found. WASM files are required for offline inference.');process.exit(1)}\""
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
@@ -22,7 +23,9 @@
     "i18next": "^25.6.0",
     "i18next-browser-languagedetector": "^8.2.0",
     "leaflet": "^1.9.4",
+    "localforage": "^1.10.0",
     "next": "^14.1.0",
+    "onnxruntime-web": "^1.26.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.48.2",

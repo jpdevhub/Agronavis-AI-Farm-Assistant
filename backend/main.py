@@ -279,155 +279,25 @@ def _extract_crop_type(class_name: str) -> str:
         return parts[1].title() if len(parts) > 1 else "Unknown"
     return parts[0].title()
 
-DISEASE_SYMPTOMS: Dict[str, List[str]] = {
-    "apple_apple_scab": ["Olive-green to black spots on leaves", "Crusty scabby lesions on fruit", "Premature leaf drop"],
-    "apple_black_rot": ["Brown circular leaf lesions with purple halos", "Black rot on fruit surface", "Cankers on branches"],
-    "apple_cedar_apple_rust": ["Bright orange-yellow spots on upper leaf surface", "Tube-like projections on leaf underside", "Premature defoliation"],
-    "bean_angular_leaf_spot": ["Angular water-soaked leaf spots", "Brown necrotic patches", "Pod discoloration"],
-    "bean_rust": ["Small reddish-brown pustules on leaves", "Yellow halos around pustules", "Leaf defoliation under heavy infection"],
-    "bell_pepper_bacterial_spot": ["Water-soaked lesions on leaves", "Brown necrotic spots with yellow halos", "Fruit scab lesions"],
-    "cherry_powdery_mildew": ["White powdery fungal growth on leaves", "Leaf curling and distortion", "Stunted shoot growth"],
-    "corn_cercospora_leaf_spot": ["Gray to tan rectangular lesions", "Lesions parallel to leaf veins", "Premature leaf dying"],
-    "corn_common_rust": ["Brick-red pustules scattered on both leaf surfaces", "Pustules darken with age", "Leaf yellowing"],
-    "corn_gray_leaf_spot": ["Rectangular gray to brown lesions", "Lesions delimited by leaf veins", "Severe blighting in humid conditions"],
-    "corn_northern_leaf_blight": ["Large cigar-shaped gray-green lesions", "Lesions 1-6 inches long", "Premature plant death in severe cases"],
-    "cotton_aphids": ["Distorted curled leaves", "Sticky honeydew on leaf surfaces", "Sooty mold growth"],
-    "cotton_army_worm": ["Ragged leaf edges from feeding", "Visible caterpillars on plants", "Defoliation in severe infestations"],
-    "cotton_bacterial_blight": ["Angular water-soaked leaf spots", "Brown lesions with yellow halos", "Boll rot and stem cankers"],
-    "cotton_powdery_mildew": ["White powdery coating on leaves", "Yellowing of affected tissue", "Stunted plant growth"],
-    "cotton_target_spot": ["Circular brown lesions with concentric rings", "Target-like appearance", "Premature leaf drop"],
-    "diseased_cucumber": ["Yellowing of leaves", "Water-soaked lesions on foliage", "Wilting and vine collapse"],
-    "diseased_rice": ["Discolored or spotted leaves", "Water-soaked leaf sheaths", "Stunted plant growth"],
-    "grape_black_rot": ["Brown circular lesions with black borders on leaves", "Mummified shriveled berries", "Black pycnidia dots in lesions"],
-    "grape_esca_black_measles": ["Interveinal chlorosis and necrosis", "Tiger-stripe pattern on leaves", "Internal wood discoloration"],
-    "grape_leaf_blight": ["Large irregular brown leaf lesions", "Lesions coalesce leading to defoliation", "Berry shriveling"],
-    "groundnut_early_leaf_spot": ["Circular dark brown spots on upper leaf surface", "Yellow halos around spots", "Premature defoliation"],
-    "groundnut_late_leaf_spot": ["Dark brown to black circular spots", "Spots appear more on lower leaf surface", "Severe defoliation"],
-    "groundnut_nutrition_deficiency": ["Interveinal yellowing", "Stunted growth", "Pale green to yellow leaf color"],
-    "groundnut_rosette": ["Stunted plant growth", "Mosaic pattern on leaves", "Leaf curling and bunching"],
-    "groundnut_rust": ["Orange-brown pustules on lower leaf surface", "Yellow spots on upper leaf surface", "Premature defoliation"],
-    "guava_fruit_fly": ["Puncture marks on fruit surface", "Rotting flesh inside fruit", "Premature fruit drop"],
-    "guava_stylosa_disease": ["Dark lesions on fruit and leaves", "Fruit cracking and decay", "Leaf spotting"],
-    "guava_wilt": ["Sudden wilting of leaves", "Yellowing starting from older leaves", "Root and stem rotting"],
-    "lemon_bacterial_blight": ["Water-soaked leaf spots turning brown", "Leaf yellowing and drop", "Twig dieback"],
-    "lemon_citrus_canker": ["Raised corky lesions on leaves, fruit, and stems", "Yellow halos around lesions", "Premature fruit drop"],
-    "lemon_dry_leaf": ["Dry and brittle leaves", "Marginal leaf scorch", "Twig dieback"],
-    "lemon_greening": ["Asymmetric mottling (blotchy mottle)", "Yellow shoots (lemon shoots)", "Small misshapen bitter fruit"],
-    "lemon_powdery_mildew": ["White powdery fungal growth on young leaves", "Leaf distortion and curling", "Premature leaf drop"],
-    "lemon_spider_mites": ["Fine webbing on leaf undersides", "Stippled yellowing of leaves", "Bronzing of leaf surface"],
-    "peach_bacterial_spot": ["Water-soaked angular leaf spots", "Dark brown lesions with yellow halos", "Fruit spotting and cracking"],
-    "potato_early_blight": ["Circular dark brown spots with concentric rings on older leaves", "Yellow halos around lesions", "Lesions start on lower older leaves"],
-    "potato_late_blight": ["Water-soaked pale green to dark brown lesions", "White fungal growth on leaf undersides", "Rapid destruction of foliage"],
-    "pumpkin_bacterial_leaf_spot": ["Water-soaked angular spots on leaves", "Brown dried lesions with yellow borders", "Fruit surface lesions"],
-    "pumpkin_downy_mildew": ["Yellow angular spots on upper leaf surface", "Gray-purple fuzzy growth on leaf underside", "Rapid leaf blighting"],
-    "pumpkin_powdery_mildew": ["White powdery spots on leaf surfaces", "Leaf yellowing and browning", "Premature aging of plant"],
-    "rice_bacterial_blight": ["Water-soaked wave-like lesions on leaf edges", "Lesions turn yellow then white", "Bacterial ooze in early morning"],
-    "strawberry_leaf_scorch": ["Purple to reddish-brown spots on leaves", "Spots coalesce leading to blighted appearance", "Leaf edges scorch and dry"],
-    "sugarcane_bacterial_blight": ["Water-soaked reddish stripe on leaves", "Leaf margins become necrotic", "Stalk rot in severe cases"],
-    "sugarcane_red_rot": ["Red discoloration of internal stalk tissue", "White patches with red margins in cross-section", "Plant wilting and death"],
-    "sugarcane_rust": ["Orange-brown pustules on leaf surfaces", "Yellow halos surrounding pustules", "Leaf drying in severe infections"],
-    "sugarcane_yellow_leaf_disease": ["Yellowing of midrib on lower leaf surface", "Leaf roll and wilting", "Stunted growth and reduced yield"],
-    "tomato_bacterial_spot": ["Small water-soaked lesions on leaves and fruit", "Dark brown spots with yellow halos", "Fruit spots with raised margins"],
-    "tomato_early_blight": ["Dark concentric ring lesions (bullseye pattern)", "Lesions start on older lower leaves", "Yellow area around lesions"],
-    "tomato_late_blight": ["Large water-soaked pale to dark green lesions", "White mold on undersides in humid weather", "Rapid plant collapse"],
-    "tomato_leaf_mold": ["Pale yellow spots on upper leaf surface", "Olive-green to gray mold on undersides", "Leaf drop under severe infection"],
-    "tomato_septoria_leaf_spot": ["Circular spots with dark margins and light centers", "Small black pycnidia inside spots", "Progressive yellowing and leaf drop"],
-    "tomato_spider_mites": ["Fine stippling and bronzing on leaves", "Fine webbing on undersides", "Leaf curling and drying"],
-    "tomato_target_spot": ["Circular brown spots with concentric rings", "Spots coalesce in wet conditions", "Premature defoliation"],
-    "tomato_tomato_mosaic_virus": ["Light-dark green mosaic pattern on leaves", "Leaf distortion and cupping", "Stunted plant growth"],
-    "tomato_tomato_yellow_leaf_curl_virus": ["Upward leaf curling and yellowing", "Stunted compact plant growth", "Flower drop and low fruit set"],
-    "wheat_black_rust": ["Dark brown to black pustules on stems and leaves", "Pustules rupture releasing dark spores", "Severe lodging in heavy infection"],
-    "wheat_blast": ["Bleached or light-colored ear (head)", "Partially filled grain", "Diamond-shaped lesions on leaves"],
-    "wheat_brown_rust": ["Orange-brown pustules on upper leaf surface", "Pustules circular and scattered", "Leaf yellowing in severe cases"],
-    "wheat_common_root_rot": ["Browning of roots and crown", "Reduced tillering and plant vigor", "Premature ripening (whiteheads)"],
-    "wheat_head_blight": ["Pink-salmon fungal growth on spikelets", "Bleached spikelets (Fusarium)", "Shriveled grain"],
-    "wheat_loose_smut": ["Grain replaced by powdery black mass of spores", "Smut head visible before other heads emerge", "Spores released at flowering"],
-    "wheat_mildew": ["White powdery fungal colonies on leaves and stems", "Yellowing of tissue under colonies", "Reduced photosynthesis"],
-    "wheat_mite": ["Silvery streaking on leaves", "Leaf curling and withering", "Stunted plant growth"],
-    "wheat_septoria": ["Irregular tan to brown lesions with dark borders", "Small black pycnidia inside lesions", "Lesions coalesce in wet weather"],
-    "wheat_stem_fly": ["Dead heart in young plants", "Stem discoloration inside", "Whiteheads at heading stage"],
-    "wheat_yellow_rust": ["Bright yellow pustules in stripes along leaf veins", "Cool-weather disease", "Severe early attack causes complete leaf yellowing"],
-}
 
-DISEASE_TREATMENTS: Dict[str, List[str]] = {
-    "apple_apple_scab": ["Apply preventive fungicides (captan, mancozeb) in spring", "Rake and destroy fallen leaves", "Plant resistant varieties"],
-    "apple_black_rot": ["Remove and destroy infected fruit and cankered wood", "Apply copper-based fungicides", "Improve air circulation through pruning"],
-    "apple_cedar_apple_rust": ["Remove nearby juniper/cedar trees if possible", "Apply fungicides from pink bud stage", "Use resistant apple varieties"],
-    "bean_angular_leaf_spot": ["Use certified disease-free seeds", "Apply copper-based bactericides", "Avoid overhead irrigation"],
-    "bean_rust": ["Apply mancozeb or triazole fungicides at first sign", "Improve plant spacing for air circulation", "Remove and destroy infected plant debris"],
-    "bell_pepper_bacterial_spot": ["Apply copper bactericides preventively", "Use disease-free transplants", "Avoid working in field when wet"],
-    "cherry_powdery_mildew": ["Apply sulfur or myclobutanil fungicides", "Prune to improve air circulation", "Avoid excess nitrogen fertilization"],
-    "corn_cercospora_leaf_spot": ["Plant resistant hybrids", "Apply strobilurin or triazole fungicides", "Rotate crops away from corn"],
-    "corn_common_rust": ["Plant resistant corn hybrids", "Apply foliar fungicides if infection is early and severe", "Scout fields regularly"],
-    "corn_gray_leaf_spot": ["Plant resistant hybrids", "Rotate crops", "Apply triazole or strobilurin fungicides"],
-    "corn_northern_leaf_blight": ["Use resistant hybrids", "Apply foliar fungicides at tasseling", "Practice crop rotation"],
-    "cotton_aphids": ["Release beneficial insects (ladybugs, lacewings)", "Apply insecticidal soap or neem oil", "Use systemic insecticides if severe"],
-    "cotton_army_worm": ["Apply Bt (Bacillus thuringiensis) or chemical insecticides", "Monitor with pheromone traps", "Practice crop rotation"],
-    "cotton_bacterial_blight": ["Use disease-free seeds", "Apply copper bactericides", "Remove and destroy infected plants"],
-    "cotton_powdery_mildew": ["Apply sulfur or myclobutanil fungicides", "Improve plant spacing", "Avoid high nitrogen levels"],
-    "cotton_target_spot": ["Apply triazole or strobilurin fungicides", "Remove crop debris after harvest", "Rotate crops"],
-    "diseased_cucumber": ["Identify specific disease and apply appropriate fungicide/bactericide", "Improve drainage and air circulation", "Remove infected plant parts"],
-    "diseased_rice": ["Identify specific disease; apply appropriate management", "Ensure proper water management", "Use resistant varieties"],
-    "grape_black_rot": ["Apply myclobutanil or mancozeb from budbreak", "Remove mummified berries and infected canes", "Improve air circulation through pruning"],
-    "grape_esca_black_measles": ["No complete cure; manage through pruning infected wood", "Protect pruning wounds with paste", "Maintain vine vigor with proper nutrition"],
-    "grape_leaf_blight": ["Apply copper fungicides preventively", "Remove and destroy infected leaves", "Ensure good vineyard sanitation"],
-    "groundnut_early_leaf_spot": ["Apply chlorothalonil or mancozeb fungicides", "Rotate crops with non-host plants", "Use resistant varieties"],
-    "groundnut_late_leaf_spot": ["Apply tebuconazole or chlorothalonil", "Maintain proper plant spacing", "Remove crop debris after harvest"],
-    "groundnut_nutrition_deficiency": ["Test soil and apply deficient nutrients", "Apply balanced NPK fertilizers", "Use foliar micronutrient sprays"],
-    "groundnut_rosette": ["Control aphid vectors with insecticides", "Use resistant varieties", "Remove and destroy infected plants early"],
-    "groundnut_rust": ["Apply mancozeb or triazole fungicides", "Plant early to avoid peak rust season", "Use resistant varieties"],
-    "guava_fruit_fly": ["Use protein bait traps", "Apply cover sprays of insecticide", "Bag fruits when young"],
-    "guava_stylosa_disease": ["Remove and destroy infected plant parts", "Apply copper-based fungicides", "Maintain tree vigor through proper nutrition"],
-    "guava_wilt": ["No effective cure; remove infected trees", "Improve soil drainage", "Plant resistant rootstocks"],
-    "lemon_bacterial_blight": ["Apply copper bactericides preventively", "Prune infected branches", "Avoid overhead irrigation"],
-    "lemon_citrus_canker": ["Apply copper bactericides", "Remove and destroy infected plant material", "Use certified disease-free nursery stock"],
-    "lemon_dry_leaf": ["Improve irrigation management", "Apply balanced fertilizers", "Check for root problems"],
-    "lemon_greening": ["Control Asian citrus psyllid vector with insecticides", "Remove infected trees immediately", "Use certified disease-free planting material"],
-    "lemon_powdery_mildew": ["Apply sulfur-based fungicides on new growth", "Improve air circulation", "Avoid excess nitrogen"],
-    "lemon_spider_mites": ["Apply miticides (abamectin, bifenazate)", "Encourage natural predators", "Use water sprays to reduce populations"],
-    "peach_bacterial_spot": ["Apply copper bactericides during dormancy", "Use resistant varieties", "Avoid overhead irrigation"],
-    "potato_early_blight": ["Apply mancozeb or chlorothalonil fungicides preventively", "Rotate crops", "Ensure proper plant nutrition especially potassium"],
-    "potato_late_blight": ["Apply metalaxyl + mancozeb or cymoxanil based fungicides", "Destroy infected volunteers and cull piles", "Plant certified disease-free seed"],
-    "pumpkin_bacterial_leaf_spot": ["Apply copper-based bactericides", "Use disease-free seeds", "Avoid overhead irrigation"],
-    "pumpkin_downy_mildew": ["Apply metalaxyl-based fungicides preventively", "Improve field drainage", "Use resistant varieties"],
-    "pumpkin_powdery_mildew": ["Apply sulfur or myclobutanil fungicides", "Improve air circulation", "Avoid excessive nitrogen"],
-    "rice_bacterial_blight": ["Use resistant varieties", "Apply copper bactericides", "Avoid excess nitrogen and flood water from infected areas"],
-    "strawberry_leaf_scorch": ["Apply captan or myclobutanil fungicides", "Remove infected leaves", "Improve plant spacing and air circulation"],
-    "sugarcane_bacterial_blight": ["Use disease-free setts for planting", "Apply copper bactericides", "Remove and destroy infected plant material"],
-    "sugarcane_red_rot": ["Plant resistant varieties", "Use disease-free setts", "Treat setts with fungicide before planting"],
-    "sugarcane_rust": ["Apply mancozeb or triadimefon fungicides", "Plant resistant varieties", "Scout fields regularly"],
-    "sugarcane_yellow_leaf_disease": ["Control aphid vectors", "Use clean planting material", "Remove and destroy infected plants"],
-    "tomato_bacterial_spot": ["Apply copper bactericides preventively", "Use disease-free transplants", "Avoid overhead irrigation"],
-    "tomato_early_blight": ["Apply chlorothalonil or mancozeb fungicides", "Remove lower infected leaves", "Maintain adequate plant nutrition"],
-    "tomato_late_blight": ["Apply metalaxyl + mancozeb or cymoxanil based fungicides immediately", "Remove and destroy infected plants", "Avoid overhead irrigation"],
-    "tomato_leaf_mold": ["Improve greenhouse ventilation", "Apply fungicides (chlorothalonil, mancozeb)", "Use resistant varieties"],
-    "tomato_septoria_leaf_spot": ["Apply chlorothalonil or mancozeb fungicides", "Remove infected lower leaves", "Avoid overhead irrigation"],
-    "tomato_spider_mites": ["Apply miticides (abamectin, spiromesifen)", "Use predatory mites for biological control", "Maintain plant water stress to minimum"],
-    "tomato_target_spot": ["Apply chlorothalonil or mancozeb fungicides", "Improve air circulation", "Remove plant debris"],
-    "tomato_tomato_mosaic_virus": ["Remove and destroy infected plants", "Control insect vectors", "Disinfect tools and hands frequently"],
-    "tomato_tomato_yellow_leaf_curl_virus": ["Control whitefly vectors with insecticides", "Use reflective mulches to deter whiteflies", "Plant resistant varieties"],
-    "wheat_black_rust": ["Apply triazole fungicides at first pustule appearance", "Plant resistant varieties", "Monitor fields regularly during warm humid weather"],
-    "wheat_blast": ["Apply tebuconazole at heading", "Use resistant varieties where available", "Avoid planting in areas with high disease pressure"],
-    "wheat_brown_rust": ["Apply triazole or strobilurin fungicides", "Plant resistant varieties", "Scout fields regularly"],
-    "wheat_common_root_rot": ["Seed treatment with fungicides (thiram, carboxin)", "Rotate crops", "Reduce soil compaction"],
-    "wheat_head_blight": ["Apply tebuconazole or metconazole at flowering", "Avoid planting after corn or in areas with high Fusarium", "Use resistant varieties"],
-    "wheat_loose_smut": ["Treat seeds with systemic fungicides (carboxin, tebuconazole)", "Use certified smut-free seeds", "Hot water seed treatment"],
-    "wheat_mildew": ["Apply triazole or sulfur-based fungicides", "Plant resistant varieties", "Avoid excess nitrogen fertilization"],
-    "wheat_mite": ["Apply miticides or acaricides", "Remove crop debris", "Monitor edges of fields first"],
-    "wheat_septoria": ["Apply triazole fungicides from GS31", "Use resistant varieties", "Avoid dense sowing"],
-    "wheat_stem_fly": ["Apply systemic insecticides at tillering", "Early sowing to escape peak infestation", "Remove and destroy stubble after harvest"],
-    "wheat_yellow_rust": ["Apply triazole fungicides immediately on detection", "Plant resistant varieties", "Scout fields regularly in cool wet spring weather"],
-}
+def _get_disease_data(class_name: str) -> dict:
+    """Fetch disease info from Supabase crop_diseases table by class_key."""
+    try:
+        res = supabase.table("crop_diseases").select("symptoms, treatment") \
+            .eq("class_key", class_name).limit(1).execute()
+        if res.data:
+            return res.data[0]
+    except Exception as e:
+        print(f"[WARN] DB lookup failed for {class_name}: {e}")
+    return {}
 
 def _get_symptoms(class_name: str) -> List[str]:
-    if class_name.startswith("healthy_"):
-        return ["No disease symptoms detected", "Plant appears healthy"]
-    return DISEASE_SYMPTOMS.get(class_name, [f"Consult an agronomist for {_format_class_name(class_name)} symptoms"])
+    data = _get_disease_data(class_name)
+    return data.get("symptoms") or ["No disease symptoms detected" if class_name.startswith("healthy_") else f"Consult an agronomist for {_format_class_name(class_name)} symptoms"]
 
 def _get_treatments(class_name: str) -> List[str]:
-    if class_name.startswith("healthy_"):
-        return ["Continue current management practices", "Monitor regularly for early disease signs"]
-    return DISEASE_TREATMENTS.get(class_name, [f"Consult an agronomist for {_format_class_name(class_name)} treatment"])
+    data = _get_disease_data(class_name)
+    return data.get("treatment") or ["Continue current management practices" if class_name.startswith("healthy_") else f"Consult an agronomist for {_format_class_name(class_name)} treatment"]
 
 
 # ── ML Inference ─────────────────────────────────────────────────────────────
@@ -521,6 +391,25 @@ async def diagnose(
     ext = (file.filename or "").lower().split(".")[-1]
     if ext not in {"png", "jpg", "jpeg", "webp"}:
         raise HTTPException(status_code=400, detail="Only PNG/JPG/JPEG/WEBP images are accepted")
+
+    # Validate file size (10MB limit)
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+    if hasattr(file, "size") and file.size is not None:
+        if file.size > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail="Payload Too Large: Maximum allowed image size is 10MB."
+            )
+    else:
+        # Fallback check by seeking
+        file.file.seek(0, 2)
+        size = file.file.tell()
+        file.file.seek(0)
+        if size > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail="Payload Too Large: Maximum allowed image size is 10MB."
+            )
 
     contents = await file.read()
     result = run_inference(contents)
@@ -1006,10 +895,14 @@ async def get_all_diseases(user=Depends(verify_token)):
 
 @app.get("/api/wiki/diseases/{disease_id}")
 async def get_disease(disease_id: str, user=Depends(verify_token)):
-    res = supabase.table("crop_diseases").select("*").eq("id", disease_id).limit(1).execute()
+    # disease_id can be either a UUID or a class_key like "tomato_early_blight"
+    res = supabase.table("crop_diseases").select("*").eq("class_key", disease_id).limit(1).execute()
+    if not res.data:
+        # fallback: try by UUID id
+        res = supabase.table("crop_diseases").select("*").eq("id", disease_id).limit(1).execute()
     if not res.data:
         raise HTTPException(status_code=404, detail="Disease not found")
-    return res.data[0] if res.data else None
+    return res.data[0]
 
 @app.get("/api/wiki/search")
 async def search_wiki(q: str, category: str = "All Topics", user=Depends(verify_token)):

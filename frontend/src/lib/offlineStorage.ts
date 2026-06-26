@@ -209,3 +209,12 @@ export async function saveOfflineCropScans(scans: OfflineCropScan[], farmId?: st
     console.error('Error saving offline crop scans:', error);
   }
 }
+
+export async function addOfflineCropScan(scan: OfflineCropScan): Promise<void> {
+  try {
+    const db = await getDB();
+    await db.put('crop-scans', scan);
+  } catch (error) {
+    console.error('Error adding single offline crop scan:', error);
+  }
+}

@@ -21,6 +21,21 @@ const withPWA = withPWAInit({
     // They tell the SW how to handle specific request types at runtime
     runtimeCaching: [
       {
+        // Cache ONNX and WASM static assets (models and runtimes) for offline execution
+        urlPattern: ({ url }) => url.pathname.endsWith('.onnx') || url.pathname.endsWith('.wasm'),
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'agronavis-ml-assets-v1',
+          expiration: {
+            maxEntries: 10,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // Cache for 30 days
+          },
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+        },
+      },
+      {
         // Cache API responses for farms and crop-scans
         // Use matchCallback: Workbox tests RegExp against full URL, not just pathname
         urlPattern: ({ url }) => url.pathname.startsWith('/api/farms'),
@@ -84,9 +99,16 @@ const nextConfig = {
     ],
     formats: ['image/webp', 'image/avif'],
   },
-  transpilePackages: ['react-leaflet', 'leaflet'],
+  transpilePackages: ['react-leaflet', 'leaflet', 'onnxruntime-web'],
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js'],
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'onnxruntime-web': path.resolve(process.cwd(), 'node_modules/onnxruntime-web/dist/ort.all.min.js'),
+    };
+    return config;
   },
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,

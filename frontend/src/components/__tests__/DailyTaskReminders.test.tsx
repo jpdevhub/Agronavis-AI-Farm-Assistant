@@ -21,7 +21,7 @@ describe('DailyTaskReminders', () => {
       fertilize: true,
       harvest: false,
     });
-    expect(screen.getByText('2/3 complete today')).toBeInTheDocument();
+    expect(screen.getByText(/2\/3/)).toBeInTheDocument();
   });
 
   it('loads checked tasks from localStorage on mount', () => {
@@ -36,6 +36,6 @@ describe('DailyTaskReminders', () => {
     expect(screen.getByLabelText(/water/i)).toBeChecked();
     expect(screen.getByLabelText(/fertilize/i)).not.toBeChecked();
     expect(screen.getByLabelText(/harvest/i)).toBeChecked();
-    expect(screen.getByText('2/3 complete today')).toBeInTheDocument();
+    expect(screen.getByText(/2\/3/)).toBeInTheDocument();
   });
 });

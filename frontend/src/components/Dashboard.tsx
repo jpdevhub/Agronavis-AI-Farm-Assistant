@@ -1,4 +1,5 @@
 import MarketPriceWidget from "./MarketPriceWidget";
+import { FarmCardSkeleton, CropCardSkeleton, MapSkeleton } from "./Skeleton";
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
@@ -20,7 +21,7 @@ import OnboardingTour from './OnboardingTour';
 // SSR-disable Leaflet polygon mapper
 const PolygonMapper = dynamic(() => import('./map/PolygonMapper'), {
   ssr: false,
-  loading: () => <div className={s.loadingCard}><div className={s.spinner} />Loading map...</div>,
+  loading: () => <MapSkeleton />,
 });
 
 interface Field {
@@ -450,7 +451,11 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           </div>
 
           {loading ? (
-            <div className={s.loadingCard}><div className={s.spinner} />Loading farms...</div>
+            <div className={s.farmsGrid}>
+              <FarmCardSkeleton />
+              <FarmCardSkeleton />
+              <FarmCardSkeleton />
+            </div>
           ) : !hasFarms ? (
             <EmptyState
               variant="farms"
@@ -562,7 +567,11 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           </div>
 
           {loading ? (
-            <div className={s.loadingCard}><div className={s.spinner} />{t('dashboard.cropsTab.loading')}</div>
+            <div className={s['crop-list-skeleton']}>
+              <CropCardSkeleton />
+              <CropCardSkeleton />
+              <CropCardSkeleton />
+            </div>
           ) : !hasFarms ? (
             /* No farms at all — prompt to add a farm first */
             <EmptyState
@@ -995,3 +1004,4 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
 };
 
 export default Dashboard;
+
