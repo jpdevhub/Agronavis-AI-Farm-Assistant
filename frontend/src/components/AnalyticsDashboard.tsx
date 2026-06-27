@@ -3,6 +3,38 @@ import styles from '../styles/AnalyticsDashboard.module.css';
 import { yieldApi } from '../utils/yieldApi';
 import { soilHealthApi } from '../utils/soilHealthApi';
 import { farmApi } from '../utils/farmApi';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from 'recharts';
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string | number;
+}
+
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className={styles.customTooltip}>
+        <p className={styles.tooltipYear}>{label}</p>
+        <p className={styles.tooltipYield}>
+          Yield: <span className={styles.tooltipValue}>{payload[0].value}</span>{' '}
+          <span className={styles.tooltipUnit}>{payload[0].payload.unit}</span>
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 
 interface YieldRecord {
   id: string;
@@ -41,6 +73,25 @@ const getCropIcon = (cropType: string) =>
 const SEASONS = ['Kharif', 'Rabi', 'Zaid', 'Summer', 'Winter', 'Year-round'];
 const UNITS = ['kg', 'quintal', 'ton', 'bags', 'litre'];
 
+const convertUnit = (qty: number, fromUnit: string, toUnit: string): number => {
+  const from = (fromUnit || 'quintal').trim().toLowerCase();
+  const to = (toUnit || 'quintal').trim().toLowerCase();
+  if (from === to) return qty;
+
+  const toKgFactor: Record<string, number> = {
+    kg: 1,
+    quintal: 100,
+    ton: 1000,
+    bags: 50, // assume 50kg per bag
+    litre: 1, // approximate 1l = 1kg
+  };
+
+  const fromFactor = toKgFactor[from] || 1;
+  const toFactor = toKgFactor[to] || 1;
+
+  return (qty * fromFactor) / toFactor;
+};
+
 const AnalyticsDashboard: React.FC = () => {
   const [yields, setYields] = useState<YieldRecord[]>([]);
   const [soilRecords, setSoilRecords] = useState<SoilHealth[]>([]);
@@ -48,6 +99,62 @@ const AnalyticsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showYieldModal, setShowYieldModal] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const [selectedCrop, setSelectedCrop] = useState<string>('');
+
+  // Extract unique crop types from the yield records
+  const availableCrops = React.useMemo(() => {
+    const cropsSet = new Set<string>();
+    yields.forEach(r => {
+      if (r.crop_type) {
+        const name = r.crop_type.trim();
+        if (name) {
+          const normalized = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+          cropsSet.add(normalized);
+        }
+      }
+    });
+    return Array.from(cropsSet);
+  }, [yields]);
+
+  // Set default crop type when availableCrops loads or changes
+  useEffect(() => {
+    if (availableCrops.length > 0) {
+      if (!selectedCrop || !availableCrops.some(c => c.toLowerCase() === selectedCrop.toLowerCase())) {
+        setSelectedCrop(availableCrops[0]);
+      }
+    } else {
+      setSelectedCrop('');
+    }
+  }, [availableCrops, selectedCrop]);
+
+  // Process data for Recharts LineChart
+  const processedChartData = React.useMemo(() => {
+    if (!selectedCrop) return [];
+
+    const filtered = yields.filter(
+      r => r.crop_type && r.crop_type.trim().toLowerCase() === selectedCrop.toLowerCase()
+    );
+
+    const groupedByYear: Record<number, { quantity: number; unit: string }> = {};
+    filtered.forEach(r => {
+      const yr = r.year;
+      const unit = r.unit || 'quintal';
+      if (!groupedByYear[yr]) {
+        groupedByYear[yr] = { quantity: 0, unit };
+      }
+      const convertedQuantity = convertUnit(r.quantity || 0, unit, groupedByYear[yr].unit);
+      groupedByYear[yr].quantity += convertedQuantity;
+    });
+
+    return Object.entries(groupedByYear)
+      .map(([year, data]) => ({
+        year: parseInt(year),
+        quantity: Number(data.quantity.toFixed(2)),
+        unit: data.unit,
+      }))
+      .sort((a, b) => a.year - b.year);
+  }, [yields, selectedCrop]);
 
   const currentYear = new Date().getFullYear();
 
@@ -180,6 +287,45 @@ const AnalyticsDashboard: React.FC = () => {
             <div className={styles.statLabel}>Total Yield</div>
           </div>
         </div>
+
+        {/* YoY Yield Trend Line Chart */}
+        {yields.length > 0 && availableCrops.length > 0 && (
+          <div className={styles.chartCard}>
+            <div className={styles.chartHeader}>
+              <h4 className={styles.chartTitle}>YoY Yield Trend</h4>
+              <select
+                className={styles.cropSelect}
+                aria-label="Select crop for YoY yield trend"
+                value={selectedCrop}
+                onChange={(e) => setSelectedCrop(e.target.value)}
+              >
+                {availableCrops.map((crop) => (
+                  <option key={crop} value={crop}>
+                    {crop}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.chartContainer}>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={processedChartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
+                  <XAxis dataKey="year" stroke="var(--color-text-muted)" fontSize={12} tickLine={false} />
+                  <YAxis stroke="var(--color-text-muted)" fontSize={12} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line
+                    type="monotone"
+                    dataKey="quantity"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    activeDot={{ r: 6 }}
+                    dot={{ r: 4, stroke: '#10b981', strokeWidth: 2, fill: '#fff' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         {/* Yield Records */}
         {yields.length === 0 ? (
