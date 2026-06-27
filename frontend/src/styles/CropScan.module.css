@@ -230,6 +230,41 @@
   letter-spacing: 0.5px;
 }
 
+
+
+.healthy-badge {
+  background: #16a34a;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+
+
+
+.disease-badge {
+  background: #dc2626;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+
+
+
+.quality-badge {
+  background: #ea580c;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+
+
+
 /* Confidence bar */
 .confidenceSection {
   padding: 16px 20px;

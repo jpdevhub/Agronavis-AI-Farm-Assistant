@@ -14,6 +14,7 @@ export interface DiagnosisResult {
   crop_type?: string
   symptoms: string[]
   recommended_action: string[]
+  is_quality_error?: boolean;
 }
 
 export interface CropScan {
