@@ -209,7 +209,7 @@ const CropScanTab: React.FC = () => {
         ? '⚠ Disease Detected'
         : '';
   const badgeClass = isQualityError
-    ? styles.qualityBadge
+    ? styles['quality-badge']
     : result?.is_healthy
       ? styles['healthy-badge']
       : styles['disease-badge'];

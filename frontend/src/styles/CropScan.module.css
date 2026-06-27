@@ -232,7 +232,7 @@
 
 
 
-.healthy-Badge {
+.healthy-badge {
   background: #16a34a;
   color: white;
   padding: 8px 12px;
@@ -243,7 +243,7 @@
 
 
 
-.disease-Badge {
+.disease-badge {
   background: #dc2626;
   color: white;
   padding: 8px 12px;
@@ -254,7 +254,7 @@
 
 
 
-.quality-Badge {
+.quality-badge {
   background: #ea580c;
   color: white;
   padding: 8px 12px;
