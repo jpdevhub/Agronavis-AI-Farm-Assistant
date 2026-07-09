@@ -1,0 +1,31 @@
+# HF Spaces requirements — CPU-only build
+# Used by CI when pushing to Hugging Face Space
+# Overrides requirements.txt to install the lightweight CPU torch wheel
+# so the Space starts in ~3 min instead of timing out on a 2.5GB CUDA wheel
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Web framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+
+# Environment
+python-dotenv>=1.0.0
+
+# Supabase SDK
+supabase>=2.9.0
+
+# Data validation
+pydantic>=2.7.0
+
+# ML — PyTorch CPU-only (much smaller than default CUDA build)
+torch==2.3.0+cpu
+torchvision==0.18.0+cpu
+Pillow>=10.0.0
+
+# CLIP (OOD guard for non-plant images)
+transformers>=4.40.0
+
+# Web search (disease wiki)
+duckduckgo-search>=6.2.0
