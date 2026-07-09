@@ -160,6 +160,8 @@ jobs:
           git add .gitattributes
           git add .
           git commit -m "ci: deploy $(date -u '+%Y-%m-%d %H:%M UTC') [$(git -C .. rev-parse --short HEAD)]"
+          # Rename default branch to main (git may default to 'master')
+          git branch -M main
           git remote add hf \
             https://karansingh12:${HF_TOKEN}@huggingface.co/spaces/karansingh12/agronavis-backend
           git push hf main --force
