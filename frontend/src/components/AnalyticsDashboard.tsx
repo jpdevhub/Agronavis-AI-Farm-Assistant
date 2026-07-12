@@ -85,8 +85,13 @@ const convertUnit = (qty: number, fromUnit: string, toUnit: string): number => {
     litre: 1, // approximate 1l = 1kg
   };
 
-  const fromFactor = toKgFactor[from] || 1;
-  const toFactor = toKgFactor[to] || 1;
+  if (!(from in toKgFactor) || !(to in toKgFactor)) {
+    console.warn(`Unsupported unit conversion from "${fromUnit}" to "${toUnit}".`);
+    return qty;
+  }
+
+  const fromFactor = toKgFactor[from];
+  const toFactor = toKgFactor[to];
 
   return (qty * fromFactor) / toFactor;
 };
