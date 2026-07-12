@@ -11,7 +11,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
 } from 'recharts';
 
 interface CustomTooltipProps {
@@ -136,14 +135,16 @@ const AnalyticsDashboard: React.FC = () => {
       r => r.crop_type && r.crop_type.trim().toLowerCase() === selectedCrop.toLowerCase()
     );
 
+    const baseUnit = filtered.length > 0 ? (filtered[0].unit || 'quintal') : 'quintal';
+
     const groupedByYear: Record<number, { quantity: number; unit: string }> = {};
     filtered.forEach(r => {
       const yr = r.year;
       const unit = r.unit || 'quintal';
       if (!groupedByYear[yr]) {
-        groupedByYear[yr] = { quantity: 0, unit };
+        groupedByYear[yr] = { quantity: 0, unit: baseUnit };
       }
-      const convertedQuantity = convertUnit(r.quantity || 0, unit, groupedByYear[yr].unit);
+      const convertedQuantity = convertUnit(r.quantity || 0, unit, baseUnit);
       groupedByYear[yr].quantity += convertedQuantity;
     });
 
