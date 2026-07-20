@@ -14,7 +14,8 @@ python-dotenv>=1.0.0
 # Supabase SDK — pin exact chain so pip resolves websockets correctly
 supabase==2.31.0
 realtime==2.31.0
-websockets==14.0
+# websockets intersection: gradio-client needs <13, realtime needs >=11, asyncio submodule needs >=12
+websockets>=12.0,<13.0
 
 # Data validation
 pydantic>=2.7.0
