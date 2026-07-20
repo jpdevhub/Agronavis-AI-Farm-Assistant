@@ -17,11 +17,17 @@ except ImportError:
     import torch
     
     # Map torch version to matching torchvision version
+    # Include HF's known typo'd ZeroGPU versions (e.g. 2.11.0 is actually 2.1.1 under the hood)
     tv_map = {
         "2.0.0": "0.15.1", "2.0.1": "0.15.2",
         "2.1.0": "0.16.0", "2.1.1": "0.16.1", "2.1.2": "0.16.2",
         "2.2.0": "0.17.0", "2.2.1": "0.17.1", "2.2.2": "0.17.2",
         "2.3.0": "0.18.0", "2.3.1": "0.18.1", "2.4.0": "0.19.0",
+        # HF ZeroGPU custom versions
+        "2.11.0": "0.16.1", # Typo for 2.1.1
+        "2.10.0": "0.16.0", # Typo for 2.1.0
+        "2.9.1": "0.15.2",  # Typo for 2.0.1
+        "2.8.0": "0.15.1",  # Typo for 2.0.0
     }
     base_ver = torch.__version__.split("+")[0]
     tv_ver = tv_map.get(base_ver, "0.18.0")
