@@ -8,6 +8,18 @@ This file launches our FastAPI backend on port 7860 (HF default).
 import sys
 import subprocess
 
+# ── Fix 1: Force websockets>=12 BEFORE any other import ──────────────────────
+# HF Gradio's own pip command adds "websockets>=10.4" which can install 10.x/11.x.
+# supabase/realtime requires websockets.asyncio which only exists in 12.0+.
+# We upgrade it here so Python's import machinery finds the new version first.
+print("Ensuring websockets>=12.0 for supabase/realtime compatibility...")
+subprocess.check_call(
+    [sys.executable, "-m", "pip", "install", "websockets>=12.0,<13.0", "-q", "--no-deps"],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
+print("websockets OK.")
+
 # Hack to bypass Hugging Face ZeroGPU strict torch version validator bugs.
 # We install torchvision dynamically WITHOUT touching the pre-installed torch.
 try:
