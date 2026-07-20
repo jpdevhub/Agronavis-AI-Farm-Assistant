@@ -8,23 +8,36 @@ This file launches our FastAPI backend on port 7860 (HF default).
 import sys
 import subprocess
 import os
+import importlib
 
-# ── Fix 1: Ensure websockets>=12.0 BEFORE any import ─────────────────────────
-# HF installs websockets<12 as root into /usr/local/lib which takes precedence
-# over user pip installs. We install websockets 12.x to a private /tmp dir and
-# prepend it to sys.path so our version ALWAYS wins the import race.
+# ── Fix 1: Ensure websockets 12.1 BEFORE any import ──────────────────────────
+# HF's base Docker image installs websockets<12 as root into /usr/local/lib.
+# supabase/realtime requires websockets.asyncio (added in 12.0).
+# Strategy: install 12.1 to a private /tmp dir, prepend to sys.path, purge stale
+# sys.modules entries, invalidate import caches, then explicitly pre-import it.
 _WS_DIR = "/tmp/hf_ws_upgrade"
 os.makedirs(_WS_DIR, exist_ok=True)
-print("Patching websockets → 12.1 (for supabase/realtime asyncio)...")
+print("Installing websockets 12.1 to private dir...")
 subprocess.check_call(
     [sys.executable, "-m", "pip", "install",
      "--target", _WS_DIR,
-     "websockets==12.1", "--no-deps", "-q"],
+     "websockets==12.0", "--no-deps", "-q"],
 )
-# Insert at position 0 so Python finds our copy before /usr/local/lib
-if _WS_DIR not in sys.path:
-    sys.path.insert(0, _WS_DIR)
-print("websockets 12.1 patched into sys.path[0].")
+
+# Step 2: Prepend to sys.path so our copy wins
+sys.path.insert(0, _WS_DIR)
+
+# Step 3: Purge any stale websockets entries from the module cache
+for _key in list(sys.modules.keys()):
+    if _key == "websockets" or _key.startswith("websockets."):
+        del sys.modules[_key]
+
+# Step 4: Invalidate the import finder cache
+importlib.invalidate_caches()
+
+# Step 5: Pre-import now so supabase/realtime finds it already loaded correctly
+import websockets  # noqa: E402
+print(f"websockets {websockets.__version__} loaded from {websockets.__file__}")
 
 # Hack to bypass Hugging Face ZeroGPU strict torch version validator bugs.
 # We install torchvision dynamically WITHOUT touching the pre-installed torch.
