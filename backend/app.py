@@ -7,18 +7,24 @@ This file launches our FastAPI backend on port 7860 (HF default).
 
 import sys
 import subprocess
+import os
 
-# ── Fix 1: Force websockets>=12 BEFORE any other import ──────────────────────
-# HF Gradio's own pip command adds "websockets>=10.4" which can install 10.x/11.x.
-# supabase/realtime requires websockets.asyncio which only exists in 12.0+.
-# We upgrade it here so Python's import machinery finds the new version first.
-print("Ensuring websockets>=12.0 for supabase/realtime compatibility...")
+# ── Fix 1: Ensure websockets>=12.0 BEFORE any import ─────────────────────────
+# HF installs websockets<12 as root into /usr/local/lib which takes precedence
+# over user pip installs. We install websockets 12.x to a private /tmp dir and
+# prepend it to sys.path so our version ALWAYS wins the import race.
+_WS_DIR = "/tmp/hf_ws_upgrade"
+os.makedirs(_WS_DIR, exist_ok=True)
+print("Patching websockets → 12.1 (for supabase/realtime asyncio)...")
 subprocess.check_call(
-    [sys.executable, "-m", "pip", "install", "websockets>=12.0,<13.0", "-q", "--no-deps"],
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL,
+    [sys.executable, "-m", "pip", "install",
+     "--target", _WS_DIR,
+     "websockets==12.1", "--no-deps", "-q"],
 )
-print("websockets OK.")
+# Insert at position 0 so Python finds our copy before /usr/local/lib
+if _WS_DIR not in sys.path:
+    sys.path.insert(0, _WS_DIR)
+print("websockets 12.1 patched into sys.path[0].")
 
 # Hack to bypass Hugging Face ZeroGPU strict torch version validator bugs.
 # We install torchvision dynamically WITHOUT touching the pre-installed torch.
