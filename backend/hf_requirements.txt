@@ -17,9 +17,8 @@ supabase>=2.9.0
 # Data validation
 pydantic>=2.7.0
 
-# ML — ZeroGPU compatible versions (Max supported is 2.1.1)
-torch==2.1.1
-torchvision==0.16.1
+# ML — ZeroGPU comes with PyTorch pre-installed.
+# torchvision is installed dynamically in app.py to avoid ZeroGPU validator bugs.
 Pillow>=10.0.0
 
 # CLIP (OOD guard for non-plant images)
