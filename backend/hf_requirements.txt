@@ -13,6 +13,7 @@ python-dotenv>=1.0.0
 
 # Supabase SDK
 supabase>=2.9.0
+websockets>=12.0  # supabase/realtime requires websockets.asyncio (added in v12)
 
 # Data validation
 pydantic>=2.7.0
