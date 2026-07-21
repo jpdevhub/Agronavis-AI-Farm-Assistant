@@ -32,3 +32,6 @@ duckduckgo-search>=6.2.0
 onnx>=1.15.0
 onnxruntime>=1.16.0
 onnxscript>=0.1.0
+
+# Model weights downloading
+huggingface_hub>=0.23.0
