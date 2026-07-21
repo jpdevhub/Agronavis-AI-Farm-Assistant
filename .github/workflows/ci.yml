@@ -37,8 +37,8 @@ jobs:
           # Use placeholder values for the build — real secrets live in Vercel
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ""
-          NEXT_PUBLIC_API_BASE_URL: https://karansingh12-agronavis-backend.hf.space/api
-          NEXT_PUBLIC_API_URL: https://karansingh12-agronavis-backend.hf.space
+          NEXT_PUBLIC_API_BASE_URL: https://agronavis-backend.onrender.com/api
+          NEXT_PUBLIC_API_URL: https://agronavis-backend.onrender.com
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           NEXT_PUBLIC_WEATHER_API_KEY: placeholder
 
@@ -47,8 +47,8 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-key-for-ci
-          NEXT_PUBLIC_API_BASE_URL: https://karansingh12-agronavis-backend.hf.space/api
-          NEXT_PUBLIC_API_URL: https://karansingh12-agronavis-backend.hf.space
+          NEXT_PUBLIC_API_BASE_URL: https://agronavis-backend.onrender.com/api
+          NEXT_PUBLIC_API_URL: https://agronavis-backend.onrender.com
           NEXT_PUBLIC_APP_URL: http://localhost:3000
 
   # ── Python Backend ────────────────────────────────────────────────────────
@@ -84,9 +84,9 @@ jobs:
       - name: Syntax check
         run: python -m py_compile main.py && echo "Syntax OK"
 
-  # ── Deploy Backend → Hugging Face Space ──────────────────────────────────
+  # ── Deploy Backend → Render.com ───────────────────────────────────────────
   deploy-backend:
-    name: Deploy Backend → HF Space
+    name: Deploy Backend → Render
     runs-on: ubuntu-latest
     needs: [frontend, backend]
     # Only deploy on push to main (not on PRs, not on develop)
@@ -95,108 +95,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ── 1. Validate model architecture BEFORE pushing ──────────────────
-      - name: Setup Python for model test
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install torch (CPU) for model self-test
-        run: |
-          pip install --quiet \
-            torch==2.3.0+cpu torchvision==0.18.0+cpu \
-            --extra-index-url https://download.pytorch.org/whl/cpu
-
-      - name: Download model weights from HF Space (LFS)
+      # Render auto-deploys from GitHub on every push to main.
+      # The deploy hook is a fallback to force a redeploy.
+      # Add RENDER_DEPLOY_HOOK_URL to GitHub Secrets (from Render dashboard).
+      - name: Trigger Render Redeploy
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          pip install --quiet huggingface_hub
-          python - <<'EOF'
-          import os
-          from huggingface_hub import hf_hub_download
-          token = os.environ["HF_TOKEN"]
-          # Download the model weights that live on the HF Space (not in GitHub)
-          path = hf_hub_download(
-              repo_id="karansingh12/agronavis-backend",
-              repo_type="space",
-              filename="model/plant_disease_resnet18.pth",
-              token=token,
-              local_dir="backend",
-          )
-          print(f"Downloaded weights to: {path}")
-          EOF
+          if [ -n "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Triggering Render deploy..."
+            curl -fsSL "$RENDER_DEPLOY_HOOK_URL" -o /dev/null -w "HTTP %{http_code}\n"
+            echo "Deploy triggered."
+          else
+            echo "RENDER_DEPLOY_HOOK_URL not set — Render will auto-deploy from GitHub push."
+          fi
 
-      - name: Run model architecture self-test
-        working-directory: backend
-        run: python test_model_arch.py
-
-      # ── 2. Prepare deploy directory ───────────────────────────────────
-      - name: Prepare HF Space payload
+      - name: Summary
         run: |
-          mkdir -p hf_deploy
-          # Copy all backend source files
-          cp backend/main.py       hf_deploy/
-          cp backend/chatbot.py    hf_deploy/
-          cp backend/app.py        hf_deploy/
-          cp backend/test_model_arch.py hf_deploy/
-          cp backend/hf_requirements.txt hf_deploy/requirements.txt
-          cp backend/hf_README.md  hf_deploy/README.md
-          # Copy model directory (class names + weights)
-          cp -r backend/model      hf_deploy/model
-
-      # ── 3. Push to HF Space via git ───────────────────────────────────
-      - name: Push to Hugging Face Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          cd hf_deploy
-          git init
-          git config user.email "ci@agronavis.ai"
-          git config user.name "AgroNavis CI"
-          git lfs install
-          # Track large model file via LFS
-          git lfs track "model/*.pth"
-          git add .gitattributes
-          git add .
-          git commit -m "ci: deploy $(date -u '+%Y-%m-%d %H:%M UTC') [$(git -C .. rev-parse --short HEAD)]"
-          # Rename default branch to main (git may default to 'master')
-          git branch -M main
-          git remote add hf \
-            https://karansingh12:${HF_TOKEN}@huggingface.co/spaces/karansingh12/agronavis-backend
-          git push hf main --force
-
-      # ── 4. Set Space secrets (idempotent) ────────────────────────────
-      - name: Sync secrets to HF Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          pip install --quiet huggingface_hub
-          python - <<'EOF'
-          import os
-          from huggingface_hub import HfApi
-
-          api = HfApi(token=os.environ["HF_TOKEN"])
-          repo = "karansingh12/agronavis-backend"
-
-          secrets_to_set = {
-              "SUPABASE_URL":              os.environ["SUPABASE_URL"],
-              "SUPABASE_SERVICE_ROLE_KEY": os.environ["SUPABASE_SERVICE_ROLE_KEY"],
-              "SUPABASE_ANON_KEY":         os.environ["SUPABASE_ANON_KEY"],
-              "GEMINI_API_KEY":            os.environ["GEMINI_API_KEY"],
-          }
-
-          for name, value in secrets_to_set.items():
-              if value:
-                  api.add_space_secret(repo_id=repo, key=name, value=value)
-                  print(f"  Set secret: {name}")
-              else:
-                  print(f"  Skipped (empty): {name}")
-
-          print("Done syncing secrets.")
-          EOF
-
+          echo "✅ Backend deploying to Render.com"
+          echo "   Dashboard: https://dashboard.render.com"
+          echo "   Live API:  https://agronavis-backend.onrender.com"
