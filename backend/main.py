@@ -34,6 +34,18 @@ from pydantic import BaseModel
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
+# ZeroGPU support — graceful fallback for local dev
+try:
+    import spaces  # HF ZeroGPU decorator
+    HAS_ZERO_GPU = True
+except ImportError:
+    # Running locally — create a no-op decorator
+    class spaces:  # type: ignore
+        @staticmethod
+        def GPU(fn):
+            return fn
+    HAS_ZERO_GPU = False
+
 # Try to load root .env first, fallback to current dir
 env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
 if os.path.exists(env_path):
@@ -302,6 +314,7 @@ def _get_treatments(class_name: str) -> List[str]:
 
 # ── ML Inference ─────────────────────────────────────────────────────────────
 
+@spaces.GPU  # Tells ZeroGPU this function needs a GPU; no-op when running locally
 def run_inference(image_bytes: bytes) -> PredictionResponse:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
