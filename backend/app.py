@@ -69,6 +69,21 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", f"torchvision=={tv_ver}", "--no-deps"])
 
 import uvicorn
+
+# ── ZeroGPU: MUST import spaces and define @spaces.GPU in entry point ─────────
+# ZeroGPU's startup scanner checks app.py (the entry point) for GPU functions.
+# Defining it here guarantees detection even if main.py import is delayed.
+import spaces  # installed by HF; also cached in sys.modules for main.py
+
+@spaces.GPU
+def _gpu_sentinel():
+    """
+    ZeroGPU registration sentinel.
+    Required to keep the Space running on the free ZeroGPU hardware tier.
+    Actual GPU inference is in main.py:run_inference (also @spaces.GPU).
+    """
+    pass
+
 from main import app  # noqa: F401
 
 if __name__ == "__main__":
