@@ -21,7 +21,9 @@ print("Installing websockets 12.1 to private dir...")
 subprocess.check_call(
     [sys.executable, "-m", "pip", "install",
      "--target", _WS_DIR,
-     "websockets==12.0", "--no-deps", "-q"],
+     # 12.0 exists but doesn't have websockets.asyncio — that was added in 13.0!
+     # We bypass the gradio-client<13 build constraint here because we never import gradio.
+     "websockets==13.0", "--no-deps", "-q"],
 )
 
 # Step 2: Prepend to sys.path so our copy wins
