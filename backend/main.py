@@ -33,6 +33,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from collections import defaultdict
+from transformers import CLIPModel, CLIPProcessor
+from duckduckgo_search import DDGS
 
 # ZeroGPU support — graceful fallback for local dev
 try:
@@ -97,7 +100,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         if not user_response or not user_response.user:
             print("verify_token failed: No user returned")
             raise HTTPException(status_code=401, detail="Invalid or expired token")
-        return user_response.user
+        return user_response.user  # type: ignore
     except HTTPException:
         raise
     except Exception as e:
@@ -349,7 +352,7 @@ def run_inference(image_bytes: bytes) -> PredictionResponse:
         probs = torch.nn.functional.softmax(out[0], dim=0)
         conf, idx = torch.max(probs, 0)
 
-    class_name = CLASS_NAMES[idx.item()]
+    class_name = CLASS_NAMES[idx.item()]  # type: ignore
     is_healthy = class_name.startswith("healthy_")
 
     return PredictionResponse(
@@ -541,8 +544,8 @@ async def update_farm(farm_id: str, body: FarmUpdate, user=Depends(verify_token)
     updates = body.model_dump(exclude_none=True)
     if "location" in updates:
         existing = supabase.table("farms").select("location").eq("id", farm_id).limit(1).execute()
-        current_loc = existing.data[0].get("location") or {}
-        updates["location"] = {**current_loc, **updates["location"]}
+        current_loc = existing.data[0].get("location") or {}  # type: ignore
+        updates["location"] = {**current_loc, **updates["location"]}  # type: ignore
 
     res = supabase.table("farms").update(updates).eq("id", farm_id).execute()
     return {"success": True, "data": (res.data[0] if res.data else None)}
@@ -568,7 +571,7 @@ async def get_fields(
         supabase.table("farms")
         .select("id")
         .eq("id", farm_id)
-        .eq("farmer_id", user.id)
+        .eq("farmer_id", user.id)  # type: ignore
         .limit(1)
         .execute()
     )
@@ -596,7 +599,7 @@ async def add_field(
         supabase.table("farms")
         .select("id")
         .eq("id", farm_id)
-        .eq("farmer_id", user.id)
+        .eq("farmer_id", user.id)  # type: ignore
         .limit(1)
         .execute()
     )
@@ -632,7 +635,7 @@ async def delete_field(
         supabase.table("farms")
         .select("id")
         .eq("id", farm_id)
-        .eq("farmer_id", user.id)
+        .eq("farmer_id", user.id)  # type: ignore
         .limit(1)
         .execute()
     )
@@ -667,7 +670,7 @@ async def update_crop(crop_id: str, body: CropUpdate, user=Depends(verify_token)
     crop = supabase.table("crops").select("farm_id").eq("id", crop_id).limit(1).execute()
     if not crop.data:
         raise HTTPException(status_code=404, detail="Crop not found")
-    owned = supabase.table("farms").select("id").eq("id", crop.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()
+    owned = supabase.table("farms").select("id").eq("id", crop.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()  # type: ignore
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
     res = supabase.table("crops").update(body.model_dump(exclude_none=True)).eq("id", crop_id).execute()
@@ -678,7 +681,7 @@ async def delete_crop(crop_id: str, user=Depends(verify_token)):
     crop = supabase.table("crops").select("farm_id").eq("id", crop_id).limit(1).execute()
     if not crop.data:
         raise HTTPException(status_code=404, detail="Crop not found")
-    owned = supabase.table("farms").select("id").eq("id", crop.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()
+    owned = supabase.table("farms").select("id").eq("id", crop.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()  # type: ignore
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
     supabase.table("crops").delete().eq("id", crop_id).execute()
@@ -713,7 +716,7 @@ async def delete_resource(resource_id: str, user=Depends(verify_token)):
     resource = supabase.table("farm_resources").select("farm_id").eq("id", resource_id).limit(1).execute()
     if not resource.data:
         raise HTTPException(status_code=404, detail="Resource not found")
-    owned = supabase.table("farms").select("id").eq("id", resource.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()
+    owned = supabase.table("farms").select("id").eq("id", resource.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()  # type: ignore
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
     supabase.table("farm_resources").delete().eq("id", resource_id).execute()
@@ -832,8 +835,8 @@ async def predict_yield(
         raise HTTPException(status_code=404, detail="Farm not found")
 
     farm = farm_res.data[0]
-    location = farm.get("location") or {}
-    fields: list = location.get("fields", [])
+    location = farm.get("location") or {}  # type: ignore
+    fields: list = location.get("fields", [])  # type: ignore
 
     if fields:
         area_ha = sum(
@@ -841,8 +844,8 @@ async def predict_yield(
             for f in fields
         )
     else:
-        area_acres = farm.get("total_area") or 0.0
-        area_ha = area_acres / 2.471
+        area_acres = farm.get("total_area") or 0.0  # type: ignore
+        area_ha = area_acres / 2.471  # type: ignore
 
     if area_ha <= 0:
         raise HTTPException(
@@ -920,7 +923,7 @@ async def get_disease(disease_id: str, user=Depends(verify_token)):
 @app.get("/api/wiki/search")
 async def search_wiki(q: str, category: str = "All Topics", user=Depends(verify_token)):
     try:
-        from duckduckgo_search import DDGS
+        
         query = f"{q} {category}" if category and category != "All Topics" else q
         results = []
         with DDGS() as ddgs:
@@ -930,6 +933,92 @@ async def search_wiki(q: str, category: str = "All Topics", user=Depends(verify_
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ── Pydantic schemas for Community Feature ───────────────────────────────────
+
+class PostCreate(BaseModel):
+    title: str
+    content: str
+    image_url: Optional[str] = None
+
+class CommentCreate(BaseModel):
+    post_id: str
+    content: str
+
+
+# ── Community Feed Endpoints ──────────────────────────────────────────────────
+
+@app.get("/api/community/posts")
+async def get_community_feed(user=Depends(verify_token)):
+    """Fetches all community posts sorted by newest first along with nested comments."""
+    try:
+        # Fetch posts
+        posts_response = supabase.table("posts").select("*").order("created_at", desc=True).execute()
+        posts = posts_response.data or []
+        
+        # Fetch comments
+        comments_response = supabase.table("comments").select("*").order("created_at", desc=False).execute()
+        all_comments = comments_response.data or []
+        
+    
+
+        # Build a post_id -> comments[] index once
+        comments_by_post = defaultdict(list)
+        for comment in all_comments:
+            comments_by_post[comment["post_id"]].append(comment)
+
+    # Nest comments within their respective posts securely in O(1) time
+        for post in posts:
+            post["comments"] = comments_by_post.get(post["id"], [])
+            
+        return {"success": True, "data": posts}
+    except Exception as e:
+        # Log the real internal error securely on the server side
+        print(f"Error fetching community feed: {str(e)}") 
+        raise HTTPException(
+            status_code=500, 
+            detail="An internal server error occurred while processing the community feed."
+        )
+
+
+@app.post("/api/community/posts", status_code=201)
+async def create_community_post(body: PostCreate, user=Depends(verify_token)):
+    """Creates a new post mapped to the authenticated user."""
+    try:
+        payload = {
+            "user_id": user.id,
+            "title": body.title,
+            "content": body.content,
+            "image_url": body.image_url
+        }
+        res = supabase.table("posts").insert(payload).execute()
+        return {"success": True, "data": (res.data[0] if res.data else None)}
+    except Exception as e:
+        # Log the real internal error securely on the server side
+        print(f"Error creating community post: {str(e)}") 
+        raise HTTPException(
+            status_code=500, 
+            detail="An internal server error occurred while creating the community post."
+        )
+
+
+@app.post("/api/community/comments", status_code=201)
+async def create_community_comment(body: CommentCreate, user=Depends(verify_token)):
+    """Adds a comment to an existing post mapped to the authenticated user."""
+    try:
+        payload = {
+            "post_id": body.post_id,
+            "user_id": user.id,
+            "content": body.content
+        }
+        res = supabase.table("comments").insert(payload).execute()
+        return {"success": True, "data": (res.data[0] if res.data else None)}
+    except Exception as e:
+        # Log the real internal error securely on the server side
+        print(f"Error creating community comment: {str(e)}") 
+        raise HTTPException(
+            status_code=500, 
+            detail="An internal server error occurred while creating the community comment."
+        )
 
 # ── Chatbot ───────────────────────────────────────────────────────────────────
 from fastapi import Depends
