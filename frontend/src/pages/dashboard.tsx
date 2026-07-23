@@ -112,6 +112,19 @@ const NAV = [
     ),
   },
   {
+    id: 'community',
+    labelKey: 'Community',
+    href: '/community',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+    ),
+  },
+  {
     id: 'profile',
     labelKey: 'dashboard.shell.nav.profile',
     icon: (
@@ -182,10 +195,16 @@ const DashboardPage: React.FC = () => {
               <button
                 key={item.id}
                 className={`${s.navItem} ${activeTab === item.id ? s.navItemActive : ''}`}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  if ((item as any).href) {
+                    router.push((item as any).href);
+                  } else {
+                    setActiveTab(item.id);
+                  }
+                }}
               >
                 <span className={s.navIcon}>{item.icon}</span>
-                {t(item.labelKey)}
+                {(item as any).href ? item.labelKey : t(item.labelKey)}
               </button>
             ))}
           </nav>
