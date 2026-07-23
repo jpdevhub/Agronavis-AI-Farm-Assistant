@@ -142,12 +142,8 @@ def load_clip():
     if clip_model is not None:
         return
     try:
-      feat/community-page
-        
-        print("Loading CLIP (OOD guard)…
         from transformers import CLIPModel, CLIPProcessor
         print("Loading CLIP (OOD guard)...")
-              main
         clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
         clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
         print("[OK] CLIP loaded")

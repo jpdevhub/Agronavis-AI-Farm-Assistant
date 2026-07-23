@@ -87,6 +87,7 @@ async def _call_gemini(system_prompt: str, history: list, message: str) -> str:
             continue
         print(f"[chatbot] Gemini error body: {resp.text}")
         return _fallback_response(message)
+    return _fallback_response(message)
 
 
 def _fallback_response(message: str) -> str:
