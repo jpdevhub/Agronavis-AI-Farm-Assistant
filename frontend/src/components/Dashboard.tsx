@@ -150,17 +150,6 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           setCrops(cropsData || []);
           if (cropsData?.length > 0 && !fertCrop) setFertCrop(cropsData[0].crop_type);
         } catch { /* no crops */ }
-        // Load fields for ALL farms so My Farms page shows correct counts
-        const fieldsMap: Record<string, Field[]> = {};
-        await Promise.all(
-          farmsData.map(async (farm: Farm) => {
-            try {
-              const flds = await farmApi.getFarmFields(farm.id);
-              fieldsMap[farm.id] = flds || [];
-            } catch { fieldsMap[farm.id] = []; }
-          })
-        );
-        setAllFarmsFields(fieldsMap);
       }
     } catch (err) {
       console.error('Error loading farms:', err);
@@ -215,10 +204,15 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           await soilService.estimateSoilHealth(selectedFarmId, geo.state, geo.district);
         }
       } catch { /* silent — soil estimation is best-effort */ }
-      // Refresh both farms (for total_area) and the fields list
-      await loadData();
-      const refreshed = await farmApi.getFarmFields(selectedFarmId);
-      setFields(refreshed || []);
+      // Re-fetch only the updated farm and its fields to keep UI snappy
+      const [updatedFarms, refreshedFields] = await Promise.all([
+        farmApi.getFarms(),
+        farmApi.getFarmFields(selectedFarmId)
+      ]);
+      setFarms(updatedFarms || []);
+      setFields(refreshedFields || []);
+      setAllFarmsFields(prev => ({ ...prev, [selectedFarmId]: refreshedFields || [] }));
+      
       setPendingField(null);
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (err: unknown) {
@@ -236,10 +230,15 @@ const Dashboard: React.FC<Props> = ({ activeTab, setActiveTab }) => {
     try {
       await farmApi.deleteFarmField(selectedFarmId, fieldId);
       setSaveMessage({ type: 'info', text: `"${fieldName}" removed.` });
-      // Refresh both farms (total_area updated by DB trigger) and fields list
-      await loadData();
-      const refreshed = await farmApi.getFarmFields(selectedFarmId);
-      setFields(refreshed || []);
+      // Re-fetch only the updated farm and its fields
+      const [updatedFarms, refreshedFields] = await Promise.all([
+        farmApi.getFarms(),
+        farmApi.getFarmFields(selectedFarmId)
+      ]);
+      setFarms(updatedFarms || []);
+      setFields(refreshedFields || []);
+      setAllFarmsFields(prev => ({ ...prev, [selectedFarmId]: refreshedFields || [] }));
+      
       setTimeout(() => setSaveMessage(null), 2500);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete field';
