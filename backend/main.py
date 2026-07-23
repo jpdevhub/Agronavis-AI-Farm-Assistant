@@ -88,7 +88,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         if not user_response or not user_response.user:
             print("verify_token failed: No user returned")
             raise HTTPException(status_code=401, detail="Invalid or expired token")
-        return user_response.user
+        return user_response.user  # type: ignore
     except HTTPException:
         raise
     except Exception as e:
@@ -469,7 +469,7 @@ def run_inference(image_bytes: bytes) -> PredictionResponse:
         probs = torch.nn.functional.softmax(out[0], dim=0)
         conf, idx = torch.max(probs, 0)
 
-    class_name = CLASS_NAMES[idx.item()]
+    class_name = CLASS_NAMES[idx.item()]  # type: ignore
     is_healthy = class_name.startswith("healthy_")
 
     return PredictionResponse(
@@ -642,8 +642,8 @@ async def update_farm(farm_id: str, body: FarmUpdate, user=Depends(verify_token)
     updates = body.model_dump(exclude_none=True)
     if "location" in updates:
         existing = supabase.table("farms").select("location").eq("id", farm_id).limit(1).execute()
-        current_loc = existing.data[0].get("location") or {}
-        updates["location"] = {**current_loc, **updates["location"]}
+        current_loc = existing.data[0].get("location") or {}  # type: ignore
+        updates["location"] = {**current_loc, **updates["location"]}  # type: ignore
 
     res = supabase.table("farms").update(updates).eq("id", farm_id).execute()
     return {"success": True, "data": (res.data[0] if res.data else None)}
@@ -669,7 +669,7 @@ async def get_fields(
         supabase.table("farms")
         .select("id")
         .eq("id", farm_id)
-        .eq("farmer_id", user.id)
+        .eq("farmer_id", user.id)  # type: ignore
         .limit(1)
         .execute()
     )
@@ -697,7 +697,7 @@ async def add_field(
         supabase.table("farms")
         .select("id")
         .eq("id", farm_id)
-        .eq("farmer_id", user.id)
+        .eq("farmer_id", user.id)  # type: ignore
         .limit(1)
         .execute()
     )
@@ -733,7 +733,7 @@ async def delete_field(
         supabase.table("farms")
         .select("id")
         .eq("id", farm_id)
-        .eq("farmer_id", user.id)
+        .eq("farmer_id", user.id)  # type: ignore
         .limit(1)
         .execute()
     )
@@ -768,7 +768,7 @@ async def update_crop(crop_id: str, body: CropUpdate, user=Depends(verify_token)
     crop = supabase.table("crops").select("farm_id").eq("id", crop_id).limit(1).execute()
     if not crop.data:
         raise HTTPException(status_code=404, detail="Crop not found")
-    owned = supabase.table("farms").select("id").eq("id", crop.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()
+    owned = supabase.table("farms").select("id").eq("id", crop.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()  # type: ignore
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
     res = supabase.table("crops").update(body.model_dump(exclude_none=True)).eq("id", crop_id).execute()
@@ -779,7 +779,7 @@ async def delete_crop(crop_id: str, user=Depends(verify_token)):
     crop = supabase.table("crops").select("farm_id").eq("id", crop_id).limit(1).execute()
     if not crop.data:
         raise HTTPException(status_code=404, detail="Crop not found")
-    owned = supabase.table("farms").select("id").eq("id", crop.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()
+    owned = supabase.table("farms").select("id").eq("id", crop.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()  # type: ignore
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
     supabase.table("crops").delete().eq("id", crop_id).execute()
@@ -814,7 +814,7 @@ async def delete_resource(resource_id: str, user=Depends(verify_token)):
     resource = supabase.table("farm_resources").select("farm_id").eq("id", resource_id).limit(1).execute()
     if not resource.data:
         raise HTTPException(status_code=404, detail="Resource not found")
-    owned = supabase.table("farms").select("id").eq("id", resource.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()
+    owned = supabase.table("farms").select("id").eq("id", resource.data[0]["farm_id"]).eq("farmer_id", user.id).limit(1).execute()  # type: ignore
     if not owned.data:
         raise HTTPException(status_code=403, detail="Access denied")
     supabase.table("farm_resources").delete().eq("id", resource_id).execute()
@@ -933,8 +933,8 @@ async def predict_yield(
         raise HTTPException(status_code=404, detail="Farm not found")
 
     farm = farm_res.data[0]
-    location = farm.get("location") or {}
-    fields: list = location.get("fields", [])
+    location = farm.get("location") or {}  # type: ignore
+    fields: list = location.get("fields", [])  # type: ignore
 
     if fields:
         area_ha = sum(
@@ -942,8 +942,8 @@ async def predict_yield(
             for f in fields
         )
     else:
-        area_acres = farm.get("total_area") or 0.0
-        area_ha = area_acres / 2.471
+        area_acres = farm.get("total_area") or 0.0  # type: ignore
+        area_ha = area_acres / 2.471  # type: ignore
 
     if area_ha <= 0:
         raise HTTPException(
