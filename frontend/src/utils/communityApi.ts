@@ -1,5 +1,5 @@
 // Safe structural index fallback using Next.js build-time inlining
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
 /**
  * Helper to fetch local storage session auth headers uniformly 
@@ -61,7 +61,7 @@ export const communityApi = {
    * Fetches the entire community feed with nested comments
    */
   async getFeed(): Promise<Post[]> {
-    const response = await fetch(`${BASE_URL}/api/community/posts`, {
+    const response = await fetch(`${BASE_URL}/community/posts`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -74,7 +74,7 @@ export const communityApi = {
    * Publishes a new post to the community feed
    */
   async createPost(title: string, content: string, imageUrl?: string): Promise<Post> {
-    const response = await fetch(`${BASE_URL}/api/community/posts`, {
+    const response = await fetch(`${BASE_URL}/community/posts`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ title, content, image_url: imageUrl || null }),
@@ -88,7 +88,7 @@ export const communityApi = {
    * Adds a comment to an existing community post
    */
   async createComment(postId: string, content: string): Promise<Comment> {
-    const response = await fetch(`${BASE_URL}/api/community/comments`, {
+    const response = await fetch(`${BASE_URL}/community/comments`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ post_id: postId, content }),
