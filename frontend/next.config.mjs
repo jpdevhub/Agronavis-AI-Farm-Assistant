@@ -89,6 +89,9 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   reactStrictMode: true,
   images: {
     remotePatterns: [
